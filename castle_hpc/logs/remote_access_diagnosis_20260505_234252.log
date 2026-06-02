@@ -1,0 +1,10 @@
+video_path: main/day1/Onanong/video/10.mp4
+remote_url: https://huggingface.co/datasets/CASTLE-Dataset/CASTLE2024/resolve/main/main/day1/Onanong/video/10.mp4
+target_clock_time: 10:06:00.000
+offset_seconds: 360.000
+Wrote castle_remote_http_probe.txt
+Wrote castle_curl_probe.txt
+Wrote castle_ffprobe_probe.txt
+Wrote castle_ffmpeg_remote_seek_probe.txt
+Wrote castle_remote_access_diagnosis.txt
+Local probe artifact size: 637383 bytes

@@ -1,0 +1,5 @@
+COMMAND: /scratch/xy3257/castle_hpc/envs/castle/bin/ffmpeg -hide_banner -v error -nostdin -y -rw_timeout 30000000 -reconnect 1 -reconnect_on_network_error 1 -reconnect_streamed 1 -reconnect_delay_max 5 -multiple_requests 1 -seekable 1 -ss 359.960 -i https://huggingface.co/datasets/CASTLE-Dataset/CASTLE2024/resolve/main/main/day1/Living1/video/10.mp4 -frames:v 1 -q:v 2 castle_event_relevant_frames/DAY1_100500000/overview/Living1_100600000.jpg
+RETURN_CODE: 0
+STDOUT:
+
+STDERR:

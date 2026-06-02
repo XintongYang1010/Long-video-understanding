@@ -1,0 +1,5 @@
+window_id,entity,stream_type,video_path,target_clock_time,offset_seconds,output_frame,stderr_log,status,local_size_before_bytes,local_size_after_bytes
+DAY1_100500000,Onanong,ego,main/day1/Onanong/video/10.mp4,10:06:00.000,360.000,castle_low_bandwidth_remote_frames/DAY1_100500000_Onanong_100600000.jpg,castle_low_bandwidth_ffmpeg_logs/DAY1_100500000_Onanong.stderr.txt,ok,0,631671
+DAY1_100500000,Kitchen,static,main/day1/Kitchen/video/10.mp4,10:06:00.000,359.940,castle_low_bandwidth_remote_frames/DAY1_100500000_Kitchen_100600000.jpg,castle_low_bandwidth_ffmpeg_logs/DAY1_100500000_Kitchen.stderr.txt,ok,631671,1270502
+DAY1_100500000,Living1,static,main/day1/Living1/video/10.mp4,10:06:00.000,359.960,castle_low_bandwidth_remote_frames/DAY1_100500000_Living1_100600000.jpg,castle_low_bandwidth_ffmpeg_logs/DAY1_100500000_Living1.stderr.txt,ok,1270502,2100887
+DAY1_100500000,Tien,ego,main/day1/Tien/video/10.mp4,10:06:00.000,359.980,castle_low_bandwidth_remote_frames/DAY1_100500000_Tien_100600000.jpg,castle_low_bandwidth_ffmpeg_logs/DAY1_100500000_Tien.stderr.txt,ok,2100887,2599279

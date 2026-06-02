@@ -1,0 +1,6 @@
+COMMAND: /scratch/xy3257/castle_poc/cenv/bin/ffmpeg -hide_banner -v error -nostdin -y -rw_timeout 30000000 -reconnect 1 -reconnect_on_network_error 1 -reconnect_streamed 1 -reconnect_delay_max 5 -multiple_requests 1 -seekable 1 -ss 1649.980 -i https://huggingface.co/datasets/CASTLE-Dataset/CASTLE2024/resolve/main/main/day3/Onanong/video/12.mp4 ...
+RETURN_CODE: 0
+STDOUT:
+
+STDERR:
+

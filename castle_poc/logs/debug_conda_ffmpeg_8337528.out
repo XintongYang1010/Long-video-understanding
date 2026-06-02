@@ -1,0 +1,19 @@
+HOSTNAME=cs606.hpc.nyu.edu
+FF=/scratch/xy3257/castle_poc/cenv/bin/ffmpeg
+ffmpeg version 6.1.2 Copyright (c) 2000-2024 the FFmpeg developers
+built with gcc 13.3.0 (conda-forge gcc 13.3.0-1)
+configuration: --prefix=/scratch/xy3257/castle_poc/cenv --cc=/home/conda/feedstock_root/build_artifacts/ffmpeg_1730671262093/_build_env/bin/x86_64-conda-linux-gnu-cc --cxx=/home/conda/feedstock_root/build_artifacts/ffmpeg_1730671262093/_build_env/bin/x86_64-conda-linux-gnu-c++ --nm=/home/conda/feedstock_root/build_artifacts/ffmpeg_1730671262093/_build_env/bin/x86_64-conda-linux-gnu-nm --ar=/home/conda/feedstock_root/build_artifacts/ffmpeg_1730671262093/_build_env/bin/x86_64-conda-linux-gnu-ar --disable-doc --enable-openssl --enable-demuxer=dash --enable-hardcoded-tables --enable-libfreetype --enable-libharfbuzz --enable-libfontconfig --enable-libopenh264 --enable-libdav1d --disable-gnutls --enable-libmp3lame --enable-libvpx --enable-libass --enable-pthreads --enable-vaapi --enable-libopenvino --enable-gpl --enable-libx264 --enable-libx265 --enable-libaom --enable-libsvtav1 --enable-libxml2 --enable-pic --enable-shared --disable-static --enable-version3 --enable-zlib --enable-libopus --pkg-config=/home/conda/feedstock_root/build_artifacts/ffmpeg_1730671262093/_build_env/bin/pkg-config
+libavutil      58. 29.100 / 58. 29.100
+libavcodec     60. 31.102 / 60. 31.102
+
+===== CURL RANGE CONTROL =====
+http_code=206 size_download=1048576 time_total=0.079136
+-rw-r--r--. 1 xy3257 xy3257 1.0M May  9 21:07 debug_conda_ffmpeg/allie_1mb_probe.bin
+
+===== CONDA FFMPEG EXTRACTION TEST =====
+RETURN_CODE=0
+-rw-r--r--. 1 xy3257 xy3257 614K May  9 21:07 debug_conda_ffmpeg/allie_conda.jpg
+
+===== OUTPUT FILES =====
+9380421188704181010   1024 -rw-r--r--   1 xy3257   xy3257    1048576 May  9 21:07 debug_conda_ffmpeg/allie_1mb_probe.bin
+6081097533710749247    614 -rw-r--r--   1 xy3257   xy3257     628713 May  9 21:07 debug_conda_ffmpeg/allie_conda.jpg

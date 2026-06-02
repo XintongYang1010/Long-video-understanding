@@ -1,0 +1,13 @@
+Window: DAY1_100500000 10:05:00.000-10:10:00.000
+Active streams: 15
+Overview frames extracted: 15/15
+CLIP status: CLIP skipped by --skip-clip
+Selected event-relevant views: Onanong, Tien, Living1, Living2
+Event frames extracted: 12/12
+Local tracked storage: 19.161 MB
+hf_hub_download for videos: NO
+Wrote castle_window_overview_DAY1_100500000.png
+Wrote castle_window_view_similarity_DAY1_100500000.csv
+Wrote castle_event_relevant_views_DAY1_100500000.csv
+Wrote castle_event_relevant_contact_sheet_DAY1_100500000.png
+Wrote castle_event_relevant_view_selection_report.txt

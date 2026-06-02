@@ -1,0 +1,4 @@
+window_id,day,period,window_start,window_end,num_active_ego,num_active_static,total_active_streams,active_ego_entities,active_static_entities
+DAY1_100500000,DAY1,morning,10:05:00.000,10:10:00.000,10,5,15,Allie;Bjorn;Cathal;Florian;Klaus;Luca;Onanong;Stevan;Tien;Werner,Kitchen;Living1;Living2;Meeting;Reading
+DAY4_120500000,DAY4,afternoon,12:05:00.000,12:10:00.000,10,5,15,Allie;Bao;Bjorn;Cathal;Florian;Klaus;Luca;Onanong;Stevan;Werner,Kitchen;Living1;Living2;Meeting;Reading
+DAY3_174500000,DAY3,evening,17:45:00.000,17:50:00.000,10,5,15,Allie;Bjorn;Cathal;Florian;Klaus;Luca;Onanong;Stevan;Tien;Werner,Kitchen;Living1;Living2;Meeting;Reading

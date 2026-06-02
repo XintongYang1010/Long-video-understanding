@@ -1,0 +1,5 @@
+window_id,day,period,entity,stream_type,segment_id,video_path,video_start_time,video_end_time,window_start,window_end,target_clock_time,offset_seconds
+DAY1_100500000,DAY1,morning,Onanong,ego,10,main/day1/Onanong/video/10.mp4,10:00:00.000,10:59:59.900,10:05:00.000,10:10:00.000,10:06:00.000,360.000
+DAY1_100500000,DAY1,morning,Kitchen,static,10,main/day1/Kitchen/video/10.mp4,10:00:00.060,10:59:59.960,10:05:00.000,10:10:00.000,10:06:00.000,359.940
+DAY1_100500000,DAY1,morning,Living1,static,10,main/day1/Living1/video/10.mp4,10:00:00.040,10:59:59.940,10:05:00.000,10:10:00.000,10:06:00.000,359.960
+DAY1_100500000,DAY1,morning,Tien,ego,10,main/day1/Tien/video/10.mp4,10:00:00.020,10:59:59.920,10:05:00.000,10:10:00.000,10:06:00.000,359.980

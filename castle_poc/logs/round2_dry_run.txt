@@ -1,0 +1,7 @@
+Wrote candidate_true_AB_cases_round2.csv
+Wrote true_AB_search_summary_round2.md
+Output dir: candidate_true_AB_contact_sheets_round2
+Candidate windows: 10
+Contact sheets generated: 0
+Frame extraction ok: 0/519
+Local storage MB: 0.138

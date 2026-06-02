@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/scratch/xy3257/castle_poc/castle_incremental_qa_poc.py", line 27, in <module>
+    from castle_event_relevant_view_selection import (
+  File "/scratch/xy3257/castle_poc/castle_event_relevant_view_selection.py", line 32, in <module>
+    from huggingface_hub import hf_hub_url
+ModuleNotFoundError: No module named 'huggingface_hub'

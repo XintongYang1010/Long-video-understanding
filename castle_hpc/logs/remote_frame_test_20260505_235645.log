@@ -1,0 +1,11 @@
+Selected micro-test window: DAY1_100500000 10:05:00.000-10:10:00.000
+Selected streams: 4
+Successful frame extractions: 4/4
+Tracked local storage: 2.479 MB
+Stopped reason: none
+hf_hub_download for videos: NO
+Wrote castle_low_bandwidth_test_selection.csv
+Wrote castle_remote_url_test_table.csv
+Wrote castle_low_bandwidth_extraction_log.csv
+Wrote castle_low_bandwidth_remote_frame_report.txt
+Wrote castle_low_bandwidth_multiview_contact_sheet_micro.png

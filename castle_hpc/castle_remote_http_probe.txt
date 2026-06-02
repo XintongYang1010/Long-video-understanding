@@ -1,0 +1,17 @@
+CASTLE Python HTTP probe
+
+video_path: main/day1/Onanong/video/10.mp4
+remote_url: https://huggingface.co/datasets/CASTLE-Dataset/CASTLE2024/resolve/main/main/day1/Onanong/video/10.mp4
+target_clock_time: 10:06:00.000
+offset_seconds: 360.000
+
+HEAD:
+  status: 200
+  final_url: https://cas-bridge.xethub.hf.co/xet-bridge-us/68e6386d06e22454027889b7/d140cdd3c33c49bd7163aa7ae651045bf549f1737dafb5b60a29a58a4d119c52?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=cas%2F20260506%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260506T034252Z&X-Amz-Expires=3600&X-Amz-Signature=e5a30b6b8388fea2fcba113730da89d73486a894d631bda57b3d5640ee703237&X-Amz-SignedHeaders=host&X-Xet-Cas-Uid=public&response-content-disposition=inline%3B+filename*%3DUTF-8%27%2710.mp4%3B+filename%3D%2210.mp4%22%3B&response-content-type=video%2Fmp4&x-amz-checksum-mode=ENABLED&x-id=GetObject&Expires=1778042572&Policy=eyJTdGF0ZW1lbnQiOlt7IkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc3ODA0MjU3Mn19LCJSZXNvdXJjZSI6Imh0dHBzOi8vY2FzLWJyaWRnZS54ZXRodWIuaGYuY28veGV0LWJyaWRnZS11cy82OGU2Mzg2ZDA2ZTIyNDU0MDI3ODg5YjcvZDE0MGNkZDNjMzNjNDliZDcxNjNhYTdhZTY1MTA0NWJmNTQ5ZjE3MzdkYWZiNWI2MGEyOWE1OGE0ZDExOWM1MioifV19&Signature=AWfB%7E-R1HkO0pgvu2YmpelS8qiBdFGnWtjxAqWKhUdxH8RR%7EsjxxlKaymxJ1QotPRWGiXtKbMCNWDLEFyJ2a%7EFORzVf3sBlsRfcYzBcy0uzj1e2FfmkG2HtEicqXtnFsJ4c9VQgO2oAX10ZirJumAAH08bQjAy2DVtnr4FO-6fGMrW32znzkFjAoVPuCUBkUGWQddxzA7im1ScPA2qHaFERmz657rcflf3-smQv135YRMla-5vYW-DZXr%7EBE97JKHuZuhBpTi3kVujLJY61dRnEIpyJoNFuLOZUrzfW2KoKqwfr7Nj27g2D7TBbNbHlhXOwAiFV2YqcLDNsSKTwsbg__&Key-Pair-Id=K2L8F4GPSG1IFC
+  content-length: 12020674537
+  accept-ranges: bytes
+
+RANGE GET bytes=0-1023:
+  status: 206
+  final_url: https://cas-bridge.xethub.hf.co/xet-bridge-us/68e6386d06e22454027889b7/d140cdd3c33c49bd7163aa7ae651045bf549f1737dafb5b60a29a58a4d119c52?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=cas%2F20260506%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260506T034253Z&X-Amz-Expires=3600&X-Amz-Signature=382b1a052d2faad9eebb158bf1d859b41122f4b9025ec88c9911bbde2aef6d92&X-Amz-SignedHeaders=host&X-Xet-Cas-Uid=public&response-content-disposition=inline%3B+filename*%3DUTF-8%27%2710.mp4%3B+filename%3D%2210.mp4%22%3B&response-content-type=video%2Fmp4&x-amz-checksum-mode=ENABLED&x-id=GetObject&Expires=1778042573&Policy=eyJTdGF0ZW1lbnQiOlt7IkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc3ODA0MjU3M319LCJSZXNvdXJjZSI6Imh0dHBzOi8vY2FzLWJyaWRnZS54ZXRodWIuaGYuY28veGV0LWJyaWRnZS11cy82OGU2Mzg2ZDA2ZTIyNDU0MDI3ODg5YjcvZDE0MGNkZDNjMzNjNDliZDcxNjNhYTdhZTY1MTA0NWJmNTQ5ZjE3MzdkYWZiNWI2MGEyOWE1OGE0ZDExOWM1MioifV19&Signature=jMto%7E5CJzot7wZVUh6eyXsbAA7Ovte736Ak1rCYN16s2w52uxW1fovj1gDbcbXwtgLOeCy%7EgMbkfhQPcMAvf1pg0SQtlp35vw2x3Sv%7ENQKTezeRQrl6I0V2k%7EHebnvzJx1wmq5-vZG1Ck7UUBNXCmcie-8EwyqdnzVjigJoMLK4QHyp8M1JYrJ2m0fX8L%7E7DARTotWUl5vhyK7AGBhYUBf5gWrrLELyxJZm5HJMow6Xe9xH12DG5ZMRIWCzIvDEcLJWzdKNeQfYx0SkFyDe7sKYfnrE1isWpNTEoSbiwK5Nzliinxr%7Eu0Laoo%7EmRoN2ucDn8quQq7mvzEmQ8ZmwKJg__&Key-Pair-Id=K2L8F4GPSG1IFC
+  bytes_received: 1024

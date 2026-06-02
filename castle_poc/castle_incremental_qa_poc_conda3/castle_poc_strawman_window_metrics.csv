@@ -1,0 +1,22 @@
+window_id,method,querying_user,num_views_used,answer_accuracy_if_labels_available,evidence_sufficiency_manual,direct_evidence_recall_at_k,incremental_evidence_recall_at_k,duplicate_rate_with_self,off_event_access_rate,average_number_of_views_used,notes
+DAY1_100500000,self-only,Onanong,1,,,0.333333,0.000000,,0.000000,1,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY1_100500000,self + random other ego,Onanong,2,,,0.333333,0.000000,,0.000000,2,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY1_100500000,self + most CLIP-similar other ego,Onanong,2,,,0.333333,0.000000,,0.000000,2,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY1_100500000,self + MMR incremental other ego,Onanong,2,,,0.333333,0.000000,,0.000000,2,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY1_100500000,self + best static,Onanong,2,,,0.666667,0.250000,,0.000000,2,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY1_100500000,all active views,Onanong,15,,,1.000000,1.000000,,0.200000,15,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY1_100500000,oracle views,Onanong,5,,,1.000000,1.000000,,0.000000,5,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY4_120500000,self-only,Allie,1,,,,,,,1,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY4_120500000,self + random other ego,Allie,2,,,,,,,2,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY4_120500000,self + most CLIP-similar other ego,Allie,2,,,,,,,2,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY4_120500000,self + MMR incremental other ego,Allie,2,,,,,,,2,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY4_120500000,self + best static,Allie,2,,,,,,,2,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY4_120500000,all active views,Allie,15,,,,,,,15,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY4_120500000,oracle views,Allie,1,,,,,,,1,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY3_174500000,self-only,Allie,1,,,,,,,1,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY3_174500000,self + random other ego,Allie,2,,,,,,,2,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY3_174500000,self + most CLIP-similar other ego,Allie,2,,,,,,,2,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY3_174500000,self + MMR incremental other ego,Allie,2,,,,,,,2,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY3_174500000,self + best static,Allie,2,,,,,,,2,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY3_174500000,all active views,Allie,15,,,,,,,15,Manual QA labels not yet filled; accuracy/sufficiency require annotation.
+DAY3_174500000,oracle views,Allie,1,,,,,,,1,Manual QA labels not yet filled; accuracy/sufficiency require annotation.

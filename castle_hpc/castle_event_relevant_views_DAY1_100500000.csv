@@ -1,0 +1,16 @@
+selected,entity,stream_type,video_path,overview_frame_path,target_clock_time,similarity_to_onanong_tien_anchor,reason
+no,Allie,ego,main/day1/Allie/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Allie_100600000.jpg,10:06:00.000,,excluded: not in event-relevant living-room group
+no,Bjorn,ego,main/day1/Bjorn/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Bjorn_100600000.jpg,10:06:00.000,,excluded: not in event-relevant living-room group
+no,Cathal,ego,main/day1/Cathal/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Cathal_100600000.jpg,10:06:00.000,,excluded: not in event-relevant living-room group
+no,Florian,ego,main/day1/Florian/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Florian_100600000.jpg,10:06:00.000,,excluded: not in event-relevant living-room group
+no,Klaus,ego,main/day1/Klaus/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Klaus_100600000.jpg,10:06:00.000,,excluded: not in event-relevant living-room group
+no,Luca,ego,main/day1/Luca/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Luca_100600000.jpg,10:06:00.000,,excluded: not in event-relevant living-room group
+yes,Onanong,ego,main/day1/Onanong/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Onanong_100600000.jpg,10:06:00.000,,anchor ego living-room event
+no,Stevan,ego,main/day1/Stevan/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Stevan_100600000.jpg,10:06:00.000,,excluded: not in event-relevant living-room group
+yes,Tien,ego,main/day1/Tien/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Tien_100600000.jpg,10:06:00.000,,anchor ego living-room event
+no,Werner,ego,main/day1/Werner/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Werner_100600000.jpg,10:06:00.000,,excluded: not in event-relevant living-room group
+yes,Living1,static,main/day1/Living1/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Living1_100600000.jpg,10:06:00.000,,selected by fallback heuristic: living-room static camera
+yes,Living2,static,main/day1/Living2/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Living2_100600000.jpg,10:06:00.000,,selected by fallback heuristic: living-room static camera
+no,Meeting,static,main/day1/Meeting/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Meeting_100600000.jpg,10:06:00.000,,excluded: not in event-relevant living-room group
+no,Reading,static,main/day1/Reading/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Reading_100600000.jpg,10:06:00.000,,excluded: not in event-relevant living-room group
+no,Kitchen,static,main/day1/Kitchen/video/10.mp4,castle_event_relevant_frames/DAY1_100500000/overview/Kitchen_100600000.jpg,10:06:00.000,,excluded by fallback heuristic: kitchen is active but off-event for this living-room group

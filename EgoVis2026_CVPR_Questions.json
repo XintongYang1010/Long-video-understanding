@@ -1,0 +1,1852 @@
+[
+  {
+    "id": "2026_q0001",
+    "query": "At what rate was Cathal charging his car on the last day?",
+    "answers": {
+      "a": "2300w",
+      "b": "1700w",
+      "c": "800w",
+      "d": "1000w"
+    }
+  },
+  {
+    "id": "2026_q0002",
+    "query": "At what temperature did Allie put the sausages in the oven?",
+    "answers": {
+      "a": "190c",
+      "b": "200c",
+      "c": "180c",
+      "d": "170c"
+    }
+  },
+  {
+    "id": "2026_q0003",
+    "query": "During the first day workshop opening presentations, where was the notebook computer placed?",
+    "answers": {
+      "a": "On a folding ladder",
+      "b": "On a high chair brought from the kitchen",
+      "c": "On an ottoman chair",
+      "d": "On a wooden chair brought from the dining table"
+    }
+  },
+  {
+    "id": "2026_q0004",
+    "query": "During the Mamamoo Happy Quiz round, what colour is the quiz buzzer that team Cathal and Ononang used?",
+    "answers": {
+      "a": "Yellow",
+      "b": "Green",
+      "c": "Blue",
+      "d": "Red"
+    }
+  },
+  {
+    "id": "2026_q0005",
+    "query": "During what topic on the Happy Quiz did Florian's SD card fill up?",
+    "answers": {
+      "a": "Movies",
+      "b": "Electronics",
+      "c": "Geography",
+      "d": "Crypto"
+    }
+  },
+  {
+    "id": "2026_q0006",
+    "query": "For what challenge was Cathal working on queries while Allie and Klaus were playing chess next to him?",
+    "answers": {
+      "a": "Vbs",
+      "b": "Trec",
+      "c": "Clef",
+      "d": "Ntcir"
+    }
+  },
+  {
+    "id": "2026_q0007",
+    "query": "How did Florian get the answer for the quiz question \"Who is the father of AI?\"",
+    "answers": {
+      "a": "From his memory",
+      "b": "Asking chatgpt",
+      "c": "Googling",
+      "d": "Asking siri"
+    }
+  },
+  {
+    "id": "2026_q0008",
+    "query": "How did the chess game, that Allie played after winning against Werner, end?",
+    "answers": {
+      "a": "Klaus won",
+      "b": "Luca won",
+      "c": "Allie won",
+      "d": "Draw/undecided"
+    }
+  },
+  {
+    "id": "2026_q0009",
+    "query": "How fast did Cathal state he was going in an 80 km/h zone?",
+    "answers": {
+      "a": "85",
+      "b": "67",
+      "c": "73",
+      "d": "63"
+    }
+  },
+  {
+    "id": "2026_q0010",
+    "query": "How many carrots did Luca peel for Allie?",
+    "answers": {
+      "a": "5",
+      "b": "9",
+      "c": "3",
+      "d": "7"
+    }
+  },
+  {
+    "id": "2026_q0011",
+    "query": "How many cars are parked around the house?",
+    "answers": {
+      "a": "1",
+      "b": "3",
+      "c": "2",
+      "d": "4"
+    }
+  },
+  {
+    "id": "2026_q0012",
+    "query": "How many chessboards are there?",
+    "answers": {
+      "a": "One",
+      "b": "Four",
+      "c": "Two",
+      "d": "Three"
+    }
+  },
+  {
+    "id": "2026_q0013",
+    "query": "How many colored pens were in the box?",
+    "answers": {
+      "a": "24",
+      "b": "6",
+      "c": "12",
+      "d": "18"
+    }
+  },
+  {
+    "id": "2026_q0014",
+    "query": "How many cookies were on the first tray to go into the oven?",
+    "answers": {
+      "a": "16",
+      "b": "15",
+      "c": "14",
+      "d": "12"
+    }
+  },
+  {
+    "id": "2026_q0015",
+    "query": "How many cups were on the kitchen island around the sink on Day 2 in the morning?",
+    "answers": {
+      "a": "4",
+      "b": "6",
+      "c": "5",
+      "d": "7"
+    }
+  },
+  {
+    "id": "2026_q0016",
+    "query": "How many duck sculptures are on the top shelf to the right of the fireplace?",
+    "answers": {
+      "a": "3",
+      "b": "6",
+      "c": "5",
+      "d": "4"
+    }
+  },
+  {
+    "id": "2026_q0017",
+    "query": "How many egg yolks were used to make the cinnamon star cookies?",
+    "answers": {
+      "a": "6",
+      "b": "12",
+      "c": "0",
+      "d": "1"
+    }
+  },
+  {
+    "id": "2026_q0018",
+    "query": "How many eggs did Cathal put into the rice pudding?",
+    "answers": {
+      "a": "2",
+      "b": "3",
+      "c": "1",
+      "d": "4"
+    }
+  },
+  {
+    "id": "2026_q0019",
+    "query": "How many eggs have been scrambled for breakfast on the third day?",
+    "answers": {
+      "a": "30",
+      "b": "24",
+      "c": "18",
+      "d": "12"
+    }
+  },
+  {
+    "id": "2026_q0020",
+    "query": "How many flower pots are on the black bench outside the front door of the house?",
+    "answers": {
+      "a": "2",
+      "b": "3",
+      "c": "4",
+      "d": "1"
+    }
+  },
+  {
+    "id": "2026_q0021",
+    "query": "How many km away did Allie live from Cambodia, according to Cathal?",
+    "answers": {
+      "a": "10 km",
+      "b": "100 km",
+      "c": "250 km",
+      "d": "50 km"
+    }
+  },
+  {
+    "id": "2026_q0022",
+    "query": "How many Laptops were used to show the QR clock?",
+    "answers": {
+      "a": "3",
+      "b": "4",
+      "c": "1",
+      "d": "2"
+    }
+  },
+  {
+    "id": "2026_q0023",
+    "query": "How many layers of sheets were used for the lasagna?",
+    "answers": {
+      "a": "4",
+      "b": "3",
+      "c": "5",
+      "d": "6"
+    }
+  },
+  {
+    "id": "2026_q0024",
+    "query": "How many levels did the wood towers have, which amazed Cathal and Tien?",
+    "answers": {
+      "a": "17",
+      "b": "14",
+      "c": "10",
+      "d": "8"
+    }
+  },
+  {
+    "id": "2026_q0025",
+    "query": "How many lights are hanging over the kitchen island?",
+    "answers": {
+      "a": "3",
+      "b": "1",
+      "c": "4",
+      "d": "2"
+    }
+  },
+  {
+    "id": "2026_q0026",
+    "query": "How many lights were on the Christmas tree?",
+    "answers": {
+      "a": "192",
+      "b": "120",
+      "c": "56",
+      "d": "100"
+    }
+  },
+  {
+    "id": "2026_q0027",
+    "query": "How many of the circuit breakers in the main breaker box of the house are labelled",
+    "answers": {
+      "a": "Half",
+      "b": "All",
+      "c": "None",
+      "d": "One"
+    }
+  },
+  {
+    "id": "2026_q0028",
+    "query": "How many oranges were used to make the mulled wine?",
+    "answers": {
+      "a": "6",
+      "b": "5",
+      "c": "3",
+      "d": "4"
+    }
+  },
+  {
+    "id": "2026_q0029",
+    "query": "How many pain au chocolat did Stevan make for breakfast?",
+    "answers": {
+      "a": "38",
+      "b": "16",
+      "c": "30",
+      "d": "24"
+    }
+  },
+  {
+    "id": "2026_q0030",
+    "query": "How many paintings are hanging over the large couch?",
+    "answers": {
+      "a": "3",
+      "b": "6",
+      "c": "4",
+      "d": "5"
+    }
+  },
+  {
+    "id": "2026_q0031",
+    "query": "How many people in the world are called Bjorn Thor Jonsson, according to Bjorn?",
+    "answers": {
+      "a": "1",
+      "b": "4",
+      "c": "2",
+      "d": "3"
+    }
+  },
+  {
+    "id": "2026_q0032",
+    "query": "How many people were posing for the thermal group picture?",
+    "answers": {
+      "a": "2",
+      "b": "8",
+      "c": "3",
+      "d": "5"
+    }
+  },
+  {
+    "id": "2026_q0033",
+    "query": "How many recessed lights are in the ceiling of the kitchen?",
+    "answers": {
+      "a": "6",
+      "b": "8",
+      "c": "2",
+      "d": "4"
+    }
+  },
+  {
+    "id": "2026_q0034",
+    "query": "How many slices of lime were left after the meal on day 2?",
+    "answers": {
+      "a": "3",
+      "b": "7",
+      "c": "5",
+      "d": "10"
+    }
+  },
+  {
+    "id": "2026_q0035",
+    "query": "How many slices of tomato did Klaus have for breakfast on the third day?",
+    "answers": {
+      "a": "2",
+      "b": "4",
+      "c": "3",
+      "d": "5"
+    }
+  },
+  {
+    "id": "2026_q0036",
+    "query": "How many tea bags were in the teapot on the second day?",
+    "answers": {
+      "a": "3",
+      "b": "2",
+      "c": "1",
+      "d": "4"
+    }
+  },
+  {
+    "id": "2026_q0037",
+    "query": "How many tubs of lasagna were made?",
+    "answers": {
+      "a": "4",
+      "b": "1",
+      "c": "3",
+      "d": "2"
+    }
+  },
+  {
+    "id": "2026_q0038",
+    "query": "How much did Cathal spend on the four buzzers for the happy quiz?",
+    "answers": {
+      "a": "12 eur",
+      "b": "4 eur",
+      "c": "9 eur",
+      "d": "16 eur"
+    }
+  },
+  {
+    "id": "2026_q0039",
+    "query": "How much did it cost to rent the two houses for the duration of the CASTLE event?",
+    "answers": {
+      "a": "4000 eur",
+      "b": "9000 eur",
+      "c": "7000 eur",
+      "d": "8000 eur"
+    }
+  },
+  {
+    "id": "2026_q0040",
+    "query": "In which cupboard did Werner store the liquid measuring cup?",
+    "answers": {
+      "a": "The cupboard next to the fridge.",
+      "b": "The lower cupboard, to the left of the dishwasher.",
+      "c": "The upper cupboard, above the coffee machine.",
+      "d": "The lower cupboard, opposite the dishwasher."
+    }
+  },
+  {
+    "id": "2026_q0041",
+    "query": "In which cupboard was the role of trash bags stored?",
+    "answers": {
+      "a": "Upper leftmost",
+      "b": "Lower leftmost",
+      "c": "Lower right next to the stove",
+      "d": "Lower left next to the stove"
+    }
+  },
+  {
+    "id": "2026_q0042",
+    "query": "What activity was taking place in the kitchen while Cathal was opening the Christmas pudding?",
+    "answers": {
+      "a": "Food preparation",
+      "b": "Brewing coffee",
+      "c": "Cleaning",
+      "d": "Snacking"
+    }
+  },
+  {
+    "id": "2026_q0043",
+    "query": "What alcohol percentage did the rum have that went into the mulled wine?",
+    "answers": {
+      "a": "60%",
+      "b": "80%",
+      "c": "70%",
+      "d": "65%"
+    }
+  },
+  {
+    "id": "2026_q0044",
+    "query": "What are Onanong and Tien doing when Allie is playing \"Twinkle Twinkle Little Star\" on the guitar?",
+    "answers": {
+      "a": "Putting up the christmas tree",
+      "b": "Playing the sea battle game",
+      "c": "Eating breakfast",
+      "d": "Unloading the dishwasher"
+    }
+  },
+  {
+    "id": "2026_q0045",
+    "query": "What bank does Cathal use?",
+    "answers": {
+      "a": "Wise",
+      "b": "Bunq",
+      "c": "Revolut",
+      "d": "N26"
+    }
+  },
+  {
+    "id": "2026_q0046",
+    "query": "What book was Allie reading?",
+    "answers": {
+      "a": "A christmas carol",
+      "b": "War of the words",
+      "c": "Alice's adventures in wonderland",
+      "d": "Strange case of dr. jekyll and mr. hyde"
+    }
+  },
+  {
+    "id": "2026_q0047",
+    "query": "What brand is the dishwasher?",
+    "answers": {
+      "a": "Whirlpool",
+      "b": "Hotpoint",
+      "c": "Siemens",
+      "d": "Bosch"
+    }
+  },
+  {
+    "id": "2026_q0048",
+    "query": "What brand is the fridge in the kitchen?",
+    "answers": {
+      "a": "Liebherr",
+      "b": "Whirlpool",
+      "c": "Samsung",
+      "d": "Bosch"
+    }
+  },
+  {
+    "id": "2026_q0049",
+    "query": "What brand of tea was available?",
+    "answers": {
+      "a": "Barry's",
+      "b": "Lyons",
+      "c": "Punjana",
+      "d": "Bewley's"
+    }
+  },
+  {
+    "id": "2026_q0050",
+    "query": "What challenge type did Stevan advocate for during the workshop on the third day?",
+    "answers": {
+      "a": "Conversational search",
+      "b": "Visual search",
+      "c": "Continuous querying",
+      "d": "Unstructured exploration"
+    }
+  },
+  {
+    "id": "2026_q0051",
+    "query": "What cheese did Cathal say \"is a great cheese\"?",
+    "answers": {
+      "a": "Kavanagh's port salut cheese",
+      "b": "Applewood cheese",
+      "c": "Kavanagh's carrigaline plain cheese",
+      "d": "Supervalu emmental cheese"
+    }
+  },
+  {
+    "id": "2026_q0052",
+    "query": "What chore was Cathal doing on the morning of the second day?",
+    "answers": {
+      "a": "Sweeping floors",
+      "b": "Shining shoes",
+      "c": "Washing towels",
+      "d": "Frying eggs"
+    }
+  },
+  {
+    "id": "2026_q0053",
+    "query": "What color are Florian's slippers?",
+    "answers": {
+      "a": "Grey",
+      "b": "Purple",
+      "c": "Blue",
+      "d": "Black"
+    }
+  },
+  {
+    "id": "2026_q0054",
+    "query": "What color are the flowers in the middle painting of the three on the wall behind the couch?",
+    "answers": {
+      "a": "Blue",
+      "b": "White",
+      "c": "Pink",
+      "d": "Yellow"
+    }
+  },
+  {
+    "id": "2026_q0055",
+    "query": "What color is Allie's bracelet?",
+    "answers": {
+      "a": "White",
+      "b": "Black",
+      "c": "Gold",
+      "d": "Red"
+    }
+  },
+  {
+    "id": "2026_q0056",
+    "query": "What color is the housing of the thermal camera?",
+    "answers": {
+      "a": "Blue",
+      "b": "Red",
+      "c": "Yellow",
+      "d": "Green"
+    }
+  },
+  {
+    "id": "2026_q0057",
+    "query": "What color is the origami crane that Bao made?",
+    "answers": {
+      "a": "Red",
+      "b": "Blue",
+      "c": "Green",
+      "d": "White"
+    }
+  },
+  {
+    "id": "2026_q0058",
+    "query": "What color was the handle of the knife Klaus used to prepare the shallots?",
+    "answers": {
+      "a": "Green",
+      "b": "Yellow",
+      "c": "Red",
+      "d": "Blue"
+    }
+  },
+  {
+    "id": "2026_q0059",
+    "query": "What colour was the rim of Werner's plate during breakfast on the first day?",
+    "answers": {
+      "a": "Green",
+      "b": "White",
+      "c": "Gray",
+      "d": "Yellow"
+    }
+  },
+  {
+    "id": "2026_q0060",
+    "query": "What conference were many of the participants involved in organising in the upcoming October?",
+    "answers": {
+      "a": "Cikm",
+      "b": "Ieee icme",
+      "c": "Acm mm",
+      "d": "Ecir"
+    }
+  },
+  {
+    "id": "2026_q0061",
+    "query": "What country did Allie tell Bao also has curry with sausages?",
+    "answers": {
+      "a": "Germany",
+      "b": "Ireland",
+      "c": "Thailand",
+      "d": "Czechia"
+    }
+  },
+  {
+    "id": "2026_q0062",
+    "query": "What design pattern is on the teapot?",
+    "answers": {
+      "a": "Vegetables",
+      "b": "Cats",
+      "c": "Flowers",
+      "d": "Goats"
+    }
+  },
+  {
+    "id": "2026_q0063",
+    "query": "What did Bjorn shout out to see in the distance when he was on the patio with Klaus, Stevan, and Werner?",
+    "answers": {
+      "a": "Boat",
+      "b": "Cathal",
+      "c": "Sheep",
+      "d": "Water"
+    }
+  },
+  {
+    "id": "2026_q0064",
+    "query": "What did Bjorn suggest that 'Father Christmas said when he was speed dating'?",
+    "answers": {
+      "a": "Merry christmas!",
+      "b": "Jesus!",
+      "c": "Ho ho ho!",
+      "d": "Holy mother!"
+    }
+  },
+  {
+    "id": "2026_q0065",
+    "query": "What did Cathal put on the Christmas Cake?",
+    "answers": {
+      "a": "Salted caramel",
+      "b": "Whipped cream",
+      "c": "Double cream",
+      "d": "Bailey's cream"
+    }
+  },
+  {
+    "id": "2026_q0066",
+    "query": "What did Cathal tell Stevan his heart rate was when he was making coffee?",
+    "answers": {
+      "a": "92",
+      "b": "87",
+      "c": "78",
+      "d": "112"
+    }
+  },
+  {
+    "id": "2026_q0067",
+    "query": "What did Florian have for breakfast on the second day?",
+    "answers": {
+      "a": "Apple juice",
+      "b": "Cornflakes",
+      "c": "Cheese croissant",
+      "d": "Toast with butter"
+    }
+  },
+  {
+    "id": "2026_q0068",
+    "query": "What did Klaus bring back inside before leaving for the beach?",
+    "answers": {
+      "a": "Torch light",
+      "b": "Trash container",
+      "c": "Car key",
+      "d": "Glass bottles"
+    }
+  },
+  {
+    "id": "2026_q0069",
+    "query": "What did Klaus drop when moving the candlestick holder?",
+    "answers": {
+      "a": "Candle",
+      "b": "Wineglass",
+      "c": "Matchbox",
+      "d": "Salt shaker"
+    }
+  },
+  {
+    "id": "2026_q0070",
+    "query": "What did Luca find in the IKEA box for Allie?",
+    "answers": {
+      "a": "A board game",
+      "b": "Color pens",
+      "c": "A peeler",
+      "d": "Christmas baubles"
+    }
+  },
+  {
+    "id": "2026_q0071",
+    "query": "What does Cathal like to do to relax while watching TV?",
+    "answers": {
+      "a": "Making butter",
+      "b": "Folding paper boats",
+      "c": "Solving sudokus",
+      "d": "Knitting socks"
+    }
+  },
+  {
+    "id": "2026_q0072",
+    "query": "What does the sign above the doorbell say?",
+    "answers": {
+      "a": "Guest house",
+      "b": "Visitors welcome",
+      "c": "Please ring",
+      "d": "Bell"
+    }
+  },
+  {
+    "id": "2026_q0073",
+    "query": "What family name is on the coat of arms in the reading area?",
+    "answers": {
+      "a": "Healy",
+      "b": "Keogh",
+      "c": "O'neill",
+      "d": "Salmon"
+    }
+  },
+  {
+    "id": "2026_q0074",
+    "query": "What finger does Cathal wear his smart ring on?",
+    "answers": {
+      "a": "Pinky",
+      "b": "Middle finger",
+      "c": "Ring finger",
+      "d": "Index finger"
+    }
+  },
+  {
+    "id": "2026_q0075",
+    "query": "What fish was used for the breakfast spread?",
+    "answers": {
+      "a": "Mackerel",
+      "b": "Salmon",
+      "c": "Traut",
+      "d": "Tuna"
+    }
+  },
+  {
+    "id": "2026_q0076",
+    "query": "What fruit flavour does the shampoo that Cathal bought have?",
+    "answers": {
+      "a": "Strawberry",
+      "b": "Banana",
+      "c": "Pineapple",
+      "d": "Watermelon"
+    }
+  },
+  {
+    "id": "2026_q0077",
+    "query": "What fruit was sitting on the kitchen island the longest?",
+    "answers": {
+      "a": "Pear",
+      "b": "Apple",
+      "c": "Pineapple",
+      "d": "Banana"
+    }
+  },
+  {
+    "id": "2026_q0078",
+    "query": "What game did Bjorn suggest to play with the cameras?",
+    "answers": {
+      "a": "Hide and seek",
+      "b": "Chicken",
+      "c": "Freeze tag",
+      "d": "Red light, green light"
+    }
+  },
+  {
+    "id": "2026_q0079",
+    "query": "What is on the back of Werner's t-shirt on the first day?",
+    "answers": {
+      "a": "Katg",
+      "b": "Abtg",
+      "c": "Rbtg",
+      "d": "Kbtg"
+    }
+  },
+  {
+    "id": "2026_q0080",
+    "query": "What is on the floor near Luca when he plays Mikado with Stevan?",
+    "answers": {
+      "a": "Magazine",
+      "b": "Cushion",
+      "c": "Paper plane",
+      "d": "Toy block"
+    }
+  },
+  {
+    "id": "2026_q0081",
+    "query": "What is on top of the fridge in the kitchen?",
+    "answers": {
+      "a": "A set of bowls",
+      "b": "A power socket",
+      "c": "Recipe books",
+      "d": "A metal tray"
+    }
+  },
+  {
+    "id": "2026_q0082",
+    "query": "What is the brand of the microwave oven?",
+    "answers": {
+      "a": "Bosch",
+      "b": "Hoover",
+      "c": "Samsung",
+      "d": "Nordmende"
+    }
+  },
+  {
+    "id": "2026_q0083",
+    "query": "What is the brand of the oat milk Allie drank for breakfast on day 4?",
+    "answers": {
+      "a": "Califia",
+      "b": "Oatly",
+      "c": "Flahavan's",
+      "d": "Alpro"
+    }
+  },
+  {
+    "id": "2026_q0084",
+    "query": "What is the capacity of the external batteries powering the wearable cameras?",
+    "answers": {
+      "a": "10000mah",
+      "b": "30000mah",
+      "c": "20000mah",
+      "d": "5000mah"
+    }
+  },
+  {
+    "id": "2026_q0085",
+    "query": "What is the dominant color of the big bag of rice?",
+    "answers": {
+      "a": "White",
+      "b": "Orange",
+      "c": "Yellow",
+      "d": "Blue"
+    }
+  },
+  {
+    "id": "2026_q0086",
+    "query": "What is the name of the person Cathal mentions as an example for an on-site manager?",
+    "answers": {
+      "a": "Allie",
+      "b": "Jennifer",
+      "c": "Alice",
+      "d": "Alan"
+    }
+  },
+  {
+    "id": "2026_q0087",
+    "query": "What item did Bao give to Stevan, which was then passed to Luca in the kitchen?",
+    "answers": {
+      "a": "A camera",
+      "b": "A travel plug",
+      "c": "A meal list",
+      "d": "A ball"
+    }
+  },
+  {
+    "id": "2026_q0088",
+    "query": "What item did Bao pick up from the fireplace mantel to examine for a few seconds on more than one occasion?",
+    "answers": {
+      "a": "Book",
+      "b": "Card game",
+      "c": "Cellphone",
+      "d": "Ornament"
+    }
+  },
+  {
+    "id": "2026_q0089",
+    "query": "What item was dropped when Cathal, Klaus, and others drove to the sea on a windy day?",
+    "answers": {
+      "a": "Car keys",
+      "b": "Phone",
+      "c": "Hat",
+      "d": "Map"
+    }
+  },
+  {
+    "id": "2026_q0090",
+    "query": "What item was Tien looking for when Allie and Florian just started playing chess?",
+    "answers": {
+      "a": "Tape",
+      "b": "Glue",
+      "c": "Scissors",
+      "d": "Pencil"
+    }
+  },
+  {
+    "id": "2026_q0091",
+    "query": "What logo is on the front of Stevan's paper notebook?",
+    "answers": {
+      "a": "Acm",
+      "b": "Dcu",
+      "c": "Uva",
+      "d": "Google"
+    }
+  },
+  {
+    "id": "2026_q0092",
+    "query": "What medium did Allie use for her painting of a Christmas tree and a vase of flowers?",
+    "answers": {
+      "a": "Water colors",
+      "b": "Oil paint",
+      "c": "Colored pencils",
+      "d": "Acrylic paint"
+    }
+  },
+  {
+    "id": "2026_q0093",
+    "query": "What number is on the door of Cathal's room?",
+    "answers": {
+      "a": "7",
+      "b": "3",
+      "c": "9",
+      "d": "5"
+    }
+  },
+  {
+    "id": "2026_q0094",
+    "query": "What organisation's logo is on Werner's apron?",
+    "answers": {
+      "a": "W3c",
+      "b": "Acm",
+      "c": "Wikimedia",
+      "d": "Ieee"
+    }
+  },
+  {
+    "id": "2026_q0095",
+    "query": "What origami were Cathal, Florian, and Onanong folding together on the afternoon of the second day?",
+    "answers": {
+      "a": "Crane",
+      "b": "Frog",
+      "c": "Lotus",
+      "d": "Butterfly"
+    }
+  },
+  {
+    "id": "2026_q0096",
+    "query": "What page did Florian bookmark before starting the reading task?",
+    "answers": {
+      "a": "19",
+      "b": "22",
+      "c": "20",
+      "d": "21"
+    }
+  },
+  {
+    "id": "2026_q0097",
+    "query": "What possible challenge task did Klaus suggest during the workshop on the second day?",
+    "answers": {
+      "a": "Few-shot object re-identification",
+      "b": "Collaborative annotation for food labeling",
+      "c": "Long-form conversation summarization",
+      "d": "Vision-based exercise coaching"
+    }
+  },
+  {
+    "id": "2026_q0098",
+    "query": "What pun did Florian make in response to Allie’s comment about 'lukewarm' tea?",
+    "answers": {
+      "a": "Door cold",
+      "b": "Lock warm",
+      "c": "Window cold",
+      "d": "Door warm"
+    }
+  },
+  {
+    "id": "2026_q0099",
+    "query": "What skill was Florian teaching to Onanong in the late afternoon on the second day?",
+    "answers": {
+      "a": "Kazoo",
+      "b": "Hand flute",
+      "c": "Shadow puppets",
+      "d": "Sign language"
+    }
+  },
+  {
+    "id": "2026_q0100",
+    "query": "What song title did Bao use to describe Cathal's driving style?",
+    "answers": {
+      "a": "The long and winding road",
+      "b": "Boulevard of broken dreams",
+      "c": "Stairway to heaven",
+      "d": "Highway to hell"
+    }
+  },
+  {
+    "id": "2026_q0101",
+    "query": "What song was Cathal teaching Florian on the guitar?",
+    "answers": {
+      "a": "Linger",
+      "b": "Hallelujah",
+      "c": "Come as you are",
+      "d": "Stairway to heaven"
+    }
+  },
+  {
+    "id": "2026_q0102",
+    "query": "What spice or herb does Luca not like?",
+    "answers": {
+      "a": "Coriander",
+      "b": "Chilli",
+      "c": "Pepper",
+      "d": "Basil"
+    }
+  },
+  {
+    "id": "2026_q0103",
+    "query": "What store was the blue dishwashing liquid bought from?",
+    "answers": {
+      "a": "Dunnes",
+      "b": "Lidl",
+      "c": "Supervalu",
+      "d": "Aldi"
+    }
+  },
+  {
+    "id": "2026_q0104",
+    "query": "What task did Luca want Bjorn and Werner to do for him when he was baking on day 2 morning?",
+    "answers": {
+      "a": "Licking the hand mixer",
+      "b": "Cleaning the pot",
+      "c": "Buying more milk",
+      "d": "Heating the oven"
+    }
+  },
+  {
+    "id": "2026_q0105",
+    "query": "What time did Allie and Linh plan to leave on Saturday at first?",
+    "answers": {
+      "a": "5 pm",
+      "b": "7 am",
+      "c": "5 am",
+      "d": "10 am"
+    }
+  },
+  {
+    "id": "2026_q0106",
+    "query": "What time did the workshop begin on day 2?",
+    "answers": {
+      "a": "10:42 am",
+      "b": "",
+      "c": "",
+      "d": "10:28 am"
+    }
+  },
+  {
+    "id": "2026_q0107",
+    "query": "What tool was Bao using to take sausages out of the oven?",
+    "answers": {
+      "a": "Fork",
+      "b": "Scissors",
+      "c": "Spoon",
+      "d": "Tongs"
+    }
+  },
+  {
+    "id": "2026_q0108",
+    "query": "What university is on Stevan's T-Shirt on day 4?",
+    "answers": {
+      "a": "Bergen",
+      "b": "Reykjavik",
+      "c": "Dcu",
+      "d": "Klagenfurt"
+    }
+  },
+  {
+    "id": "2026_q0109",
+    "query": "What was Bjorn doing while Klaus was playing Starcraft II?",
+    "answers": {
+      "a": "Drawing",
+      "b": "Cooking",
+      "c": "Eating",
+      "d": "Reading"
+    }
+  },
+  {
+    "id": "2026_q0110",
+    "query": "What was Florian using the pot to smash?",
+    "answers": {
+      "a": "Pork chops",
+      "b": "Chicken fillet",
+      "c": "Cashews",
+      "d": "Peanuts"
+    }
+  },
+  {
+    "id": "2026_q0111",
+    "query": "What was for lunch on the first day?",
+    "answers": {
+      "a": "Curry",
+      "b": "Lasagna",
+      "c": "Risotto",
+      "d": "Glazed ham"
+    }
+  },
+  {
+    "id": "2026_q0112",
+    "query": "What was not an ingredient in the glaze for the ham?",
+    "answers": {
+      "a": "Chilli flakes",
+      "b": "Mustard",
+      "c": "Honey",
+      "d": "Soy sauce"
+    }
+  },
+  {
+    "id": "2026_q0113",
+    "query": "What was not part of breakfast on the first day?",
+    "answers": {
+      "a": "Fried eggs",
+      "b": "Mushrooms",
+      "c": "Bacon",
+      "d": "Sausages"
+    }
+  },
+  {
+    "id": "2026_q0114",
+    "query": "What was the brand of model airplane that was sitting on the table while people were building a tower with the wooden blocks?",
+    "answers": {
+      "a": "Superfly",
+      "b": "Revell",
+      "c": "Tamina",
+      "d": "Airfix"
+    }
+  },
+  {
+    "id": "2026_q0115",
+    "query": "What was the brand of the guitar?",
+    "answers": {
+      "a": "Ibanez",
+      "b": "Yamaha",
+      "c": "Gibson",
+      "d": "Fender"
+    }
+  },
+  {
+    "id": "2026_q0116",
+    "query": "What was the color of the tag on the house key that Stevan and Luca had with them on their walk on the third day?",
+    "answers": {
+      "a": "Red",
+      "b": "Green",
+      "c": "Blue",
+      "d": "White"
+    }
+  },
+  {
+    "id": "2026_q0117",
+    "query": "What was the first category in the happy quiz?",
+    "answers": {
+      "a": "K-pop",
+      "b": "Electronics",
+      "c": "Sport",
+      "d": "World capitals"
+    }
+  },
+  {
+    "id": "2026_q0118",
+    "query": "What was the last song sung by more than one person?",
+    "answers": {
+      "a": "Jingle bells",
+      "b": "Twelve days of christmas",
+      "c": "Frosty the snowman",
+      "d": "Silent night"
+    }
+  },
+  {
+    "id": "2026_q0119",
+    "query": "What was the maximum number of pineapples on the kitchen island?",
+    "answers": {
+      "a": "2",
+      "b": "0",
+      "c": "1",
+      "d": "4"
+    }
+  },
+  {
+    "id": "2026_q0120",
+    "query": "What was the most common cookie shape across all types of cookies that were made?",
+    "answers": {
+      "a": "Bird",
+      "b": "Tree",
+      "c": "Heart",
+      "d": "Star"
+    }
+  },
+  {
+    "id": "2026_q0121",
+    "query": "What was the registration plate number of the silver Volvo SUV car?",
+    "answers": {
+      "a": "232-d-20536",
+      "b": "232-d-12691",
+      "c": "212-g-3247",
+      "d": "241-d-30626"
+    }
+  },
+  {
+    "id": "2026_q0122",
+    "query": "What was the time on the microwave when Allie stopped heating the whiskey for the Christmas Cake?",
+    "answers": {
+      "a": "2:51",
+      "b": "0:18",
+      "c": "0:31",
+      "d": "04:29"
+    }
+  },
+  {
+    "id": "2026_q0123",
+    "query": "What was used as a dealer token during poker?",
+    "answers": {
+      "a": "Wineglass",
+      "b": "Octopus",
+      "c": "Salt shaker",
+      "d": "Candy bar"
+    }
+  },
+  {
+    "id": "2026_q0124",
+    "query": "When did Cathal want rösti?",
+    "answers": {
+      "a": "Wednesday",
+      "b": "Friday",
+      "c": "Tuesday",
+      "d": "Thursday"
+    }
+  },
+  {
+    "id": "2026_q0125",
+    "query": "When unloading the dishwasher on the third day, which item was taken out after the teapot?",
+    "answers": {
+      "a": "Knife",
+      "b": "Grater",
+      "c": "Plate",
+      "d": "Cup"
+    }
+  },
+  {
+    "id": "2026_q0126",
+    "query": "When was the first one of the two pineapples cut?",
+    "answers": {
+      "a": "Day 1 6 pm",
+      "b": "Day 1 7 pm",
+      "c": "Day 1 8 pm",
+      "d": "Day 2 8 am"
+    }
+  },
+  {
+    "id": "2026_q0127",
+    "query": "Where is the yellow octopus when Linh is playing chess with Allie?",
+    "answers": {
+      "a": "In his back pocket",
+      "b": "Next to his elbow",
+      "c": "On his head",
+      "d": "On the chair behind him"
+    }
+  },
+  {
+    "id": "2026_q0128",
+    "query": "Where was the dartboard set up?",
+    "answers": {
+      "a": "To the left of the main door",
+      "b": "Above the glass door in the living room",
+      "c": "On the back wall of the reading room",
+      "d": "On the door of the fridge"
+    }
+  },
+  {
+    "id": "2026_q0129",
+    "query": "Where was the little blue whale plushie hiding on the second day?",
+    "answers": {
+      "a": "In the reading room next to the computer",
+      "b": "On the living room table, in the flowers",
+      "c": "In the entryway with the clock",
+      "d": "In the kitchen with the eggcups"
+    }
+  },
+  {
+    "id": "2026_q0130",
+    "query": "Where was the orange juice concentrate stored after breakfast?",
+    "answers": {
+      "a": "Fridge, 3rd row from top",
+      "b": "Fridge, top row",
+      "c": "Fridge door",
+      "d": "Fridge, 2nd row from top"
+    }
+  },
+  {
+    "id": "2026_q0131",
+    "query": "Which cutting board is used by Allie for carrots?",
+    "answers": {
+      "a": "White",
+      "b": "White with print",
+      "c": "Wooden",
+      "d": "Red"
+    }
+  },
+  {
+    "id": "2026_q0132",
+    "query": "Which food was eaten during lunch on day 3, because there was a lot of it still there?",
+    "answers": {
+      "a": "Eggs",
+      "b": "Toast",
+      "c": "Cheese",
+      "d": "Tomatoes"
+    }
+  },
+  {
+    "id": "2026_q0133",
+    "query": "Which food was on the table when lasagna was being served?",
+    "answers": {
+      "a": "Zimtstern cookies",
+      "b": "Salad",
+      "c": "Toast",
+      "d": "Croissants"
+    }
+  },
+  {
+    "id": "2026_q0134",
+    "query": "Which fruits are in the jam glass with the red lid in the kitchen cabinet?",
+    "answers": {
+      "a": "Orange and mandarins",
+      "b": "Strawberry",
+      "c": "Berries and cherries",
+      "d": "Mango and peach"
+    }
+  },
+  {
+    "id": "2026_q0135",
+    "query": "Which Happy Quiz topic did no one but Klaus get any points at all on day 2?",
+    "answers": {
+      "a": "Kpop",
+      "b": "Lifelogging researcher",
+      "c": "Cambodia",
+      "d": "The bible"
+    }
+  },
+  {
+    "id": "2026_q0136",
+    "query": "Which herb was Werner looking for in the fridge for Bjorn?",
+    "answers": {
+      "a": "Basil",
+      "b": "Mint",
+      "c": "Parsley",
+      "d": "Coriander"
+    }
+  },
+  {
+    "id": "2026_q0137",
+    "query": "Which item did Bjorn hold in his hand when explaining the Vietnamese card game?",
+    "answers": {
+      "a": "Buzzer",
+      "b": "Coaster",
+      "c": "Fidget spinner",
+      "d": "Spoon"
+    }
+  },
+  {
+    "id": "2026_q0138",
+    "query": "Which movie was not watched?",
+    "answers": {
+      "a": "Duck and cover",
+      "b": "Sintel",
+      "c": "Elephant's dream",
+      "d": "Tears of steel"
+    }
+  },
+  {
+    "id": "2026_q0139",
+    "query": "Which nearby ingredient was not used when Onanong made pastries?",
+    "answers": {
+      "a": "Vinegar",
+      "b": "Banana",
+      "c": "Wine",
+      "d": "Soy sauce"
+    }
+  },
+  {
+    "id": "2026_q0140",
+    "query": "Which object was on top of the stack of books when Steven selected a book?",
+    "answers": {
+      "a": "Fidget spinner",
+      "b": "Telephone",
+      "c": "Pencil",
+      "d": "Candle"
+    }
+  },
+  {
+    "id": "2026_q0141",
+    "query": "Which operating system was planned to be installed on the spare laptop?",
+    "answers": {
+      "a": "Windows",
+      "b": "Fedora",
+      "c": "Ubuntu",
+      "d": "Macos"
+    }
+  },
+  {
+    "id": "2026_q0142",
+    "query": "Who ate the last vanilla lemon cookie?",
+    "answers": {
+      "a": "Bjorn",
+      "b": "Florian",
+      "c": "Werner",
+      "d": "Linh"
+    }
+  },
+  {
+    "id": "2026_q0143",
+    "query": "Who brought a non-working camera to Luca to fix on the first day?",
+    "answers": {
+      "a": "Tien",
+      "b": "Florian",
+      "c": "Onanong",
+      "d": "Werner"
+    }
+  },
+  {
+    "id": "2026_q0144",
+    "query": "Who brought the coffee pot to the table for breakfast on the first day?",
+    "answers": {
+      "a": "Klaus",
+      "b": "Allie",
+      "c": "Stevan",
+      "d": "Werner"
+    }
+  },
+  {
+    "id": "2026_q0145",
+    "query": "Who collapsed the first block tower after the trip to the beach?",
+    "answers": {
+      "a": "Stevan",
+      "b": "Luca",
+      "c": "Bjorn",
+      "d": "Florian"
+    }
+  },
+  {
+    "id": "2026_q0146",
+    "query": "Who dealt first in the first game of poker?",
+    "answers": {
+      "a": "Onanong",
+      "b": "Linh",
+      "c": "Cathal",
+      "d": "Florian"
+    }
+  },
+  {
+    "id": "2026_q0147",
+    "query": "Who did not have fried eggs for breakfast on the fourth day?",
+    "answers": {
+      "a": "Werner",
+      "b": "Bao",
+      "c": "Bjorn",
+      "d": "Allie"
+    }
+  },
+  {
+    "id": "2026_q0148",
+    "query": "Who drew the picture that was displayed on the small door of the kitchen fridge on the third day?",
+    "answers": {
+      "a": "Cathal",
+      "b": "Onanong",
+      "c": "Allie",
+      "d": "Florian"
+    }
+  },
+  {
+    "id": "2026_q0149",
+    "query": "Who gave the first presentation for the workshop on the first day?",
+    "answers": {
+      "a": "Bjorn",
+      "b": "Luca",
+      "c": "Cathal",
+      "d": "Klaus"
+    }
+  },
+  {
+    "id": "2026_q0150",
+    "query": "Who got the center piece of lasagna?",
+    "answers": {
+      "a": "Florian",
+      "b": "Linh",
+      "c": "Allie",
+      "d": "Luca"
+    }
+  },
+  {
+    "id": "2026_q0151",
+    "query": "Who had a bandage on their finger?",
+    "answers": {
+      "a": "Allie",
+      "b": "Bao",
+      "c": "Klaus",
+      "d": "Luca"
+    }
+  },
+  {
+    "id": "2026_q0152",
+    "query": "Who had not initially selected steak for the pub dinner?",
+    "answers": {
+      "a": "Stevan",
+      "b": "Allie",
+      "c": "Werner",
+      "d": "Bjorn"
+    }
+  },
+  {
+    "id": "2026_q0153",
+    "query": "Who had the first slice of Christmas cake?",
+    "answers": {
+      "a": "Stevan",
+      "b": "Cathal",
+      "c": "Allie",
+      "d": "Werner"
+    }
+  },
+  {
+    "id": "2026_q0154",
+    "query": "Who helped Allie find the big pot (that Luca used for the rice the day before)?",
+    "answers": {
+      "a": "Linh",
+      "b": "Luca",
+      "c": "Bao",
+      "d": "Werner"
+    }
+  },
+  {
+    "id": "2026_q0155",
+    "query": "Who helped Luca with the eggs in the kitchen while Onanong was playing guitar?",
+    "answers": {
+      "a": "Stevan",
+      "b": "Cathal",
+      "c": "Allie",
+      "d": "Tien"
+    }
+  },
+  {
+    "id": "2026_q0156",
+    "query": "Who helped Werner stock the dishwasher on the afternoon of the last day?",
+    "answers": {
+      "a": "Cathal",
+      "b": "Stevan",
+      "c": "Bjorn",
+      "d": "Allie"
+    }
+  },
+  {
+    "id": "2026_q0157",
+    "query": "Who hid the toy orca on Ononong's person?",
+    "answers": {
+      "a": "Bjorn",
+      "b": "Luca",
+      "c": "Florian",
+      "d": "Stevan"
+    }
+  },
+  {
+    "id": "2026_q0158",
+    "query": "Who made the best guess about how long an average person sleeps in their lifetime?",
+    "answers": {
+      "a": "Allie",
+      "b": "Bjorn",
+      "c": "Cathal",
+      "d": "Stevan"
+    }
+  },
+  {
+    "id": "2026_q0159",
+    "query": "Who made the joke about “avoiding content ID matches” during the Happy Quiz on the first day?",
+    "answers": {
+      "a": "Florian",
+      "b": "Bjorn",
+      "c": "Allie",
+      "d": "Cathal"
+    }
+  },
+  {
+    "id": "2026_q0160",
+    "query": "Who put an orca plushie in Florian's hoodie?",
+    "answers": {
+      "a": "Onanong",
+      "b": "Allie",
+      "c": "Luca",
+      "d": "Cathal"
+    }
+  },
+  {
+    "id": "2026_q0161",
+    "query": "Who put the Christmas tree in the box?",
+    "answers": {
+      "a": "Florian",
+      "b": "Linh",
+      "c": "Onanong",
+      "d": "Klaus"
+    }
+  },
+  {
+    "id": "2026_q0162",
+    "query": "Who put the roof on the gingerbread house?",
+    "answers": {
+      "a": "Werner",
+      "b": "Tien",
+      "c": "Cathal",
+      "d": "Florian"
+    }
+  },
+  {
+    "id": "2026_q0163",
+    "query": "Who redistributed the contents of the garbage bins in the kitchen with their hands because they were too full?",
+    "answers": {
+      "a": "Klaus",
+      "b": "Onanong",
+      "c": "Cathal",
+      "d": "Florian"
+    }
+  },
+  {
+    "id": "2026_q0164",
+    "query": "Who set the Christmas pudding on fire?",
+    "answers": {
+      "a": "Stevan",
+      "b": "Florian",
+      "c": "Luca",
+      "d": "Cathal"
+    }
+  },
+  {
+    "id": "2026_q0165",
+    "query": "Who suggested turning the camera on during the potential power outage?",
+    "answers": {
+      "a": "Cathal",
+      "b": "Stevan",
+      "c": "Florian",
+      "d": "Allie"
+    }
+  },
+  {
+    "id": "2026_q0166",
+    "query": "Who was asked by Bjorn to chop the ginger finely?",
+    "answers": {
+      "a": "Werner",
+      "b": "Luca",
+      "c": "Stevan",
+      "d": "Tien"
+    }
+  },
+  {
+    "id": "2026_q0167",
+    "query": "Who was controlling the laptop during the joint movie evening?",
+    "answers": {
+      "a": "Allie",
+      "b": "Cathal",
+      "c": "Werner",
+      "d": "Klaus"
+    }
+  },
+  {
+    "id": "2026_q0168",
+    "query": "Who was driving Cathal's car on the morning of the first day?",
+    "answers": {
+      "a": "Stevan",
+      "b": "Bao",
+      "c": "Allie",
+      "d": "Florian"
+    }
+  },
+  {
+    "id": "2026_q0169",
+    "query": "Who was not among the first round of people sitting down for breakfast on day 4?",
+    "answers": {
+      "a": "Klaus",
+      "b": "Luca",
+      "c": "Bjorn",
+      "d": "Allie"
+    }
+  },
+  {
+    "id": "2026_q0170",
+    "query": "Who was not in the car with Cathal on Day 3?",
+    "answers": {
+      "a": "Luca",
+      "b": "Bao",
+      "c": "Klaus",
+      "d": "Allie"
+    }
+  },
+  {
+    "id": "2026_q0171",
+    "query": "Who was peeling the potatoes for lunch on the third day?",
+    "answers": {
+      "a": "Onanong",
+      "b": "Bao",
+      "c": "Linh",
+      "d": "Allie"
+    }
+  },
+  {
+    "id": "2026_q0172",
+    "query": "Who was sitting next to Allie in the car during the drive to the beach",
+    "answers": {
+      "a": "Bao",
+      "b": "Bjorn",
+      "c": "Klaus",
+      "d": "Linh"
+    }
+  },
+  {
+    "id": "2026_q0173",
+    "query": "Who was the first person to make coffee on the second day?",
+    "answers": {
+      "a": "Klaus",
+      "b": "Stevan",
+      "c": "Werner",
+      "d": "Luca"
+    }
+  },
+  {
+    "id": "2026_q0174",
+    "query": "Who was the first person to unfold the green poker mat?",
+    "answers": {
+      "a": "Allie",
+      "b": "Stevan",
+      "c": "Onanong",
+      "d": "Cathal"
+    }
+  },
+  {
+    "id": "2026_q0175",
+    "query": "Who was the first person to use the thermal camera after Luca brought it?",
+    "answers": {
+      "a": "Klaus",
+      "b": "Onanong",
+      "c": "Werner",
+      "d": "Florian"
+    }
+  },
+  {
+    "id": "2026_q0176",
+    "query": "Who was the last one to add the choice for the dinner dish?",
+    "answers": {
+      "a": "Bjorn",
+      "b": "Werner",
+      "c": "Allie",
+      "d": "Onanong"
+    }
+  },
+  {
+    "id": "2026_q0177",
+    "query": "Who was the last person to play the guitar on Day 2?",
+    "answers": {
+      "a": "Allie",
+      "b": "Onanong",
+      "c": "Stevan",
+      "d": "Cathal"
+    }
+  },
+  {
+    "id": "2026_q0178",
+    "query": "Who was the second person to present slides at the workshop opening on the first day?",
+    "answers": {
+      "a": "Klaus",
+      "b": "Werner",
+      "c": "Cathal",
+      "d": "Luca"
+    }
+  },
+  {
+    "id": "2026_q0179",
+    "query": "Who was throwing tomatoes into a frying pan",
+    "answers": {
+      "a": "Luca",
+      "b": "Werner",
+      "c": "Cathal",
+      "d": "Allie"
+    }
+  },
+  {
+    "id": "2026_q0180",
+    "query": "Who was wearing a blue top with white horizontal stripes?",
+    "answers": {
+      "a": "Stevan",
+      "b": "Allie",
+      "c": "Tien",
+      "d": "Onanong"
+    }
+  },
+  {
+    "id": "2026_q0181",
+    "query": "Who was wearing a yellow dishcloth over their shoulder when taking out the trash?",
+    "answers": {
+      "a": "Klaus",
+      "b": "Allie",
+      "c": "Stevan",
+      "d": "Bjorn"
+    }
+  },
+  {
+    "id": "2026_q0182",
+    "query": "Who won the first game of chess played on the second day?",
+    "answers": {
+      "a": "Klaus",
+      "b": "Allie",
+      "c": "Werner",
+      "d": "Florian"
+    }
+  },
+  {
+    "id": "2026_q0183",
+    "query": "Who won the first pull of a Christmas popper?",
+    "answers": {
+      "a": "Florian",
+      "b": "Allie",
+      "c": "Klaus",
+      "d": "Werner"
+    }
+  },
+  {
+    "id": "2026_q0184",
+    "query": "Who won the first round of UNO?",
+    "answers": {
+      "a": "Tien",
+      "b": "Klaus",
+      "c": "Bjorn",
+      "d": "Allie"
+    }
+  },
+  {
+    "id": "2026_q0185",
+    "query": "Whose laptop did Florian use for preparing Happy Quiz?",
+    "answers": {
+      "a": "Luca",
+      "b": "Linh",
+      "c": "Florian",
+      "d": "Cathal"
+    }
+  }
+]

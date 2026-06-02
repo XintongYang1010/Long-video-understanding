@@ -1,0 +1,8 @@
+method,num_windows,mean_direct_evidence_recall_at_k,mean_incremental_evidence_recall_at_k,mean_duplicate_rate_with_self,mean_off_event_access_rate,average_number_of_views_used,answer_accuracy_if_labels_available,evidence_sufficiency_manual,notes
+all active views,3,1.000000,1.000000,,0.200000,15.000000,,,Aggregate scaffold; fill QA/evidence labels for final comparison.
+oracle views,3,1.000000,1.000000,,0.000000,2.333333,,,Aggregate scaffold; fill QA/evidence labels for final comparison.
+self + MMR incremental other ego,3,0.333333,0.000000,,0.000000,2.000000,,,Aggregate scaffold; fill QA/evidence labels for final comparison.
+self + best static,3,0.666667,0.250000,,0.000000,2.000000,,,Aggregate scaffold; fill QA/evidence labels for final comparison.
+self + most CLIP-similar other ego,3,0.333333,0.000000,,0.000000,2.000000,,,Aggregate scaffold; fill QA/evidence labels for final comparison.
+self + random other ego,3,0.333333,0.000000,,0.000000,2.000000,,,Aggregate scaffold; fill QA/evidence labels for final comparison.
+self-only,3,0.333333,0.000000,,0.000000,1.000000,,,Aggregate scaffold; fill QA/evidence labels for final comparison.

@@ -1,0 +1,21 @@
+HOSTNAME=cs632.hpc.nyu.edu
+PWD=/scratch/xy3257/castle_poc
+USER=xy3257
+PYTHON=/scratch/xy3257/castle_poc/cenv/bin/python
+Python 3.10.20
+FFMPEG=/scratch/xy3257/castle_poc/bin/ffmpeg
+ffmpeg version 6.1.2 Copyright (c) 2000-2024 the FFmpeg developers
+built with gcc 13.3.0 (conda-forge gcc 13.3.0-1)
+configuration: --prefix=/scratch/xy3257/castle_poc/cenv --cc=/home/conda/feedstock_root/build_artifacts/ffmpeg_1730671262093/_build_env/bin/x86_64-conda-linux-gnu-cc --cxx=/home/conda/feedstock_root/build_artifacts/ffmpeg_1730671262093/_build_env/bin/x86_64-conda-linux-gnu-c++ --nm=/home/conda/feedstock_root/build_artifacts/ffmpeg_1730671262093/_build_env/bin/x86_64-conda-linux-gnu-nm --ar=/home/conda/feedstock_root/build_artifacts/ffmpeg_1730671262093/_build_env/bin/x86_64-conda-linux-gnu-ar --disable-doc --enable-openssl --enable-demuxer=dash --enable-hardcoded-tables --enable-libfreetype --enable-libharfbuzz --enable-libfontconfig --enable-libopenh264 --enable-libdav1d --disable-gnutls --enable-libmp3lame --enable-libvpx --enable-libass --enable-pthreads --enable-vaapi --enable-libopenvino --enable-gpl --enable-libx264 --enable-libx265 --enable-libaom --enable-libsvtav1 --enable-libxml2 --enable-pic --enable-shared --disable-static --enable-version3 --enable-zlib --enable-libopus --pkg-config=/home/conda/feedstock_root/build_artifacts/ffmpeg_1730671262093/_build_env/bin/pkg-config
+dependency check ok
+Selected windows: 3
+Overview frames extracted: 45/45
+CLIP status: DAY1_100500000: CLIP skipped by --skip-clip | DAY3_174500000: CLIP skipped by --skip-clip | DAY4_120500000: CLIP skipped by --skip-clip
+Local tracked storage: 30.460 MB
+hf_hub_download for videos: NO
+Wrote castle_incremental_qa_poc_conda3/castle_poc_selected_windows.csv
+Wrote castle_incremental_qa_poc_conda3/castle_poc_view_annotation.csv
+Wrote castle_incremental_qa_poc_conda3/castle_self_vs_other_qa_template.csv
+Wrote castle_incremental_qa_poc_conda3/castle_poc_strawman_view_candidates.csv
+Wrote castle_incremental_qa_poc_conda3/castle_poc_strawman_metrics.csv
+Wrote castle_incremental_qa_poc_conda3/castle_incremental_qa_poc_report.txt

@@ -1,0 +1,68 @@
+hostname=cs636.hpc.nyu.edu
+start=Mon May 25 06:05:39 EDT 2026
+pwd=/scratch/xy3257/castle_poc
+FFMPEG_BIN=/scratch/xy3257/castle_poc/cenv/bin/ffmpeg
+ffmpeg version 6.1.2 Copyright (c) 2000-2024 the FFmpeg developers
+built with gcc 13.3.0 (conda-forge gcc 13.3.0-1)
+PROJECT_ROOT=/scratch/xy3257/castle_poc
+OUTPUT_ROOT=/scratch/xy3257/castle_poc/existing6_targeted_frames_hf
+LOG_CSV=/scratch/xy3257/castle_poc/existing6_targeted_frames_hf/extraction_log.csv
+REPO_BASE=https://huggingface.co/datasets/CASTLE-Dataset/CASTLE2024/resolve/main
+FFMPEG_BIN=/scratch/xy3257/castle_poc/cenv/bin/ffmpeg
+ffmpeg version 6.1.2 Copyright (c) 2000-2024 the FFmpeg developers
+built with gcc 13.3.0 (conda-forge gcc 13.3.0-1)
+Extracting EX6_HPC_Q1_PRESENTATION Werner offset=00:05:30 clock=10:05:30
+Extracting EX6_HPC_Q1_PRESENTATION Werner offset=00:06:30 clock=10:06:30
+Extracting EX6_HPC_Q1_PRESENTATION Werner offset=00:07:30 clock=10:07:30
+Extracting EX6_HPC_Q1_PRESENTATION Werner offset=00:08:30 clock=10:08:30
+Extracting EX6_HPC_Q1_PRESENTATION Werner offset=00:09:30 clock=10:09:30
+Extracting EX6_HPC_Q1_PRESENTATION Meeting offset=00:05:30 clock=10:05:30
+Extracting EX6_HPC_Q1_PRESENTATION Meeting offset=00:06:30 clock=10:06:30
+Extracting EX6_HPC_Q1_PRESENTATION Meeting offset=00:07:30 clock=10:07:30
+Extracting EX6_HPC_Q1_PRESENTATION Meeting offset=00:08:30 clock=10:08:30
+Extracting EX6_HPC_Q1_PRESENTATION Meeting offset=00:09:30 clock=10:09:30
+Extracting EX6_HPC_Q1_PRESENTATION Tien offset=00:05:30 clock=10:05:30
+Extracting EX6_HPC_Q1_PRESENTATION Tien offset=00:06:30 clock=10:06:30
+Extracting EX6_HPC_Q1_PRESENTATION Tien offset=00:07:30 clock=10:07:30
+Extracting EX6_HPC_Q1_PRESENTATION Tien offset=00:08:30 clock=10:08:30
+Extracting EX6_HPC_Q1_PRESENTATION Tien offset=00:09:30 clock=10:09:30
+Extracting EX6_HPC_Q1_PRESENTATION Onanong offset=00:05:30 clock=10:05:30
+Extracting EX6_HPC_Q1_PRESENTATION Onanong offset=00:06:30 clock=10:06:30
+Extracting EX6_HPC_Q1_PRESENTATION Onanong offset=00:07:30 clock=10:07:30
+Extracting EX6_HPC_Q1_PRESENTATION Onanong offset=00:08:30 clock=10:08:30
+Extracting EX6_HPC_Q1_PRESENTATION Onanong offset=00:09:30 clock=10:09:30
+Extracting EX6_HPC_Q1_PRESENTATION Reading offset=00:05:30 clock=10:05:30
+Extracting EX6_HPC_Q1_PRESENTATION Reading offset=00:06:30 clock=10:06:30
+Extracting EX6_HPC_Q1_PRESENTATION Reading offset=00:07:30 clock=10:07:30
+Extracting EX6_HPC_Q1_PRESENTATION Reading offset=00:08:30 clock=10:08:30
+Extracting EX6_HPC_Q1_PRESENTATION Reading offset=00:09:30 clock=10:09:30
+Extracting EX6_HPC_Q5_TABLETOP Florian offset=00:45:30 clock=17:45:30
+Extracting EX6_HPC_Q5_TABLETOP Florian offset=00:46:30 clock=17:46:30
+Extracting EX6_HPC_Q5_TABLETOP Florian offset=00:47:30 clock=17:47:30
+Extracting EX6_HPC_Q5_TABLETOP Florian offset=00:48:30 clock=17:48:30
+Extracting EX6_HPC_Q5_TABLETOP Florian offset=00:49:30 clock=17:49:30
+Extracting EX6_HPC_Q5_TABLETOP Cathal offset=00:45:30 clock=17:45:30
+Extracting EX6_HPC_Q5_TABLETOP Cathal offset=00:46:30 clock=17:46:30
+Extracting EX6_HPC_Q5_TABLETOP Cathal offset=00:47:30 clock=17:47:30
+Extracting EX6_HPC_Q5_TABLETOP Cathal offset=00:48:30 clock=17:48:30
+Extracting EX6_HPC_Q5_TABLETOP Cathal offset=00:49:30 clock=17:49:30
+Extracting EX6_HPC_Q5_TABLETOP Onanong offset=00:45:30 clock=17:45:30
+Extracting EX6_HPC_Q5_TABLETOP Onanong offset=00:46:30 clock=17:46:30
+Extracting EX6_HPC_Q5_TABLETOP Onanong offset=00:47:30 clock=17:47:30
+Extracting EX6_HPC_Q5_TABLETOP Onanong offset=00:48:30 clock=17:48:30
+Extracting EX6_HPC_Q5_TABLETOP Onanong offset=00:49:30 clock=17:49:30
+Extracting EX6_HPC_Q5_TABLETOP Allie offset=00:45:30 clock=17:45:30
+Extracting EX6_HPC_Q5_TABLETOP Allie offset=00:46:30 clock=17:46:30
+Extracting EX6_HPC_Q5_TABLETOP Allie offset=00:47:30 clock=17:47:30
+Extracting EX6_HPC_Q5_TABLETOP Allie offset=00:48:30 clock=17:48:30
+Extracting EX6_HPC_Q5_TABLETOP Allie offset=00:49:30 clock=17:49:30
+Extracting EX6_HPC_Q5_TABLETOP Meeting offset=00:45:30 clock=17:45:30
+Extracting EX6_HPC_Q5_TABLETOP Meeting offset=00:46:30 clock=17:46:30
+Extracting EX6_HPC_Q5_TABLETOP Meeting offset=00:47:30 clock=17:47:30
+Extracting EX6_HPC_Q5_TABLETOP Meeting offset=00:48:30 clock=17:48:30
+Extracting EX6_HPC_Q5_TABLETOP Meeting offset=00:49:30 clock=17:49:30
+jpg_count=50
+Log: /scratch/xy3257/castle_poc/existing6_targeted_frames_hf/extraction_log.csv
+done=Mon May 25 06:07:17 EDT 2026
+final_jpg_count:
+50

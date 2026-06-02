@@ -1,0 +1,11 @@
+inferred_modality,total_files,non_checksum_files,total_size_if_available,can_analyze_without_video,requires_ffmpeg_for_content,source_access_support_values
+auxiliary_video,32,16,729047947,0,1,auxiliary_or_external_source
+ego_video,514,514,5476687149194,0,1,self_or_external_user_source
+gaze,14,7,194719518,1,0,self_or_external_user_source
+heartrate,78,39,14054494,1,0,self_or_external_user_source
+metadata,36726,16291,13416219326,1,0,auxiliary_source;metadata_support;static_room_source
+photos,2602,2602,2688140345,1,0,auxiliary_or_external_source
+pose_imu_trajectory,7528,3829,40062972423,1,0,self_or_external_user_source;static_room_source
+static_camera_video,260,260,2631895294799,0,1,static_room_source
+thermal,78,39,9012666,1,0,auxiliary_or_external_source
+transcript_audio,1323,659,45877671,1,0,self_or_external_user_source;static_room_source

@@ -1,0 +1,19 @@
+CASTLE incremental QA POC report
+
+Selected windows: 3
+Overview frames extracted: 45/45
+Local tracked storage: 30.460 MB
+CLIP status: DAY1_100500000: CLIP skipped by --skip-clip | DAY3_174500000: CLIP skipped by --skip-clip | DAY4_120500000: CLIP skipped by --skip-clip
+hf_hub_download for videos: NO
+
+Selected windows:
+  DAY1_100500000: DAY1 morning 10:05:00.000-10:10:00.000 active=15 ego=10 static=5
+  DAY4_120500000: DAY4 afternoon 12:05:00.000-12:10:00.000 active=15 ego=10 static=5
+  DAY3_174500000: DAY3 evening 17:45:00.000-17:50:00.000 active=15 ego=10 static=5
+
+POC interpretation:
+  The generated annotation CSV is the manual labeling surface for direct/off-event evidence.
+  The QA template is the manual question/answer surface.
+  Strawman metrics are scaffolded now; answer accuracy and evidence sufficiency become meaningful after QA labels are filled.
+
+Output directory: castle_incremental_qa_poc_conda3

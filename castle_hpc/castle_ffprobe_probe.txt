@@ -1,0 +1,42 @@
+CASTLE ffprobe probe
+
+COMMAND: /scratch/xy3257/castle_hpc/envs/castle/bin/ffprobe -v error -rw_timeout 30000000 -reconnect 1 -reconnect_on_network_error 1 -reconnect_streamed 1 -reconnect_delay_max 5 -show_entries format=duration,size:stream=index,codec_type,codec_name -of json https://huggingface.co/datasets/CASTLE-Dataset/CASTLE2024/resolve/main/main/day1/Onanong/video/10.mp4
+RETURN_CODE: 0
+TIMEOUT: False
+ELAPSED_SEC: 1.420
+
+STDOUT:
+{
+    "programs": [
+
+    ],
+    "stream_groups": [
+
+    ],
+    "streams": [
+        {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_type": "video"
+        },
+        {
+            "index": 1,
+            "codec_name": "aac",
+            "codec_type": "audio"
+        },
+        {
+            "index": 2,
+            "codec_type": "data"
+        }
+    ],
+    "format": {
+        "duration": "3600.000000",
+        "size": "12020674537"
+    }
+}
+
+
+STDERR:
+
+
+--------------------------------------------------------------------------------

@@ -1,0 +1,10 @@
+question_id,window_id,querying_user,question,answer,self_view_sufficient,oracle_incremental_views,oracle_static_views,expected_failure_self_only,notes
+DAY1_100500000_Q1,DAY1_100500000,,,,unclear,,,,Fill manually after inspecting overview/contact sheets.
+DAY1_100500000_Q2,DAY1_100500000,,,,unclear,,,,Fill manually after inspecting overview/contact sheets.
+DAY1_100500000_Q3,DAY1_100500000,,,,unclear,,,,Fill manually after inspecting overview/contact sheets.
+DAY4_120500000_Q1,DAY4_120500000,,,,unclear,,,,Fill manually after inspecting overview/contact sheets.
+DAY4_120500000_Q2,DAY4_120500000,,,,unclear,,,,Fill manually after inspecting overview/contact sheets.
+DAY4_120500000_Q3,DAY4_120500000,,,,unclear,,,,Fill manually after inspecting overview/contact sheets.
+DAY3_174500000_Q1,DAY3_174500000,,,,unclear,,,,Fill manually after inspecting overview/contact sheets.
+DAY3_174500000_Q2,DAY3_174500000,,,,unclear,,,,Fill manually after inspecting overview/contact sheets.
+DAY3_174500000_Q3,DAY3_174500000,,,,unclear,,,,Fill manually after inspecting overview/contact sheets.

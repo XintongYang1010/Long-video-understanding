@@ -1,0 +1,38 @@
+CASTLE low-bandwidth remote frame report
+
+Selected streams: 4
+Successful frame extractions: 4
+Local tracked storage used: 2.479 MB
+Stopped reason: none
+Failure class: none
+Contact sheet created: yes
+
+1. Did remote frame extraction work without full video download?
+   Yes; frames were extracted through remote URLs and no hf_hub_download video path was used.
+
+2. How many streams succeeded?
+   4/4
+
+3. How much local storage was used?
+   2.479 MB across frames/log outputs.
+
+4. Did the extracted frames appear to show the same event/window?
+   Contact sheet produced; inspect it to confirm whether rows show the same event.
+
+5. Should we scale to 3 windows and 12 streams?
+   Yes, if the contact sheet confirms visual alignment and local storage remains low.
+
+6. If failed, likely cause:
+   none
+
+Selected streams:
+   DAY1_100500000 Onanong ego 10:06:00.000 offset=360.000s main/day1/Onanong/video/10.mp4
+   DAY1_100500000 Kitchen static 10:06:00.000 offset=359.940s main/day1/Kitchen/video/10.mp4
+   DAY1_100500000 Living1 static 10:06:00.000 offset=359.960s main/day1/Living1/video/10.mp4
+   DAY1_100500000 Tien ego 10:06:00.000 offset=359.980s main/day1/Tien/video/10.mp4
+
+Extraction statuses:
+   Onanong: ok log=castle_low_bandwidth_ffmpeg_logs/DAY1_100500000_Onanong.stderr.txt
+   Kitchen: ok log=castle_low_bandwidth_ffmpeg_logs/DAY1_100500000_Kitchen.stderr.txt
+   Living1: ok log=castle_low_bandwidth_ffmpeg_logs/DAY1_100500000_Living1.stderr.txt
+   Tien: ok log=castle_low_bandwidth_ffmpeg_logs/DAY1_100500000_Tien.stderr.txt

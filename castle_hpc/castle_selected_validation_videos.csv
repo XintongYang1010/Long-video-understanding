@@ -1,0 +1,13 @@
+video_path,day,entity,stream_type,segment_id,start_time,end_time,estimated_size_bytes,used_by_windows
+main/day1/Kitchen/video/10.mp4,DAY1,Kitchen,static,10,10:00:00.060,10:59:59.960,11326200571,DAY1_100500000
+main/day1/Living1/video/10.mp4,DAY1,Living1,static,10,10:00:00.040,10:59:59.940,10982454444,DAY1_100500000
+main/day1/Onanong/video/10.mp4,DAY1,Onanong,ego,10,10:00:00.000,10:59:59.900,12020674537,DAY1_100500000
+main/day1/Tien/video/10.mp4,DAY1,Tien,ego,10,10:00:00.020,10:59:59.920,11231838472,DAY1_100500000
+main/day3/Bjorn/video/17.mp4,DAY3,Bjorn,ego,17,17:31:14.640,17:59:59.960,3648104726,DAY3_174500000
+main/day3/Kitchen/video/17.mp4,DAY3,Kitchen,static,17,17:00:00.000,17:59:59.900,9477259274,DAY3_174500000
+main/day3/Klaus/video/17.mp4,DAY3,Klaus,ego,17,17:40:25.580,17:59:59.920,5454538898,DAY3_174500000
+main/day3/Living1/video/17.mp4,DAY3,Living1,static,17,17:00:00.040,17:59:59.940,11723378567,DAY3_174500000
+main/day4/Cathal/video/12.mp4,DAY4,Cathal,ego,12,12:04:54.740,12:59:59.940,11698365732,DAY4_120500000
+main/day4/Kitchen/video/12.mp4,DAY4,Kitchen,static,12,12:00:00.080,12:59:59.980,9245351481,DAY4_120500000
+main/day4/Living1/video/12.mp4,DAY4,Living1,static,12,12:00:00.080,12:59:59.980,11687584338,DAY4_120500000
+main/day4/Luca/video/12.mp4,DAY4,Luca,ego,12,12:00:00.000,12:59:59.960,6732711702,DAY4_120500000

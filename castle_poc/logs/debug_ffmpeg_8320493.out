@@ -1,0 +1,74 @@
+HOSTNAME=cs601.hpc.nyu.edu
+PYTHON=/scratch/xy3257/castle_poc/venv_compute/bin/python
+Python 3.9.21
+FFMPEG=/scratch/xy3257/castle_poc/bin/ffmpeg
+ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers
+built with gcc 8 (Debian 8.3.0-6)
+configuration: --enable-gpl --enable-version3 --enable-static --disable-debug --disable-ffplay --disable-indev=sndio --disable-outdev=sndio --cc=gcc --enable-fontconfig --enable-frei0r --enable-gnutls --enable-gmp --enable-libgme --enable-gray --enable-libaom --enable-libfribidi --enable-libass --enable-libvmaf --enable-libfreetype --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenjpeg --enable-librubberband --enable-libsoxr --enable-libspeex --enable-libsrt --enable-libvorbis --enable-libopus --enable-libtheora --enable-libvidstab --enable-libvo-amrwbenc --enable-libvpx --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxml2 --enable-libdav1d --enable-libxvid --enable-libzvbi --enable-libzimg
+libavutil      59.  8.100 / 59.  8.100
+libavcodec     61.  3.100 / 61.  3.100
+
+
+===== CURL HEAD TEST =====
+HTTP/2 302 
+content-type: text/plain; charset=utf-8
+content-length: 1367
+location: https://cas-bridge.xethub.hf.co/xet-bridge-us/68e6386d06e22454027889b7/c4b482cbb9888bdb2cb0f3885ef7df539b4d855c37175981cc5c2f50bae73f0e?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=cas%2F20260509%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260509T100205Z&X-Amz-Expires=3600&X-Amz-Signature=bc5c38edec5327c37e0ad49fc1439df3fca47b67067beaf9ef5b2acb1ff8e3b0&X-Amz-SignedHeaders=host&X-Xet-Cas-Uid=public&response-content-disposition=inline%3B+filename*%3DUTF-8%27%2710.mp4%3B+filename%3D%2210.mp4%22%3B&response-content-type=video%2Fmp4&x-amz-checksum-mode=ENABLED&x-id=GetObject&Expires=1778324525&Policy=eyJTdGF0ZW1lbnQiOlt7IkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc3ODMyNDUyNX19LCJSZXNvdXJjZSI6Imh0dHBzOi8vY2FzLWJyaWRnZS54ZXRodWIuaGYuY28veGV0LWJyaWRnZS11cy82OGU2Mzg2ZDA2ZTIyNDU0MDI3ODg5YjcvYzRiNDgyY2JiOTg4OGJkYjJjYjBmMzg4NWVmN2RmNTM5YjRkODU1YzM3MTc1OTgxY2M1YzJmNTBiYWU3M2YwZSoifV19&Signature=kJ47A4%7EF%7EAJ2cZuxPdyRs-%7EMiVthFXQIYeYBGwX1NQvqe61A5H-xCscDpnW-hyc%7ECIk2n4DBiUjmY2Sq%7EdYnwc0%7EEWDfwLUFENcOpOYNZDt7AVFADGVbqe5W7AMoGh54nClfVwhxxK7Ohc17HxJD1LqiIctrm%7EDNCeV9WC09kVFLC4QkCto0mWzi9-lK5Ao2zpdg5lmjih2mjCZ-BLAX0eKtarQrlJ-0hA8xOGIxIrVrTHfkkGc8%7EwFCDuZKDrfckNajWiLIGbTThLKeaaMFXgawfofJ-yanK4WrsEcUcC7M8z8lr3Osn2VFpVGUhlsfMvymFAEJdohcGDaEFfNiuw__&Key-Pair-Id=K2L8F4GPSG1IFC
+date: Sat, 09 May 2026 10:02:05 GMT
+x-powered-by: huggingface-moon
+x-request-id: Root=1-69ff061d-390dfdf402966cf8614e4f3c
+ratelimit: "resolvers";r=2999;t=267
+ratelimit-policy: "fixed window";"resolvers";q=3000;w=300
+cross-origin-opener-policy: same-origin
+referrer-policy: strict-origin-when-cross-origin
+access-control-max-age: 86400
+access-control-allow-origin: https://huggingface.co
+vary: Origin, Accept
+access-control-expose-headers: X-Repo-Commit,X-Request-Id,X-Error-Code,X-Error-Message,X-Total-Count,ETag,Link,Accept-Ranges,Content-Range,X-Linked-Size,X-Linked-ETag,X-Xet-Hash
+x-repo-commit: 1204d31fc6e35141039982c3e67845ebc2526f52
+accept-ranges: bytes
+x-hub-cache: MISS
+x-linked-size: 13974979707
+x-linked-etag: "edcabf3575bdc5576ea30437d4f5bb1ea2146b15cce4d14f0723e12e27ee6018"
+x-xet-hash: c4b482cbb9888bdb2cb0f3885ef7df539b4d855c37175981cc5c2f50bae73f0e
+link: <https://huggingface.co/api/datasets/CASTLE-Dataset/CASTLE2024/xet-read-token/1204d31fc6e35141039982c3e67845ebc2526f52>; rel="xet-auth", <https://cas-server.xethub.hf.co/v1/reconstructions/c4b482cbb9888bdb2cb0f3885ef7df539b4d855c37175981cc5c2f50bae73f0e>; rel="xet-reconstruction-info"
+x-cache: Miss from cloudfront
+via: 1.1 fbc6aba81adda3753f540e18b975899c.cloudfront.net (CloudFront)
+x-amz-cf-pop: JFK50-P9
+x-amz-cf-id: 3xMoiZzDM4V9yhClUGOgVQyQxHz0YDx0kpGZnom_pHLU3cPRKdQXrA==
+
+HTTP/1.1 200 OK
+Content-Type: video/mp4
+Content-Length: 13974979707
+Connection: keep-alive
+Content-Disposition: inline; filename*=UTF-8''10.mp4; filename="10.mp4";
+Cache-Control: public, max-age=31536000
+ETag: "c4b482cbb9888bdb2cb0f3885ef7df539b4d855c37175981cc5c2f50bae73f0e"
+Accept-Ranges: bytes
+access-control-allow-credentials: true
+access-control-expose-headers: accept-ranges,content-range,content-type,content-disposition,etag,x-cache
+x-request-id: 01KR62ZRRT3BWPS5KEPF8H4TXK
+Date: Sat, 09 May 2026 10:02:05 GMT
+Vary: origin,access-control-request-method,access-control-request-headers
+X-Cache: Miss from cloudfront
+Via: 1.1 6c9d752a06683b70c3a48f07f80d43b0.cloudfront.net (CloudFront)
+X-Amz-Cf-Pop: JFK50-P2
+X-Amz-Cf-Id: ZjRWO9w7Pmjj62hiCmC8d3nHgkiqctfotkuWqvZtapnV3TYX8wIk0Q==
+Content-Security-Policy: default-src 'none'; media-src 'self'; sandbox allow-same-origin
+
+
+===== CURL RANGE TEST =====
+http_code=206 size_download=1048576 time_total=0.476080
+-rw-r--r--. 1 xy3257 xy3257 1.0M May  9 06:02 debug_ffmpeg/allie_1mb_probe.bin
+
+===== TEST A: original-ish command, but loglevel info =====
+TEST_A_RETURN=139
+
+===== TEST B: simplified remote ffmpeg, no multiple_requests/seekable =====
+TEST_B_RETURN=139
+
+===== TEST C: input first, seek after input; slower but safer =====
+TEST_C_RETURN=139
+
+===== OUTPUT FILES =====
+13785670484172872465   1024 -rw-r--r--   1 xy3257   xy3257    1048576 May  9 06:02 debug_ffmpeg/allie_1mb_probe.bin

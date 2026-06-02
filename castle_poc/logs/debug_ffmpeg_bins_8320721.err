@@ -1,0 +1,8 @@
+/opt/slurm/data/slurmd/job8320721/slurm_script: line 30: type: ffmpeg: not found
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100  1367  100  1367    0     0  36945      0 --:--:-- --:--:-- --:--:-- 36945
+100 1024k  100 1024k    0     0  11.1M      0 --:--:-- --:--:-- --:--:-- 11.1M
+timeout: the monitored command dumped core
+/opt/slurm/data/slurmd/job8320721/slurm_script: line 63: 3401476 Segmentation fault      timeout 180 "$BIN" -hide_banner -loglevel info -nostdin -y -rw_timeout 120000000 -reconnect 1 -reconnect_on_network_error 1 -reconnect_streamed 1 -reconnect_delay_max 5 -ss 360.000 -i "$URL" -frames:v 1 -q:v 2 "$OUT"
+ls: cannot access 'debug_ffmpeg_bins/allie__scratch_xy3257_castle_poc_bin_ffmpeg.jpg': No such file or directory

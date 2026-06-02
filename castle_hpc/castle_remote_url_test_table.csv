@@ -1,0 +1,5 @@
+window_id,day,entity,stream_type,video_path,target_clock_time,offset_seconds,remote_url,uses_hf_hub_download
+DAY1_100500000,DAY1,Onanong,ego,main/day1/Onanong/video/10.mp4,10:06:00.000,360.000,https://huggingface.co/datasets/CASTLE-Dataset/CASTLE2024/resolve/main/main/day1/Onanong/video/10.mp4,no
+DAY1_100500000,DAY1,Kitchen,static,main/day1/Kitchen/video/10.mp4,10:06:00.000,359.940,https://huggingface.co/datasets/CASTLE-Dataset/CASTLE2024/resolve/main/main/day1/Kitchen/video/10.mp4,no
+DAY1_100500000,DAY1,Living1,static,main/day1/Living1/video/10.mp4,10:06:00.000,359.960,https://huggingface.co/datasets/CASTLE-Dataset/CASTLE2024/resolve/main/main/day1/Living1/video/10.mp4,no
+DAY1_100500000,DAY1,Tien,ego,main/day1/Tien/video/10.mp4,10:06:00.000,359.980,https://huggingface.co/datasets/CASTLE-Dataset/CASTLE2024/resolve/main/main/day1/Tien/video/10.mp4,no

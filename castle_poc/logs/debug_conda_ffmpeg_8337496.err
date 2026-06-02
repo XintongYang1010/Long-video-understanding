@@ -1,0 +1,45 @@
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100  1365  100  1365    0     0  11470      0 --:--:-- --:--:-- --:--:-- 11470
+100 1024k  100 1024k    0     0  3923k      0 --:--:-- --:--:-- --:--:-- 3923k
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'https://huggingface.co/datasets/CASTLE-Dataset/CASTLE2024/resolve/main/main/day1/Allie/video/10.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf60.16.100
+  Duration: 01:00:00.72, start: 0.000000, bitrate: 31049 kb/s
+  Stream #0:0[0x1](eng): Video: h264 (High) (avc1 / 0x31637661), yuvj420p(pc, bt709, progressive), 3840x2160 [SAR 1:1 DAR 16:9], 30857 kb/s, 50 fps, 50 tbr, 12800 tbn (default)
+    Metadata:
+      handler_name    : GoPro H.265
+      vendor_id       : [0][0][0][0]
+      encoder         : Lavc60.31.102 libx264
+      timecode        : 09:44:32:09
+  Stream #0:1[0x2](eng): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 184 kb/s (default)
+    Metadata:
+      handler_name    : GoPro AAC  
+      vendor_id       : [0][0][0][0]
+  Stream #0:2[0x3](eng): Data: none (tmcd / 0x64636D74)
+    Metadata:
+      handler_name    : GoPro H.265
+      timecode        : 09:44:32:09
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> mjpeg (native))
+Output #0, image2, to 'debug_conda_ffmpeg/allie_conda.jpg':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    encoder         : Lavf60.16.100
+  Stream #0:0(eng): Video: mjpeg, yuvj420p(pc, bt709, progressive), 3840x2160 [SAR 1:1 DAR 16:9], q=2-31, 200 kb/s, 50 fps, 50 tbn (default)
+    Metadata:
+      handler_name    : GoPro H.265
+      vendor_id       : [0][0][0][0]
+      timecode        : 09:44:32:09
+      encoder         : Lavc60.31.102 mjpeg
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/200000 buffer size: 0 vbv_delay: N/A
+frame=    0 fps=0.0 q=2.0 size=       0kB time=00:00:00.00 bitrate=N/A speed=   0x    [image2 @ 0x561ccdcbea40] The specified filename 'debug_conda_ffmpeg/allie_conda.jpg' does not contain an image sequence pattern or a pattern is invalid.
+[image2 @ 0x561ccdcbea40] Use a pattern such as %03d for an image sequence or use the -update option (with -frames:v 1 if needed) to write a single image.
+[out#0/image2 @ 0x561ccde98780] video:614kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: unknown
+frame=    1 fps=0.8 q=2.0 Lsize=N/A time=00:00:00.00 bitrate=N/A speed=   0x    

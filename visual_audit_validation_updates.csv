@@ -1,0 +1,2 @@
+case_id,status,visual_packet_created,frames_extracted,contact_sheets_created,reason,missing_inputs,next_action
+__BLOCKED__,blocked,0,0,0,"Visual audit stopped before case processing because required inputs/tools were unavailable.","selected_visual_cases.csv;ffmpeg;local_video_files","Provide selected_visual_cases.csv, make CASTLE videos available locally, and expose ffmpeg on PATH."

@@ -1,0 +1,43 @@
+CASTLE event-relevant view selection report
+
+Window: DAY1_100500000 DAY1 10:05:00.000-10:10:00.000
+Overview target time: 10:06:00.000
+Local tracked storage used: 19.161 MB
+CLIP status: CLIP skipped by --skip-clip
+
+1. How many active streams existed in this window?
+   15 active streams were eligible; 15/15 overview frames extracted successfully.
+
+2. Which streams are visually aligned to the living-room event?
+   Onanong, Tien, Living1, Living2
+
+3. Which streams are active but irrelevant?
+   Allie, Bjorn, Cathal, Florian, Klaus, Luca, Stevan, Werner, Meeting, Reading, Kitchen
+
+4. Do static views complement ego views?
+   Yes, selected static context: Living1, Living2.
+
+5. Does this support multi-view collaborative memory?
+   Yes if the generated contact sheet shows the selected ego and static rows tracking the same event over time.
+
+6. Should we scale this event-relevant selection to 3 windows?
+   Yes, after manual inspection of the overview and event-relevant contact sheet.
+
+Selection reasons:
+   Allie: excluded: not in event-relevant living-room group
+   Bjorn: excluded: not in event-relevant living-room group
+   Cathal: excluded: not in event-relevant living-room group
+   Florian: excluded: not in event-relevant living-room group
+   Klaus: excluded: not in event-relevant living-room group
+   Luca: excluded: not in event-relevant living-room group
+   Onanong: anchor ego living-room event
+   Stevan: excluded: not in event-relevant living-room group
+   Tien: anchor ego living-room event
+   Werner: excluded: not in event-relevant living-room group
+   Living1: selected by fallback heuristic: living-room static camera
+   Living2: selected by fallback heuristic: living-room static camera
+   Meeting: excluded: not in event-relevant living-room group
+   Reading: excluded: not in event-relevant living-room group
+   Kitchen: excluded by fallback heuristic: kitchen is active but off-event for this living-room group
+
+Event contact-sheet frame extractions: 12/12
