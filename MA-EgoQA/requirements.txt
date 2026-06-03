@@ -1,0 +1,7 @@
+google-genai
+huggingface_hub[cli]
+numpy
+pandas
+pyarrow
+rank-bm25
+tqdm
