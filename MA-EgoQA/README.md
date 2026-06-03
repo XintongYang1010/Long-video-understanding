@@ -76,6 +76,17 @@ You can run EgoMAS with a single process by run:
 python -m egomas.src.inference_egomas_singleproc
 ```
 
+### Fixed Single-Agent Evaluation
+To evaluate a lower-bound ablation where every question is answered from only one fixed agent's 30-second caption stream:
+```sh
+python -m egomas.src.inference_egomas_fixed_one --agent Jake
+```
+Run all six fixed agents:
+```sh
+python -m egomas.src.inference_egomas_fixed_one --agent all
+```
+This keeps the multi-agent EgoMAS scripts unchanged.
+
 ---
 
 ## Citation

@@ -3,6 +3,7 @@ Single-process inference for MA-EgoQA using planner + retriever + answer pipelin
 """
 import os
 import random
+import time
 from typing import Any
 
 random.seed(42)
@@ -42,6 +43,29 @@ PLANNER_MAX_TOKENS = 10000
 ANSWER_MAX_TOKENS = 4096
 
 
+def call_model_with_retries(
+    client: genai.Client,
+    prompt: str,
+    max_output_tokens: int,
+) -> str:
+    """Call Gemini and retry transient overload/rate-limit failures."""
+    max_retries = int(os.getenv("EGOMAS_API_RETRIES", "8"))
+    retry_sleep = float(os.getenv("EGOMAS_RETRY_SLEEP", "30"))
+    for attempt in range(max_retries + 1):
+        try:
+            response = client.models.generate_content(
+                model=MODEL_NAME,
+                contents=prompt,
+                config=types.GenerateContentConfig(max_output_tokens=max_output_tokens),
+            )
+            return (response.candidates[0].content.parts[0].text or "").strip()
+        except Exception:
+            if attempt >= max_retries:
+                raise
+            time.sleep(retry_sleep * (attempt + 1))
+    return ""
+
+
 # -----------------------------------------------------------------------------
 # Planner
 # -----------------------------------------------------------------------------
@@ -54,12 +78,7 @@ def run_planner(
 ) -> list[dict]:
     """Call planner model and return parsed selection list."""
     prompt = build_planner_prompt(shared_context, question_prompt)
-    response = client.models.generate_content(
-        model=MODEL_NAME,
-        contents=prompt,
-        config=types.GenerateContentConfig(max_output_tokens=PLANNER_MAX_TOKENS),
-    )
-    raw = (response.candidates[0].content.parts[0].text or "").strip()
+    raw = call_model_with_retries(client, prompt, PLANNER_MAX_TOKENS)
     if verbose:
         print("Planner text:", raw)
     selection = parse_planner_response(raw, fallback_question)
@@ -110,12 +129,7 @@ def run_answer(
     answer_prompt = build_answer_prompt(
         shared_context, retrieved_contexts, question_prompt
     )
-    response = client.models.generate_content(
-        model=MODEL_NAME,
-        contents=answer_prompt,
-        config=types.GenerateContentConfig(max_output_tokens=ANSWER_MAX_TOKENS),
-    )
-    pred = (response.candidates[0].content.parts[0].text or "").strip()
+    pred = call_model_with_retries(client, answer_prompt, ANSWER_MAX_TOKENS)
     if verbose:
         print("Final pred:", pred)
     return pred
@@ -168,12 +182,12 @@ def main(
             elem, client, retriever, verbose=verbose
         )
         results.append(elem_out)
+        save_json(results, output_path)
         if is_correct:
             correct_count += 1
         if verbose:
             print(f"Accuracy: {correct_count / len(results):.2%}")
 
-    save_json(results, output_path)
     print(f"Saved {len(results)} results to {output_path}")
     print(f"Final accuracy: {correct_count / len(results):.2%}")
 

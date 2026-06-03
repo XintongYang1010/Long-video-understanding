@@ -67,9 +67,21 @@ class BM25TextRetriever:
             data = json.load(file)
             keys, captions = [], []
             for elem in data:
-                for i, cap in enumerate(elem["caption"]):
+                memory_items = elem.get("caption") or elem.get("memory") or []
+                for i, cap in enumerate(memory_items):
                     keys.append(f"{elem['day']}-{elem['start']}-{elem['end']}_{i}")
-                    captions.append("DAY" + str(elem['day']) + " " + str(elem['start'])[:2] + ":" + str(elem['start'])[2:4] + ":00 - " + str(elem['end'])[:2] + ":" + str(elem['end'])[2:4] + ":00\n" + cap["action"] + "\n" + cap["detail"])
+                    names = cap.get("name", [])
+                    if isinstance(names, list):
+                        names = ", ".join(names)
+                    captions.append(
+                        "DAY" + str(elem['day']) + " "
+                        + str(elem['start'])[:2] + ":" + str(elem['start'])[2:4] + ":00 - "
+                        + str(elem['end'])[:2] + ":" + str(elem['end'])[2:4] + ":00\n"
+                        + (names + "\n" if names else "")
+                        + cap.get("action", "") + "\n"
+                        + (cap.get("location", "") + "\n" if cap.get("location") else "")
+                        + cap.get("detail", "")
+                    )
 
         return [self._tokenize(caption) for caption in captions], keys, captions
 

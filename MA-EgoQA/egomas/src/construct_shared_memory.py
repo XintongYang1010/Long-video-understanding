@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from multiprocessing import Pool, cpu_count
 from tqdm import tqdm
 
@@ -44,21 +45,35 @@ def _build_tasks(cap_10m_dir, cap_10m_files):
 def _call_api_one(args):
     """Worker: call API for one (day, start_time, end_time, context). Must be top-level for pickle."""
     day, start_time, end_time, context, prompt = args
-    content = ""
-    try:
-        api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-        client = genai.Client(api_key=api_key)
-        combined = f"{context}\n\n{prompt}"
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=combined,
-        )
-        content = response.text
-        raw = extract_codeblock_text(content)
-        memory = json.loads(raw)
-        return {"day": day, "start": start_time, "end": end_time, "memory": memory}
-    except Exception as e:
-        return {"day": day, "start": start_time, "end": end_time, "error": str(e), "memory": content}
+    api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+    max_retries = int(os.getenv("EGOMAS_API_RETRIES", "5"))
+    retry_sleep = float(os.getenv("EGOMAS_RETRY_SLEEP", "15"))
+    client = genai.Client(api_key=api_key)
+    combined = f"{context}\n\n{prompt}"
+
+    for attempt in range(max_retries + 1):
+        content = ""
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=combined,
+            )
+            content = response.text
+            raw = extract_codeblock_text(content)
+            memory = json.loads(raw)
+            return {"day": day, "start": start_time, "end": end_time, "memory": memory}
+        except Exception as e:
+            if attempt < max_retries:
+                time.sleep(retry_sleep * (attempt + 1))
+                continue
+            return {
+                "day": day,
+                "start": start_time,
+                "end": end_time,
+                "error": str(e),
+                "raw_response": content,
+                "memory": None,
+            }
 
 
 def generate_shared_memory_10m(num_workers=None):
@@ -73,21 +88,29 @@ def generate_shared_memory_10m(num_workers=None):
     task_args = [(d, s, e, ctx, SHARED_MEMORY_PROMPT) for d, s, e, ctx in tasks]
 
     memories = []
+    errors = []
     with Pool(processes=num_workers) as pool:
         for result in tqdm(
             pool.imap_unordered(_call_api_one, task_args),
             total=len(task_args),
             desc="Shared memory",
         ):
-            if result.get("memory") is not None:
+            if result.get("error"):
+                errors.append(result)
+                print(
+                    f"Error (day={result['day']}, start={result['start']}): "
+                    f"{result['error']}"
+                )
+            elif result.get("memory") is not None:
                 memories.append(
                     {"day": result["day"], "start": result["start"], "end": result["end"], "memory": result["memory"]}
                 )
-            elif "error" in result:
-                print(f"Error (day={result['day']}, start={result['start']}): {result['error']}, content: {result['memory']}")
 
     memories.sort(key=lambda x: (x["day"], x["start"]))
     save_json(memories, "data/10min_shared_memory.json")
+    if errors:
+        errors.sort(key=lambda x: (x["day"], x["start"]))
+        save_json(errors, "data/10min_shared_memory_errors.json")
 
 
 if __name__ == "__main__":
