@@ -24,3 +24,8 @@ envs/
 frames/
 *.bin
 Miniforge3.sh
+*.bak_*
+outputs/
+MA-EgoQA/outputs/
+MA-EgoQA/hpc/logs/
+MA-EgoQA/hpc/*.bak_*

@@ -1,0 +1,7 @@
+condition,agent_group,num_items,correct,accuracy,invalid_predictions,elapsed_seconds,predictions_path
+Jack,Jake,1741,448,0.257323377369328,0,966.3377726078033,outputs/qwen3vl_subset_full_gpu1_jack_alice_katrina_v2/Jack/predictions.jsonl
+Alice,Alice,1741,464,0.2665134979896611,0,953.2034327983856,outputs/qwen3vl_subset_full_gpu1_jack_alice_katrina_v2/Alice/predictions.jsonl
+Katrina,Katrina,1741,482,0.2768523836875359,0,975.8048815727234,outputs/qwen3vl_subset_full_gpu1_jack_alice_katrina_v2/Katrina/predictions.jsonl
+Jack_Alice,Jake+Alice,1741,506,0.29063756461803564,0,1387.1058163642883,outputs/qwen3vl_subset_full_gpu1_jack_alice_katrina_v2/Jack_Alice/predictions.jsonl
+Jack_Katrina,Jake+Katrina,1741,533,0.3061458931648478,0,1395.6296434402466,outputs/qwen3vl_subset_full_gpu1_jack_alice_katrina_v2/Jack_Katrina/predictions.jsonl
+Alice_Katrina,Alice+Katrina,1741,558,0.32050545663411834,0,1385.94820022583,outputs/qwen3vl_subset_full_gpu1_jack_alice_katrina_v2/Alice_Katrina/predictions.jsonl

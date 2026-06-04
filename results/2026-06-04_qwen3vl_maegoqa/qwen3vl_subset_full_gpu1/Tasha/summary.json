@@ -1,0 +1,11 @@
+{
+  "condition": "Tasha",
+  "agents": [
+    "Tasha"
+  ],
+  "num_items": 1741,
+  "correct": 443,
+  "accuracy": 0.25445146467547386,
+  "invalid_predictions": 0,
+  "elapsed_seconds": 758.8004107475281
+}

@@ -1,0 +1,11 @@
+{
+  "condition": "Jack",
+  "agents": [
+    "Jake"
+  ],
+  "num_items": 1741,
+  "correct": 448,
+  "accuracy": 0.257323377369328,
+  "invalid_predictions": 0,
+  "elapsed_seconds": 966.3377726078033
+}

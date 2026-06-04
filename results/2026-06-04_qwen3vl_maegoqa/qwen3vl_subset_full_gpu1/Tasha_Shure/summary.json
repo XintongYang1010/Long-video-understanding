@@ -1,0 +1,12 @@
+{
+  "condition": "Tasha_Shure",
+  "agents": [
+    "Tasha",
+    "Shure"
+  ],
+  "num_items": 1741,
+  "correct": 545,
+  "accuracy": 0.3130384836300976,
+  "invalid_predictions": 0,
+  "elapsed_seconds": 1311.122284412384
+}

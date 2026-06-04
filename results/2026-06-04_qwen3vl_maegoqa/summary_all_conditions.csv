@@ -1,0 +1,15 @@
+run_group,condition,agent_group,agent_count,num_items,correct,accuracy,accuracy_percent,invalid_predictions,elapsed_seconds
+lucia_tasha_shure_singles_pairs,Lucia,Lucia,1,1741,510,0.2929350947731189,29.29,0,739.3801238536835
+lucia_tasha_shure_singles_pairs,Tasha,Tasha,1,1741,443,0.25445146467547386,25.45,0,758.8004107475281
+lucia_tasha_shure_singles_pairs,Shure,Shure,1,1741,508,0.2917863296955773,29.18,0,777.341502904892
+lucia_tasha_shure_singles_pairs,Lucia_Tasha,Lucia+Tasha,2,1741,547,0.3141872487076393,31.42,0,1260.1354978084564
+lucia_tasha_shure_singles_pairs,Lucia_Shure,Lucia+Shure,2,1741,575,0.33026995979322227,33.03,0,1313.1504418849945
+lucia_tasha_shure_singles_pairs,Tasha_Shure,Tasha+Shure,2,1741,545,0.3130384836300976,31.30,0,1311.122284412384
+jack_alice_katrina_singles_pairs,Jack,Jake,1,1741,448,0.257323377369328,25.73,0,966.3377726078033
+jack_alice_katrina_singles_pairs,Alice,Alice,1,1741,464,0.2665134979896611,26.65,0,953.2034327983856
+jack_alice_katrina_singles_pairs,Katrina,Katrina,1,1741,482,0.2768523836875359,27.69,0,975.8048815727234
+jack_alice_katrina_singles_pairs,Jack_Alice,Jake+Alice,2,1741,506,0.29063756461803564,29.06,0,1387.1058163642883
+jack_alice_katrina_singles_pairs,Jack_Katrina,Jake+Katrina,2,1741,533,0.3061458931648478,30.61,0,1395.6296434402466
+jack_alice_katrina_singles_pairs,Alice_Katrina,Alice+Katrina,2,1741,558,0.32050545663411834,32.05,0,1385.94820022583
+triples,Jack_Alice_Katrina,Jake+Alice+Katrina,3,1741,562,0.3228029867892016,32.28,0,1348.9639143943787
+triples,Lucia_Tasha_Shure,Lucia+Tasha+Shure,3,1741,617,0.3543940264215968,35.44,0,1352.4201607704163

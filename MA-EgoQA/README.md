@@ -87,6 +87,29 @@ python -m egomas.src.inference_egomas_fixed_one --agent all
 ```
 This keeps the multi-agent EgoMAS scripts unchanged.
 
+
+### Qwen3VL Fixed-Source Ablation
+
+This repository snapshot also includes a Qwen-only fixed-source ablation runner. It does not modify the Gemini EgoMAS scripts. It reuses the official MA-EgoQA questions and the existing 30-second caption BM25 index, so it does not require downloading full videos.
+
+```sh
+# Default Lucia/Tasha/Shure singles and pairs
+QWEN3VL_LIMIT=none sbatch hpc/run_qwen3vl_subset_h200.sbatch
+
+# Custom source combinations
+QWEN3VL_LIMIT=none \
+QWEN3VL_CONDITIONS="Jack Alice Katrina Jack_Alice Jack_Katrina Alice_Katrina" \
+sbatch hpc/run_qwen3vl_subset_h200.sbatch
+```
+
+Summaries are produced with:
+
+```sh
+python -m egomas.src.summarize_qwen3vl_subset --output-root outputs/qwen3vl_subset
+```
+
+The 2026-06-04 full-run artifacts are stored in `../results/2026-06-04_qwen3vl_maegoqa/`.
+
 ---
 
 ## Citation
