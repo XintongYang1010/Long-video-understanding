@@ -1,0 +1,11 @@
+{
+  "condition": "Katrina",
+  "agents": [
+    "Katrina"
+  ],
+  "num_items": 1741,
+  "correct": 482,
+  "accuracy": 0.2768523836875359,
+  "invalid_predictions": 0,
+  "elapsed_seconds": 975.8048815727234
+}

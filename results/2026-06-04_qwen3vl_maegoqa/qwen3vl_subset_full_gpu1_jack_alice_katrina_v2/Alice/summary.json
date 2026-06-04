@@ -1,0 +1,11 @@
+{
+  "condition": "Alice",
+  "agents": [
+    "Alice"
+  ],
+  "num_items": 1741,
+  "correct": 464,
+  "accuracy": 0.2665134979896611,
+  "invalid_predictions": 0,
+  "elapsed_seconds": 953.2034327983856
+}

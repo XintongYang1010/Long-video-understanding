@@ -1,0 +1,3 @@
+condition,agent_group,num_items,correct,accuracy,invalid_predictions,elapsed_seconds,predictions_path
+Jack_Alice_Katrina,Jake+Alice+Katrina,1741,562,0.3228029867892016,0,1348.9639143943787,outputs/qwen3vl_subset_full_gpu1_triples/Jack_Alice_Katrina/predictions.jsonl
+Lucia_Tasha_Shure,Lucia+Tasha+Shure,1741,617,0.3543940264215968,0,1352.4201607704163,outputs/qwen3vl_subset_full_gpu1_triples/Lucia_Tasha_Shure/predictions.jsonl

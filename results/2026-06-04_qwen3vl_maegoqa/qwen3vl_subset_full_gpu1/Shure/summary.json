@@ -1,0 +1,11 @@
+{
+  "condition": "Shure",
+  "agents": [
+    "Shure"
+  ],
+  "num_items": 1741,
+  "correct": 508,
+  "accuracy": 0.2917863296955773,
+  "invalid_predictions": 0,
+  "elapsed_seconds": 777.341502904892
+}

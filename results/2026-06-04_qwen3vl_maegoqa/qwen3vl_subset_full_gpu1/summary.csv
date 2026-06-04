@@ -1,0 +1,7 @@
+condition,agent_group,num_items,correct,accuracy,invalid_predictions,elapsed_seconds,predictions_path
+Lucia,Lucia,1741,510,0.2929350947731189,0,739.3801238536835,outputs/qwen3vl_subset_full_gpu1/Lucia/predictions.jsonl
+Tasha,Tasha,1741,443,0.25445146467547386,0,758.8004107475281,outputs/qwen3vl_subset_full_gpu1/Tasha/predictions.jsonl
+Shure,Shure,1741,508,0.2917863296955773,0,777.341502904892,outputs/qwen3vl_subset_full_gpu1/Shure/predictions.jsonl
+Lucia_Tasha,Lucia+Tasha,1741,547,0.3141872487076393,0,1260.1354978084564,outputs/qwen3vl_subset_full_gpu1/Lucia_Tasha/predictions.jsonl
+Lucia_Shure,Lucia+Shure,1741,575,0.33026995979322227,0,1313.1504418849945,outputs/qwen3vl_subset_full_gpu1/Lucia_Shure/predictions.jsonl
+Tasha_Shure,Tasha+Shure,1741,545,0.3130384836300976,0,1311.122284412384,outputs/qwen3vl_subset_full_gpu1/Tasha_Shure/predictions.jsonl

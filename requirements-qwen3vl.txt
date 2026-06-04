@@ -1,0 +1,11 @@
+# Qwen3-VL experiment dependencies used by the 2026-06-04 H200/L40S runs.
+#
+# Install CUDA-enabled PyTorch for the target cluster/runtime first, then install
+# these packages inside the same conda environment.
+accelerate
+numpy
+pillow
+qwen-vl-utils
+rank-bm25
+tqdm
+transformers>=4.57.0

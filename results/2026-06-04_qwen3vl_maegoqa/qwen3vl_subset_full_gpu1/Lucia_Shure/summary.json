@@ -1,0 +1,12 @@
+{
+  "condition": "Lucia_Shure",
+  "agents": [
+    "Lucia",
+    "Shure"
+  ],
+  "num_items": 1741,
+  "correct": 575,
+  "accuracy": 0.33026995979322227,
+  "invalid_predictions": 0,
+  "elapsed_seconds": 1313.1504418849945
+}

@@ -1,0 +1,11 @@
+{
+  "condition": "Lucia",
+  "agents": [
+    "Lucia"
+  ],
+  "num_items": 1741,
+  "correct": 510,
+  "accuracy": 0.2929350947731189,
+  "invalid_predictions": 0,
+  "elapsed_seconds": 739.3801238536835
+}

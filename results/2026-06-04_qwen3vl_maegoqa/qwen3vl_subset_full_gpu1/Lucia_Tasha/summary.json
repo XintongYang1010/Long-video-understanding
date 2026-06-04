@@ -1,0 +1,12 @@
+{
+  "condition": "Lucia_Tasha",
+  "agents": [
+    "Lucia",
+    "Tasha"
+  ],
+  "num_items": 1741,
+  "correct": 547,
+  "accuracy": 0.3141872487076393,
+  "invalid_predictions": 0,
+  "elapsed_seconds": 1260.1354978084564
+}
