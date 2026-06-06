@@ -3,6 +3,161 @@
 This repository is a cleaned synchronization snapshot from `/scratch/xy3257` on 2026-06-02.  It contains the active code, validation scripts, and selected experiment outputs for the long-video / egocentric-video understanding work.
 
 
+## 2026-06-06 MA-EgoQA Route B: SigLIP Retrieval + Qwen3-VL
+
+This branch adds the Route B visual-retrieval experiment for MA-EgoQA Day 1 on NYU Torch. It is designed to compare directly with the collaborator Route A baseline:
+
+- Route A: use the annotated QA context window, locate the relevant videos, uniformly sample a fixed number of frames per selected agent, then ask Qwen3-VL.
+- Route B: use the same QA context window and the same selected-agent conditions, but replace uniform frame sampling with question-aware SigLIP frame retrieval before asking Qwen3-VL.
+
+The original Gemini EgoMAS code is unchanged. Route B is Qwen-only and lives in separate runner/Slurm files.
+
+### What Route B Measures
+
+Route B answers this question:
+
+```text
+Given the same MA-EgoQA context window and agent condition as Route A,
+does selecting question-relevant frames with SigLIP improve Qwen3-VL accuracy
+compared with uniform frame sampling?
+```
+
+It does not evaluate text BM25 retrieval and it does not feed captions, transcripts, or the `contexts` text to Qwen. The `contexts` field is used only to locate the relevant Day 1 time window and the relevant agent videos.
+
+### Pipeline
+
+For each Day 1 question:
+
+```text
+MA-EgoQA question + options
+-> parse structured contexts
+-> get context day/time window and relevant agents
+-> generate the same conditions as Route A:
+   single: each relevant agent alone
+   pair: every two-agent combination
+   all: all relevant context agents
+-> for each selected agent:
+   locate EgoLife clips by agent/day/time
+   dense-sample candidate frames, default 1 fps
+   encode frames with google/siglip-base-patch16-224
+   encode question + options with the same SigLIP model
+   select per-agent top-k frames with MMR + temporal NMS
+-> merge selected frames in time order
+-> send frames + question + options to Qwen/Qwen3-VL-8B-Instruct
+-> parse A/B/C/D/E
+-> save raw prediction, selected frames, accuracy, retrieval latency, Qwen latency
+```
+
+Route B uses a per-agent frame budget. For example:
+
+```text
+single top_k=5 -> 5 total frames
+pair top_k=5   -> 10 total frames
+all top_k=5    -> 5 * number_of_relevant_agents total frames
+```
+
+This makes `top_k=5/10/15` comparable to Route A `frame_modes=5/10/15` as a per-agent budget.
+
+### Implementation Files
+
+- `MA-EgoQA/egomas/src/evaluate_day1_qwen3vl_routeb_retrieval.py`
+- `MA-EgoQA/egomas/src/merge_routeb_retrieval_results.py`
+- `MA-EgoQA/hpc/run_routeb_siglip_h200.sbatch`
+
+The implementation is chunk-local: each Slurm job performs SigLIP retrieval and Qwen inference in the same process. Do not build or use a global 1fps frame index for the formal Route B runs.
+
+### Reproduce on NYU Torch
+
+Expected local paths on Torch:
+
+```bash
+PROJECT_ROOT=/scratch/$USER/github_sync_long_video_understanding
+MAEGOQA_ROOT=$PROJECT_ROOT/MA-EgoQA
+BENCHMARK_PATH=/scratch/$USER/ma_egoqa_reproduce/MA-EgoQA/data/MA-EgoQA.json
+VIDEO_ROOT=/scratch/$USER/data/MaEgo
+```
+
+The Slurm script requests one H200 GPU using account `torch_pr_674_tandon_advanced`.
+
+Smoke test with one Day 1 question:
+
+```bash
+cd /scratch/$USER/github_sync_long_video_understanding/MA-EgoQA
+OUTDIR=/scratch/$USER/data/multiresult/routeB_siglip_day1_top5_chunklocal
+mkdir -p "$OUTDIR"
+
+ROUTEB_LIMIT=1 \
+ROUTEB_TOP_KS="5" \
+ROUTEB_RETRIEVAL_BATCH_SIZE=256 \
+ROUTEB_OUTPUT_PATH="$OUTDIR/smoke_top5_chunklocal.json" \
+ROUTEB_SAVE_EVERY=1 \
+sbatch --time=01:55:00 hpc/run_routeb_siglip_h200.sbatch
+```
+
+Formal Day 1 run for one top-k value. This submits 26 short jobs covering all 253 Day 1 questions:
+
+```bash
+cd /scratch/$USER/github_sync_long_video_understanding/MA-EgoQA
+TOPK=5
+OUTDIR=/scratch/$USER/data/multiresult/routeB_siglip_day1_top${TOPK}_chunklocal
+mkdir -p "$OUTDIR"
+
+for START in 0 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200 210 220 230 240 250; do
+  LIMIT=10
+  if [ "$START" -eq 250 ]; then LIMIT=3; fi
+  END=$((START + LIMIT - 1))
+
+  ROUTEB_START_INDEX="$START" \
+  ROUTEB_LIMIT="$LIMIT" \
+  ROUTEB_TOP_KS="$TOPK" \
+  ROUTEB_RETRIEVAL_BATCH_SIZE=256 \
+  ROUTEB_OUTPUT_PATH="$OUTDIR/chunk_${START}_${END}.json" \
+  ROUTEB_SAVE_EVERY=1 \
+  sbatch --time=01:55:00 --job-name="rb${TOPK}_${START}_${END}" hpc/run_routeb_siglip_h200.sbatch
+done
+```
+
+Merge completed chunks:
+
+```bash
+cd /scratch/$USER/github_sync_long_video_understanding/MA-EgoQA
+TOPK=5
+OUTDIR=/scratch/$USER/data/multiresult/routeB_siglip_day1_top${TOPK}_chunklocal
+
+python -m egomas.src.merge_routeb_retrieval_results \
+  --input-glob "$OUTDIR/chunk_*.json" \
+  --output-path "$OUTDIR/merged_top${TOPK}.json" \
+  --strict
+```
+
+The merge command writes:
+
+```text
+merged_top5.json
+merged_top5.summary.csv
+```
+
+The summary CSV includes:
+
+```text
+group=single_agent  -> JAKE, ALICE, KATRINA, LUCIA, TASHA, SHURE
+group=pair_agent    -> all 15 unordered pairs, e.g. JAKE_ALICE
+group=all_agents    -> all relevant context agents for each question
+group=single_best   -> oracle upper bound over single-agent trials
+group=pair_best     -> oracle upper bound over pair-agent trials
+```
+
+Completed `top_k=5` Day 1 result:
+
+```text
+Output: /scratch/xy3257/data/multiresult/routeB_siglip_day1_top5_chunklocal/merged_top5.json
+Trials: 2964
+Overall accuracy: 30.33%
+Single-agent average accuracy: 28.31%
+Pair-agent average accuracy: 30.43%
+All-context-agents accuracy: 37.15%
+```
+
 ## 2026-06-04 Qwen3VL Progress
 
 This branch adds two Qwen3VL experiment tracks that were run on NYU Torch with account `torch_pr_674_tandon_advanced`.
@@ -244,7 +399,6 @@ video_cache/
 The following were not uploaded:
 
 ```text
-.codex/
 .huggingface/
 .vscode-server/
 .local/
