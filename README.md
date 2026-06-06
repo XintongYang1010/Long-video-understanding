@@ -3,6 +3,62 @@
 This repository is a cleaned synchronization snapshot from `/scratch/xy3257` on 2026-06-02.  It contains the active code, validation scripts, and selected experiment outputs for the long-video / egocentric-video understanding work.
 
 
+## 2026-06-06 MA-EgoQA Route B Progress
+
+This branch adds the Route B visual-retrieval pipeline for Day 1 MA-EgoQA on NYU Torch. It is intended to compare against the collaborator Route A frame-uniform baseline without changing the original Gemini EgoMAS code.
+
+### Route B Pipeline
+
+- Dataset split: MA-EgoQA Day 1 structured-context questions.
+- Experiment definition: reuses Route A condition generation from each question's `contexts` field.
+  - `single`: run each relevant agent independently.
+  - `pair`: run every relevant two-agent combination.
+  - `all`: run all relevant agents together.
+- Candidate evidence: locate each selected agent's EgoLife clips by context day/time window, then densely sample candidate frames from those clips.
+- Retriever: encode candidate frames with `google/siglip-base-patch16-224`; encode `question + options` as the text query.
+- Selection: per-agent top-k retrieval with MMR and temporal NMS. For `top_k=5`, a pair condition receives 10 frames total and an all-agent condition receives `5 * num_agents` frames.
+- Responder: send the selected frames, question, and answer options to `Qwen/Qwen3-VL-8B-Instruct`; parse an A/B/C/D/E answer and compute accuracy/latency.
+- Output: raw trial JSON plus a `.summary.csv` containing overall, by-top-k, by-eval-mode, per-single-agent, and oracle-best summaries.
+- Status: a one-question H200 smoke run has completed successfully with `top_k=5`, `single/pair/all`, and chunk-local retrieval plus Qwen inference.
+
+The current implementation is chunk-local: it retrieves frames and runs Qwen in the same Slurm job. Do not use a global 1fps frame-index job for the formal Route B runs.
+
+### Route B Files
+
+- `MA-EgoQA/egomas/src/evaluate_day1_qwen3vl_routeb_retrieval.py`
+- `MA-EgoQA/egomas/src/merge_routeb_retrieval_results.py`
+- `MA-EgoQA/hpc/run_routeb_siglip_h200.sbatch`
+
+### Route B Reproduce
+
+```bash
+cd /scratch/$USER/github_sync_long_video_understanding/MA-EgoQA
+mkdir -p /scratch/$USER/data/multiresult/routeB_siglip_day1_top5_chunklocal
+
+# Smoke test: one Day 1 QA, top_k=5, single/pair/all.
+ROUTEB_LIMIT=1 \
+ROUTEB_TOP_KS="5" \
+ROUTEB_RETRIEVAL_BATCH_SIZE=256 \
+ROUTEB_OUTPUT_PATH=/scratch/$USER/data/multiresult/routeB_siglip_day1_top5_chunklocal/smoke_top5_chunklocal.json \
+ROUTEB_SAVE_EVERY=1 \
+sbatch --time=01:55:00 hpc/run_routeb_siglip_h200.sbatch
+
+# Formal top_k=5 chunk example. Sweep START over 0,10,20,...,250.
+ROUTEB_START_INDEX=0 \
+ROUTEB_LIMIT=10 \
+ROUTEB_TOP_KS="5" \
+ROUTEB_RETRIEVAL_BATCH_SIZE=256 \
+ROUTEB_OUTPUT_PATH=/scratch/$USER/data/multiresult/routeB_siglip_day1_top5_chunklocal/chunk_0_9.json \
+ROUTEB_SAVE_EVERY=10 \
+sbatch --time=01:55:00 hpc/run_routeb_siglip_h200.sbatch
+
+# Merge completed chunks into one result file and summary CSV.
+python -m egomas.src.merge_routeb_retrieval_results \
+  --input-glob "/scratch/$USER/data/multiresult/routeB_siglip_day1_top5_chunklocal/chunk_*.json" \
+  --output-path /scratch/$USER/data/multiresult/routeB_siglip_day1_top5_chunklocal/merged_top5.json \
+  --strict
+```
+
 ## 2026-06-04 Qwen3VL Progress
 
 This branch adds two Qwen3VL experiment tracks that were run on NYU Torch with account `torch_pr_674_tandon_advanced`.
