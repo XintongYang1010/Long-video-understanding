@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+import json
 from pathlib import Path
 
+from egolife_two_user_qa.candidate_mining import mine_candidates
 from egolife_two_user_qa.evidence import group_manifest_clips, summarize_gaze_csv
 from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_token
 from egolife_two_user_qa.schema import extract_json_object, validate_qa_item
@@ -50,6 +52,81 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(summary["depth_m_summary"]["max"], 2.0)
 
 
+class CandidateMiningTests(unittest.TestCase):
+    def test_mine_candidates_from_complementary_observations(self) -> None:
+        rows = [
+            {
+                "clip_id": "DAY1_A1_JAKE_11100000",
+                "clip": {
+                    "clip_id": "DAY1_A1_JAKE_11100000",
+                    "day": "DAY1",
+                    "agent_dir": "A1_JAKE",
+                    "agent_id": "A1",
+                    "agent_name": "Jake",
+                    "time_token": "11100000",
+                    "clip_clock": "11:10:00.00",
+                    "clock_seconds": 40200.0,
+                    "video_url": "video_a",
+                    "gaze_url": "gaze_a",
+                    "frames": [],
+                    "gaze_summary": {},
+                },
+                "observation": {
+                    "status": "ok",
+                    "location_guess": "kitchen table",
+                    "visible_people": ["Alice"],
+                    "salient_objects": ["red mug", "table"],
+                    "actions": ["Jake sees Alice pick up the red mug"],
+                    "gaze_focus": ["red mug"],
+                    "key_facts": ["Alice picks up the red mug near the kitchen table"],
+                },
+            },
+            {
+                "clip_id": "DAY1_A2_ALICE_11100000",
+                "clip": {
+                    "clip_id": "DAY1_A2_ALICE_11100000",
+                    "day": "DAY1",
+                    "agent_dir": "A2_ALICE",
+                    "agent_id": "A2",
+                    "agent_name": "Alice",
+                    "time_token": "11100000",
+                    "clip_clock": "11:10:00.00",
+                    "clock_seconds": 40200.0,
+                    "video_url": "video_b",
+                    "gaze_url": "gaze_b",
+                    "frames": [],
+                    "gaze_summary": {},
+                },
+                "observation": {
+                    "status": "ok",
+                    "location_guess": "kitchen table",
+                    "visible_people": ["Jake"],
+                    "salient_objects": ["red mug", "sink"],
+                    "actions": ["Alice places the red mug beside the sink"],
+                    "gaze_focus": ["sink"],
+                    "key_facts": ["The red mug ends up beside the sink"],
+                },
+            },
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            obs_path = Path(tmp) / "observations.jsonl"
+            out_path = Path(tmp) / "candidates.jsonl"
+            obs_path.write_text(
+                "".join(json.dumps(row) + "\n" for row in rows),
+                encoding="utf-8",
+            )
+            candidates = mine_candidates(
+                observations_path=obs_path,
+                output_path=out_path,
+                target_count=1,
+                min_score=0,
+            )
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0]["candidate_type"], "semantic_complementarity")
+        self.assertEqual(candidates[0]["required_users"], ["Jake", "Alice"])
+        self.assertIn("complementarity", candidates[0])
+
+
 class SchemaTests(unittest.TestCase):
     def valid_item(self):
         return {
@@ -89,4 +166,3 @@ class SchemaTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

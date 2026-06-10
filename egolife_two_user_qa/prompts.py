@@ -47,13 +47,16 @@ def packet_brief(packet: dict[str, Any]) -> str:
                 "clip_clock": clip.get("clip_clock"),
                 "video_url": clip.get("video_url"),
                 "gaze_summary": clip.get("gaze_summary"),
+                "observation": clip.get("observation"),
                 "frames": frame_lines,
             }
         )
     return json.dumps(
         {
             "evidence_id": packet.get("evidence_id"),
+            "candidate_type": packet.get("candidate_type"),
             "required_users": packet.get("required_users"),
+            "complementarity": packet.get("complementarity"),
             "clips": clips,
         },
         ensure_ascii=False,
@@ -68,6 +71,7 @@ Goal:
 - Create exactly one multiple-choice question that requires evidence from at least two EgoLife users.
 - A single user's frames must be insufficient to answer the question completely.
 - The combined evidence from the required users must make exactly one option correct.
+- Use the complementarity notes: the question should combine one distinct fact from each required user.
 
 Style constraints:
 - The question should sound like a natural daily-life memory question asked to an AR/VR assistant.
@@ -78,7 +82,7 @@ Style constraints:
 Evidence packet:
 {packet_brief(packet)}
 
-Use only the provided images and packet metadata. If the evidence is not enough, still return JSON but set review.status to "reject_insufficient_evidence" and explain why.
+Use only the provided images, observations, complementarity notes, and packet metadata. If the evidence is not enough, still return JSON but set review.status to "reject_insufficient_evidence" and explain why.
 
 Return one valid JSON object only, with this exact shape:
 {json.dumps(GENERATION_SCHEMA, ensure_ascii=False, indent=2)}
@@ -113,4 +117,3 @@ Return one valid JSON object only:
   "modification_suggestions": ""
 }}
 """
-

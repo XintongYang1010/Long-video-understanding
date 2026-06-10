@@ -22,6 +22,9 @@ DTYPE="${EGOLIFE2U_DTYPE:-bfloat16}"
 MAX_NEW_TOKENS="${EGOLIFE2U_MAX_NEW_TOKENS:-1536}"
 OUTDIR="${EGOLIFE2U_OUTPUT_ROOT:-egolife_two_user_qa/outputs/pilot_20}"
 CACHE_DIR="${EGOLIFE2U_CACHE_DIR:-/scratch/${USER}/egolife_two_user_qa_cache}"
+TARGET_CLIP_COUNT="${EGOLIFE2U_TARGET_CLIP_COUNT:-}"
+MAX_TIME_GAP_SECONDS="${EGOLIFE2U_MAX_TIME_GAP_SECONDS:-90}"
+MIN_COMPLEMENTARITY_SCORE="${EGOLIFE2U_MIN_COMPLEMENTARITY_SCORE:-5}"
 
 cd "${PROJECT_ROOT}"
 mkdir -p hpc/logs "${OUTDIR}" "${CACHE_DIR}" "/scratch/${USER}/hf_cache"
@@ -40,13 +43,21 @@ echo "target_count=${TARGET_COUNT}"
 python --version
 nvidia-smi || true
 
-bash scripts/run_qwen3vl_gpu.sh \
-  --target-count "${TARGET_COUNT}" \
-  --model-id "${MODEL_ID}" \
-  --dtype "${DTYPE}" \
-  --max-new-tokens "${MAX_NEW_TOKENS}" \
-  --outdir "${OUTDIR}" \
+run_args=(
+  bash scripts/run_qwen3vl_gpu.sh
+  --target-count "${TARGET_COUNT}"
+  --model-id "${MODEL_ID}"
+  --dtype "${DTYPE}"
+  --max-new-tokens "${MAX_NEW_TOKENS}"
+  --outdir "${OUTDIR}"
   --cache-dir "${CACHE_DIR}"
+  --max-time-gap-seconds "${MAX_TIME_GAP_SECONDS}"
+  --min-complementarity-score "${MIN_COMPLEMENTARITY_SCORE}"
+)
+if [[ -n "${TARGET_CLIP_COUNT}" ]]; then
+  run_args+=(--target-clip-count "${TARGET_CLIP_COUNT}")
+fi
+
+"${run_args[@]}"
 
 echo "date_done=$(date --iso-8601=seconds)"
-

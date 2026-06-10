@@ -3,6 +3,8 @@
 Runtime files are written here:
 
 - `manifest.json`
+- `observations.jsonl`
+- `observation_prompts.jsonl`
 - `evidence_manifest.jsonl`
 - `generation_prompts.jsonl`
 - `qa_mcq.raw.jsonl`
