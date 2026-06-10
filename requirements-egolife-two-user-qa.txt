@@ -1,0 +1,7 @@
+# CPU dry-run uses only the Python standard library plus ffmpeg/ffprobe binaries.
+#
+# Install CUDA-enabled torch separately for the target GPU machine before these:
+accelerate
+qwen-vl-utils
+transformers>=4.57.0
+
