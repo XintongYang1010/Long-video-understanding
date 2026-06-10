@@ -78,6 +78,7 @@ Style constraints:
 - Do not mention timestamps, video, footage, recording, frames, dataset, or camera.
 - Use first-person phrasing when natural ("Where did I...", "What did we...").
 - Avoid private speculation that is not visually supported.
+- Treat EgoLife gaze CSV values as Aria CPF yaw/pitch/depth. Only use 2D gaze-to-object claims if `projection_status` is `projected`; if it is `missing_calibration`, do not claim image-pixel gaze or bbox proximity.
 
 Evidence packet:
 {packet_brief(packet)}
@@ -98,6 +99,7 @@ Hard pass criteria:
 3. The combined evidence from required users supports exactly one correct option.
 4. The wording is natural and does not mention timestamps, video, footage, recording, frames, dataset, or camera.
 5. There are exactly five options and correct is one of A/B/C/D/E.
+6. Any gaze-to-object claim uses projected 2D gaze only when `projection_status` is `projected`; unprojected CPF angle summaries are not treated as image pixels.
 
 Evidence packet:
 {packet_brief(packet)}

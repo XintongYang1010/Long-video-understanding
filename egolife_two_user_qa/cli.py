@@ -37,6 +37,7 @@ def main(argv: list[str] | None = None) -> int:
     evidence.add_argument("--target-count", type=int, default=20)
     evidence.add_argument("--users-per-case", type=int, default=2)
     evidence.add_argument("--frames-per-clip", type=int, default=3)
+    evidence.add_argument("--aria-calibration-dir")
     evidence.add_argument("--max-groups", type=int)
     evidence.add_argument("--no-download-media", action="store_true")
 
@@ -48,6 +49,7 @@ def main(argv: list[str] | None = None) -> int:
     obs.add_argument("--output-root", default="egolife_two_user_qa/outputs/pilot_20")
     obs.add_argument("--target-clip-count", type=int)
     obs.add_argument("--frames-per-clip", type=int, default=4)
+    obs.add_argument("--aria-calibration-dir")
     obs.add_argument("--no-download-media", action="store_true")
     add_runner_args(obs)
 
@@ -99,6 +101,7 @@ def main(argv: list[str] | None = None) -> int:
             target_count=args.target_count,
             users_per_case=args.users_per_case,
             frames_per_clip=args.frames_per_clip,
+            aria_calibration_dir=args.aria_calibration_dir,
             max_groups=args.max_groups,
             download_media=not args.no_download_media,
         )
@@ -113,6 +116,7 @@ def main(argv: list[str] | None = None) -> int:
             output_root=args.output_root,
             target_clip_count=args.target_clip_count,
             frames_per_clip=args.frames_per_clip,
+            aria_calibration_dir=args.aria_calibration_dir,
             backend=args.backend,
             model_id=args.model_id,
             base_url=args.base_url,

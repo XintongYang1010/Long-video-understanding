@@ -20,6 +20,27 @@ EgoLife video + EyeGaze/EyeTracking tree
 
 The older `prepare_evidence` command remains as a simple baseline/debug path. For the main pilot, use `observe_clips` plus `mine_candidates`.
 
+## Gaze Projection
+
+EgoLife EyeGaze CSVs are not EgoEverything-style image pixels. They contain Project Aria CPF yaw/pitch/depth values such as `left_yaw_rads_cpf`, `right_yaw_rads_cpf`, `pitch_rads_cpf`, and `depth_m`. The pipeline therefore does not invent `gaze_x/gaze_y`.
+
+By default, gaze summaries are marked:
+
+```json
+{"projection_status": "missing_calibration"}
+```
+
+To enable 2D gaze points for EgoEverything-style distance/Gaussian sampling, pass an Aria RGB calibration directory:
+
+```bash
+python -m egolife_two_user_qa observe_clips \
+  --manifest egolife_two_user_qa/outputs/pilot_20/manifest.json \
+  --output egolife_two_user_qa/outputs/pilot_20/observations.jsonl \
+  --aria-calibration-dir /path/to/aria_calibrations
+```
+
+For strict Aria projection, provide a VRS/no-image VRS file or `online_calibration.jsonl` and install `projectaria-tools`; the code then uses Project Aria's native `CameraCalibration.project()` path. A JSON calibration is also accepted only when it contains explicit RGB intrinsics plus `T_camera_cpf`, or `T_device_camera` and `T_device_cpf`; that JSON route assumes the calibration has already been exported into a pinhole-compatible form. If the public EgoLife Hugging Face files are used as released and no calibration/VRS is supplied, the correct behavior is to keep 2D projection unavailable and rely on video frames plus unprojected 3D gaze statistics.
+
 ## Local CPU Dry Run
 
 The dry run validates Hugging Face manifest construction, evidence packet preparation, prompt creation, and schema tooling. It does not load Qwen3-VL.

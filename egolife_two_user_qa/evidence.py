@@ -11,6 +11,13 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from .gaze_projection import (
+    find_clip_calibration,
+    load_aria_projection_calibration,
+    project_gaze_csv_with_projectaria_tools,
+    project_gaze_row,
+    summarize_projected_gaze,
+)
 from .io_utils import download_file, read_json, stable_id, write_jsonl
 
 
@@ -118,12 +125,43 @@ def extract_frames(
     return rows
 
 
-def summarize_gaze_csv(path: str | Path, *, max_rows: int = 5000) -> dict[str, Any]:
-    """Summarize EyeGaze CSV without depending on pandas."""
+def summarize_gaze_csv(
+    path: str | Path,
+    *,
+    max_rows: int = 5000,
+    calibration_path: str | Path | None = None,
+) -> dict[str, Any]:
+    """Summarize EyeGaze CSV and optionally project CPF gaze to image pixels.
+
+    EgoLife gaze CSV values are Aria CPF yaw/pitch/depth values. Without a
+    calibration file, this function intentionally does not produce 2D pixel
+    gaze coordinates.
+    """
 
     yaw_values: list[float] = []
     pitch_values: list[float] = []
     depth_values: list[float] = []
+    projected_points: list[dict[str, Any]] = []
+    calibration = None
+    projectaria_projection_summary: dict[str, Any] | None = None
+    if calibration_path:
+        suffix = Path(calibration_path).suffix.lower()
+        if suffix in {".vrs", ".jsonl"}:
+            try:
+                projected_points, projectaria_projection_summary = project_gaze_csv_with_projectaria_tools(
+                    path,
+                    calibration_path,
+                    max_rows=max_rows,
+                )
+            except RuntimeError as exc:
+                projectaria_projection_summary = {
+                    "projection_status": "projection_failed",
+                    "calibration_path": str(calibration_path),
+                    "projection_error": str(exc),
+                }
+        else:
+            calibration = load_aria_projection_calibration(calibration_path)
+    projection_errors: list[str] = []
     first_ts = None
     last_ts = None
     total = 0
@@ -151,6 +189,14 @@ def summarize_gaze_csv(path: str | Path, *, max_rows: int = 5000) -> dict[str, A
                 yaw_values.append((left + right) / 2.0)
             except (KeyError, TypeError, ValueError):
                 pass
+            if calibration is not None:
+                try:
+                    projected = project_gaze_row(row, calibration)
+                    if projected is not None:
+                        projected_points.append(projected)
+                except ValueError as exc:
+                    if len(projection_errors) < 3:
+                        projection_errors.append(str(exc))
 
     def stats(values: list[float]) -> dict[str, float] | None:
         if not values:
@@ -161,7 +207,7 @@ def summarize_gaze_csv(path: str | Path, *, max_rows: int = 5000) -> dict[str, A
             "median": round(statistics.median(values), 5),
         }
 
-    return {
+    summary = {
         "row_count": total,
         "sampled_rows": min(total, max_rows),
         "first_tracking_timestamp_us": first_ts,
@@ -170,7 +216,23 @@ def summarize_gaze_csv(path: str | Path, *, max_rows: int = 5000) -> dict[str, A
         "yaw_rads_summary": stats(yaw_values),
         "pitch_rads_summary": stats(pitch_values),
         "depth_m_summary": stats(depth_values),
+        "gaze_coordinate_frame": "Aria Central Pupil Frame (CPF); not image pixels",
     }
+    if calibration_path and projectaria_projection_summary is not None:
+        summary["projection_status"] = projectaria_projection_summary["projection_status"]
+        summary["projected_gaze_summary"] = projectaria_projection_summary
+        summary["projected_gaze_points_sample"] = projected_points[:20]
+    elif calibration is None:
+        summary["projection_status"] = "missing_calibration"
+        summary["projected_gaze_summary"] = None
+    else:
+        projection_summary = summarize_projected_gaze(projected_points, calibration)
+        if projection_errors:
+            projection_summary["projection_errors"] = projection_errors
+        summary["projection_status"] = projection_summary["projection_status"]
+        summary["projected_gaze_summary"] = projection_summary
+        summary["projected_gaze_points_sample"] = projected_points[:20]
+    return summary
 
 
 def choose_required_clips(group: dict[str, Any], users_per_case: int) -> list[dict[str, Any]]:
@@ -185,6 +247,7 @@ def build_evidence_packet(
     output_root: str | Path,
     users_per_case: int = 2,
     frames_per_clip: int = 3,
+    aria_calibration_dir: str | Path | None = None,
     download_media: bool = True,
 ) -> dict[str, Any]:
     selected = choose_required_clips(group, users_per_case)
@@ -207,7 +270,10 @@ def build_evidence_packet(
                 frames_per_clip=frames_per_clip,
                 duration=duration,
             )
-        gaze_summary = summarize_gaze_csv(local_gaze) if local_gaze.exists() else {}
+        calibration_path = find_clip_calibration(aria_calibration_dir, clip)
+        gaze_summary = (
+            summarize_gaze_csv(local_gaze, calibration_path=calibration_path) if local_gaze.exists() else {}
+        )
         clips_out.append(
             {
                 "agent_dir": clip["agent_dir"],
@@ -222,6 +288,7 @@ def build_evidence_packet(
                 "overlay_url": clip.get("overlay_url"),
                 "local_video": str(local_video) if local_video.exists() else None,
                 "local_gaze": str(local_gaze) if local_gaze.exists() else None,
+                "local_calibration": str(calibration_path) if calibration_path else None,
                 "frames": frame_rows,
                 "gaze_summary": gaze_summary,
             }
@@ -252,6 +319,7 @@ def prepare_evidence(
     target_count: int = 20,
     users_per_case: int = 2,
     frames_per_clip: int = 3,
+    aria_calibration_dir: str | Path | None = None,
     max_groups: int | None = None,
     download_media: bool = True,
 ) -> list[dict[str, Any]]:
@@ -271,6 +339,7 @@ def prepare_evidence(
                 output_root=output_root,
                 users_per_case=users_per_case,
                 frames_per_clip=frames_per_clip,
+                aria_calibration_dir=aria_calibration_dir,
                 download_media=download_media,
             )
         )
@@ -287,6 +356,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--target-count", type=int, default=20)
     parser.add_argument("--users-per-case", type=int, default=2)
     parser.add_argument("--frames-per-clip", type=int, default=3)
+    parser.add_argument("--aria-calibration-dir")
     parser.add_argument("--max-groups", type=int)
     parser.add_argument("--no-download-media", action="store_true")
     args = parser.parse_args(argv)
@@ -298,6 +368,7 @@ def main(argv: list[str] | None = None) -> int:
         target_count=args.target_count,
         users_per_case=args.users_per_case,
         frames_per_clip=args.frames_per_clip,
+        aria_calibration_dir=args.aria_calibration_dir,
         max_groups=args.max_groups,
         download_media=not args.no_download_media,
     )

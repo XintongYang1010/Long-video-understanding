@@ -25,6 +25,7 @@ CACHE_DIR="${EGOLIFE2U_CACHE_DIR:-/scratch/${USER}/egolife_two_user_qa_cache}"
 TARGET_CLIP_COUNT="${EGOLIFE2U_TARGET_CLIP_COUNT:-}"
 MAX_TIME_GAP_SECONDS="${EGOLIFE2U_MAX_TIME_GAP_SECONDS:-90}"
 MIN_COMPLEMENTARITY_SCORE="${EGOLIFE2U_MIN_COMPLEMENTARITY_SCORE:-5}"
+ARIA_CALIBRATION_DIR="${EGOLIFE2U_ARIA_CALIBRATION_DIR:-}"
 
 cd "${PROJECT_ROOT}"
 mkdir -p hpc/logs "${OUTDIR}" "${CACHE_DIR}" "/scratch/${USER}/hf_cache"
@@ -56,6 +57,9 @@ run_args=(
 )
 if [[ -n "${TARGET_CLIP_COUNT}" ]]; then
   run_args+=(--target-clip-count "${TARGET_CLIP_COUNT}")
+fi
+if [[ -n "${ARIA_CALIBRATION_DIR}" ]]; then
+  run_args+=(--aria-calibration-dir "${ARIA_CALIBRATION_DIR}")
 fi
 
 "${run_args[@]}"

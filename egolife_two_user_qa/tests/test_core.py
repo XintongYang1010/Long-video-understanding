@@ -7,6 +7,7 @@ from pathlib import Path
 
 from egolife_two_user_qa.candidate_mining import mine_candidates
 from egolife_two_user_qa.evidence import group_manifest_clips, summarize_gaze_csv
+from egolife_two_user_qa.gaze_projection import gaussian_bbox_score, load_aria_projection_calibration, project_gaze_row
 from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_token
 from egolife_two_user_qa.schema import extract_json_object, validate_qa_item
 
@@ -50,6 +51,74 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(summary["row_count"], 2)
         self.assertEqual(summary["yaw_rads_summary"]["median"], 0.25)
         self.assertEqual(summary["depth_m_summary"]["max"], 2.0)
+        self.assertEqual(summary["projection_status"], "missing_calibration")
+        self.assertIsNone(summary["projected_gaze_summary"])
+
+    def test_project_gaze_with_explicit_calibration(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            calibration_path = Path(tmp) / "calibration.json"
+            calibration_path.write_text(
+                json.dumps(
+                    {
+                        "camera": {"fx": 100.0, "fy": 100.0, "cx": 320.0, "cy": 240.0, "width": 640, "height": 480},
+                        "T_camera_cpf": [
+                            [1, 0, 0, 0],
+                            [0, 1, 0, 0],
+                            [0, 0, 1, 0],
+                            [0, 0, 0, 1],
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            calibration = load_aria_projection_calibration(calibration_path)
+            projected = project_gaze_row(
+                {
+                    "tracking_timestamp_us": "1",
+                    "left_yaw_rads_cpf": "0.0",
+                    "right_yaw_rads_cpf": "0.0",
+                    "pitch_rads_cpf": "0.0",
+                    "depth_m": "2.0",
+                },
+                calibration,
+            )
+        self.assertIsNotNone(projected)
+        self.assertEqual(projected["x"], 320.0)
+        self.assertEqual(projected["y"], 240.0)
+        self.assertTrue(projected["in_frame"])
+
+    def test_summarize_gaze_projects_only_with_calibration(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            gaze_path = Path(tmp) / "gaze.csv"
+            gaze_path.write_text(
+                "tracking_timestamp_us,left_yaw_rads_cpf,right_yaw_rads_cpf,pitch_rads_cpf,depth_m\n"
+                "1,0.0,0.0,0.0,2.0\n",
+                encoding="utf-8",
+            )
+            calibration_path = Path(tmp) / "calibration.json"
+            calibration_path.write_text(
+                json.dumps(
+                    {
+                        "camera": {"fx": 100.0, "fy": 100.0, "cx": 320.0, "cy": 240.0, "width": 640, "height": 480},
+                        "T_camera_cpf": [
+                            [1, 0, 0, 0],
+                            [0, 1, 0, 0],
+                            [0, 0, 1, 0],
+                            [0, 0, 0, 1],
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            summary = summarize_gaze_csv(gaze_path, calibration_path=calibration_path)
+        self.assertEqual(summary["projection_status"], "projected")
+        self.assertEqual(summary["projected_gaze_summary"]["median_x"], 320.0)
+        self.assertEqual(summary["projected_gaze_summary"]["median_y"], 240.0)
+
+    def test_gaussian_bbox_score_prefers_near_center(self) -> None:
+        near = gaussian_bbox_score((10.0, 10.0), (8.0, 8.0, 12.0, 12.0), sigma=10.0)
+        far = gaussian_bbox_score((10.0, 10.0), (100.0, 100.0, 120.0, 120.0), sigma=10.0)
+        self.assertGreater(near, far)
 
 
 class CandidateMiningTests(unittest.TestCase):

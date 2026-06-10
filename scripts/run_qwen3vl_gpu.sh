@@ -12,6 +12,7 @@ CACHE_DIR=".cache/egolife_two_user_qa"
 TARGET_CLIP_COUNT=""
 MAX_TIME_GAP_SECONDS=90
 MIN_COMPLEMENTARITY_SCORE=5
+ARIA_CALIBRATION_DIR=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -26,6 +27,7 @@ while [[ $# -gt 0 ]]; do
     --target-clip-count) TARGET_CLIP_COUNT="$2"; shift 2 ;;
     --max-time-gap-seconds) MAX_TIME_GAP_SECONDS="$2"; shift 2 ;;
     --min-complementarity-score) MIN_COMPLEMENTARITY_SCORE="$2"; shift 2 ;;
+    --aria-calibration-dir) ARIA_CALIBRATION_DIR="$2"; shift 2 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -33,6 +35,10 @@ done
 mkdir -p "${OUTDIR}" "${CACHE_DIR}"
 if [[ -z "${TARGET_CLIP_COUNT}" ]]; then
   TARGET_CLIP_COUNT=$((TARGET_COUNT * 8))
+fi
+calibration_args=()
+if [[ -n "${ARIA_CALIBRATION_DIR}" ]]; then
+  calibration_args=(--aria-calibration-dir "${ARIA_CALIBRATION_DIR}")
 fi
 
 python -m egolife_two_user_qa build_manifest \
@@ -46,6 +52,7 @@ python -m egolife_two_user_qa observe_clips \
   --output-root "${OUTDIR}" \
   --target-clip-count "${TARGET_CLIP_COUNT}" \
   --frames-per-clip 4 \
+  "${calibration_args[@]}" \
   --backend "${BACKEND}" \
   --base-url "${BASE_URL}" \
   --model-id "${MODEL_ID}" \
