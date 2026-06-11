@@ -9,7 +9,10 @@ from egolife_two_user_qa.candidate_mining import mine_candidates
 from egolife_two_user_qa.evidence import group_manifest_clips, summarize_gaze_csv
 from egolife_two_user_qa.gaze_projection import gaussian_bbox_score, load_aria_projection_calibration, project_gaze_row
 from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_token
+from egolife_two_user_qa.prompts import build_video_generation_prompt
+from egolife_two_user_qa.qwen3vl_runner import DryRunRunner
 from egolife_two_user_qa.schema import extract_json_object, validate_qa_item
+from egolife_two_user_qa.video_qa_loop import answerability_gate
 
 
 class ManifestTests(unittest.TestCase):
@@ -216,6 +219,23 @@ class SchemaTests(unittest.TestCase):
             },
             "combined_answerability": "sufficient because together they support the answer",
             "review": {"review_passed": True},
+            "question_type": "commonality",
+            "generator_rationale": "The question is natural and grounded in both users' views.",
+            "why_two_users_needed": "Jake and Alice each provide a necessary visual fact.",
+            "per_user_evidence_claims": [
+                {"user": "Jake", "claim": "Jake saw the cup"},
+                {"user": "Alice", "claim": "Alice saw the table"},
+            ],
+            "judge_feedback": {"review_passed": True},
+            "answerability_eval": {
+                "evaluations": [
+                    {"condition_id": "single_user::Jake", "condition_type": "single_user", "choice": "insufficient"},
+                    {"condition_id": "single_user::Alice", "condition_type": "single_user", "choice": "B"},
+                    {"condition_id": "combined_all_users::Jake+Alice", "condition_type": "combined_all_users", "choice": "A"},
+                ],
+                "gate": {"passed": True, "reason": "combined correct and singles insufficient or wrong"},
+            },
+            "attempt_count": 1,
             "model_id": "Qwen/Qwen3-VL-8B-Instruct",
             "source_urls": {"videos": []},
         }
@@ -231,6 +251,75 @@ class SchemaTests(unittest.TestCase):
 
     def test_extract_json_object_from_codeblock(self) -> None:
         self.assertEqual(extract_json_object("```json\n{\"a\": 1}\n```"), {"a": 1})
+
+    def test_strict_validation_requires_video_first_fields(self) -> None:
+        item = self.valid_item()
+        del item["question_type"]
+        errors = validate_qa_item(item, strict_review=True)
+        self.assertTrue(any("missing video-first fields" in error for error in errors))
+
+    def test_difference_question_type_validates(self) -> None:
+        item = self.valid_item()
+        item["question_type"] = "difference"
+        self.assertEqual(validate_qa_item(item, strict_review=True), [])
+
+
+class VideoFirstTests(unittest.TestCase):
+    def test_dry_run_runner_accepts_video_paths(self) -> None:
+        raw = DryRunRunner().generate("prompt", image_paths=["a.jpg"], video_paths=["a.mp4", "b.mp4"])
+        parsed = json.loads(raw)
+        self.assertEqual(parsed["image_count"], 1)
+        self.assertEqual(parsed["video_count"], 2)
+
+    def test_video_generation_prompt_does_not_use_observation(self) -> None:
+        packet = {
+            "evidence_id": "E1",
+            "required_users": ["Jake", "Alice"],
+            "clips": [
+                {
+                    "agent_name": "Jake",
+                    "day": "DAY1",
+                    "clip_clock": "11:10:00.00",
+                    "local_video": "jake.mp4",
+                    "video_url": "video_a",
+                    "observation": {"key_facts": ["SHOULD_NOT_APPEAR"]},
+                    "gaze_summary": {"projection_status": "missing_calibration"},
+                },
+                {
+                    "agent_name": "Alice",
+                    "day": "DAY1",
+                    "clip_clock": "11:10:00.00",
+                    "local_video": "alice.mp4",
+                    "video_url": "video_b",
+                    "observation": {"key_facts": ["SHOULD_NOT_APPEAR"]},
+                    "gaze_summary": {"projection_status": "missing_calibration"},
+                },
+            ],
+        }
+        prompt = build_video_generation_prompt(packet, "commonality")
+        self.assertIn("Look directly at the videos", prompt)
+        self.assertIn("local_video", prompt)
+        self.assertNotIn("SHOULD_NOT_APPEAR", prompt)
+
+    def test_answerability_gate_requires_combined_correct_and_singles_not_correct(self) -> None:
+        qa = {"correct": "A"}
+        passed = answerability_gate(
+            qa,
+            [
+                {"condition_id": "single_user::Jake", "condition_type": "single_user", "choice": "insufficient"},
+                {"condition_id": "single_user::Alice", "condition_type": "single_user", "choice": "B"},
+                {"condition_id": "combined_all_users::Jake+Alice", "condition_type": "combined_all_users", "choice": "A"},
+            ],
+        )
+        self.assertTrue(passed["passed"])
+        failed = answerability_gate(
+            qa,
+            [
+                {"condition_id": "single_user::Jake", "condition_type": "single_user", "choice": "A"},
+                {"condition_id": "combined_all_users::Jake+Alice", "condition_type": "combined_all_users", "choice": "A"},
+            ],
+        )
+        self.assertFalse(failed["passed"])
 
 
 if __name__ == "__main__":

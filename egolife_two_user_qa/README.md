@@ -6,19 +6,20 @@ The default model target is `Qwen/Qwen3-VL-8B-Instruct`. No OpenRouter/Gemini AP
 
 ## Pipeline
 
-The main path is now a semantic-complementarity pipeline, not just exact-time multi-user stitching:
+The main path is now video-first. Qwen3-VL receives the aligned EgoLife videos directly, then a judge/evaluator loop filters out questions that are single-user answerable or not answerable from the combined videos:
 
 ```text
 EgoLife video + EyeGaze/EyeTracking tree
 -> build_manifest
--> observe_clips: Qwen3-VL summarizes each user's clip into structured observations
--> mine_candidates: find user pairs with shared anchors and distinct per-user facts
--> generate_qa: create one MCQ that combines the distinct facts
--> review_qa: Qwen3-VL checks single-user insufficiency and combined-user sufficiency
+-> prepare_evidence: align at least two users by day/time token and cache videos/gaze
+-> generate_video_qa_loop:
+   -> generator: directly watches multi-user videos and proposes commonality/difference MCQ
+   -> judger: explains why the question was asked and gives feedback
+   -> answerability eval: tests single-user videos and combined videos
 -> validate_outputs: deterministic schema/gate checks
 ```
 
-The older `prepare_evidence` command remains as a simple baseline/debug path. For the main pilot, use `observe_clips` plus `mine_candidates`.
+The older `observe_clips -> mine_candidates -> generate_qa -> review_qa` caption/observation path remains available as a legacy/debug baseline, but it is no longer the pilot path.
 
 ## Gaze Projection
 
@@ -43,7 +44,7 @@ For strict Aria projection, provide a VRS/no-image VRS file or `online_calibrati
 
 ## Local CPU Dry Run
 
-The dry run validates Hugging Face manifest construction, evidence packet preparation, prompt creation, and schema tooling. It does not load Qwen3-VL.
+The dry run validates Hugging Face manifest construction, evidence packet preparation, video-first prompt creation, and schema tooling. It does not load Qwen3-VL.
 
 ```bash
 python -m egolife_two_user_qa build_manifest \
@@ -52,24 +53,19 @@ python -m egolife_two_user_qa build_manifest \
   --max-per-agent-day 2 \
   --output egolife_two_user_qa/outputs/pilot_20/manifest.dryrun.json
 
-python -m egolife_two_user_qa observe_clips \
+python -m egolife_two_user_qa prepare_evidence \
   --manifest egolife_two_user_qa/outputs/pilot_20/manifest.dryrun.json \
-  --output egolife_two_user_qa/outputs/pilot_20/observations.dryrun.jsonl \
-  --prompts-output egolife_two_user_qa/outputs/pilot_20/observation_prompts.dryrun.jsonl \
-  --target-clip-count 4 \
-  --frames-per-clip 2 \
-  --dry-run
-
-python -m egolife_two_user_qa mine_candidates \
-  --observations egolife_two_user_qa/outputs/pilot_20/observations.dryrun.jsonl \
   --output egolife_two_user_qa/outputs/pilot_20/evidence_manifest.dryrun.jsonl \
-  --target-count 1 \
-  --min-score 0
+  --target-count 2 \
+  --users-per-case 2 \
+  --frames-per-clip 2 \
+  --no-download-media
 
-python -m egolife_two_user_qa generate_qa \
+python -m egolife_two_user_qa generate_video_qa_loop \
   --evidence egolife_two_user_qa/outputs/pilot_20/evidence_manifest.dryrun.jsonl \
-  --output egolife_two_user_qa/outputs/pilot_20/qa_mcq.jsonl \
-  --prompts-output egolife_two_user_qa/outputs/pilot_20/generation_prompts.dryrun.jsonl \
+  --output egolife_two_user_qa/outputs/pilot_20/qa_mcq.video_first.dryrun.jsonl \
+  --prompts-output egolife_two_user_qa/outputs/pilot_20/video_first_prompts.dryrun.jsonl \
+  --target-count 1 \
   --dry-run
 ```
 
@@ -86,12 +82,16 @@ bash scripts/run_qwen3vl_gpu.sh \
 For a local OpenAI-compatible server, first start vLLM/SGLang/llama.cpp, then pass:
 
 ```bash
-python -m egolife_two_user_qa observe_clips \
+python -m egolife_two_user_qa generate_video_qa_loop \
   --backend openai-compatible-local \
   --base-url http://127.0.0.1:8000/v1 \
-  --manifest egolife_two_user_qa/outputs/pilot_20/manifest.json \
-  --output egolife_two_user_qa/outputs/pilot_20/observations.jsonl
+  --evidence egolife_two_user_qa/outputs/pilot_20_video_first/evidence_manifest.jsonl \
+  --output egolife_two_user_qa/outputs/pilot_20_video_first/qa_mcq.jsonl \
+  --prompts-output egolife_two_user_qa/outputs/pilot_20_video_first/video_first_prompts.jsonl \
+  --allow-openai-video-input
 ```
+
+Without `--allow-openai-video-input`, the OpenAI-compatible backend uses sampled frame images as a fallback because not every local server accepts video data URLs.
 
 ## Output Schema
 
@@ -103,10 +103,17 @@ Each row in `qa_mcq.jsonl` contains:
 - `correct`
 - `answer`
 - `category`
+- `question_type`
 - `required_users`
 - `evidence`
 - `single_user_answerability`
 - `combined_answerability`
+- `generator_rationale`
+- `why_two_users_needed`
+- `per_user_evidence_claims`
+- `judge_feedback`
+- `answerability_eval`
+- `attempt_count`
 - `review`
 - `model_id`
 - `source_urls`
