@@ -20,12 +20,12 @@ TARGET_COUNT="${EGOLIFE2U_TARGET_COUNT:-20}"
 MODEL_ID="${EGOLIFE2U_MODEL_ID:-Qwen/Qwen3-VL-8B-Instruct}"
 DTYPE="${EGOLIFE2U_DTYPE:-bfloat16}"
 MAX_NEW_TOKENS="${EGOLIFE2U_MAX_NEW_TOKENS:-1536}"
-OUTDIR="${EGOLIFE2U_OUTPUT_ROOT:-egolife_two_user_qa/outputs/pilot_20}"
+OUTDIR="${EGOLIFE2U_OUTPUT_ROOT:-egolife_two_user_qa/outputs/pilot_20_video_first}"
 CACHE_DIR="${EGOLIFE2U_CACHE_DIR:-/scratch/${USER}/egolife_two_user_qa_cache}"
-TARGET_CLIP_COUNT="${EGOLIFE2U_TARGET_CLIP_COUNT:-}"
-MAX_TIME_GAP_SECONDS="${EGOLIFE2U_MAX_TIME_GAP_SECONDS:-90}"
-MIN_COMPLEMENTARITY_SCORE="${EGOLIFE2U_MIN_COMPLEMENTARITY_SCORE:-5}"
+EVIDENCE_TARGET_COUNT="${EGOLIFE2U_EVIDENCE_TARGET_COUNT:-}"
+MAX_ATTEMPTS="${EGOLIFE2U_MAX_ATTEMPTS:-3}"
 ARIA_CALIBRATION_DIR="${EGOLIFE2U_ARIA_CALIBRATION_DIR:-}"
+ALLOW_OPENAI_VIDEO_INPUT="${EGOLIFE2U_ALLOW_OPENAI_VIDEO_INPUT:-0}"
 
 cd "${PROJECT_ROOT}"
 mkdir -p hpc/logs "${OUTDIR}" "${CACHE_DIR}" "/scratch/${USER}/hf_cache"
@@ -52,14 +52,16 @@ run_args=(
   --max-new-tokens "${MAX_NEW_TOKENS}"
   --outdir "${OUTDIR}"
   --cache-dir "${CACHE_DIR}"
-  --max-time-gap-seconds "${MAX_TIME_GAP_SECONDS}"
-  --min-complementarity-score "${MIN_COMPLEMENTARITY_SCORE}"
+  --max-attempts "${MAX_ATTEMPTS}"
 )
-if [[ -n "${TARGET_CLIP_COUNT}" ]]; then
-  run_args+=(--target-clip-count "${TARGET_CLIP_COUNT}")
+if [[ -n "${EVIDENCE_TARGET_COUNT}" ]]; then
+  run_args+=(--evidence-target-count "${EVIDENCE_TARGET_COUNT}")
 fi
 if [[ -n "${ARIA_CALIBRATION_DIR}" ]]; then
   run_args+=(--aria-calibration-dir "${ARIA_CALIBRATION_DIR}")
+fi
+if [[ "${ALLOW_OPENAI_VIDEO_INPUT}" == "1" ]]; then
+  run_args+=(--allow-openai-video-input)
 fi
 
 "${run_args[@]}"

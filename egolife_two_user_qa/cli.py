@@ -9,6 +9,7 @@ from .manifest import build_manifest
 from .candidate_mining import mine_candidates
 from .observations import observe_clips
 from .qa_pipeline import add_runner_args, generate_qa, review_qa, validate_outputs
+from .video_qa_loop import add_video_loop_args, generate_video_qa_loop
 
 
 def _csv(value: str | None) -> list[str] | None:
@@ -67,6 +68,15 @@ def main(argv: list[str] | None = None) -> int:
     gen.add_argument("--prompts-output")
     gen.add_argument("--target-count", type=int, default=20)
     add_runner_args(gen)
+
+    video_gen = sub.add_parser("generate_video_qa_loop", help="Generate video-first QA with judge/eval retry loop")
+    video_gen.add_argument("--evidence", required=True)
+    video_gen.add_argument("--output", required=True)
+    video_gen.add_argument("--prompts-output")
+    video_gen.add_argument("--rejected-output")
+    video_gen.add_argument("--target-count", type=int, default=20)
+    video_gen.add_argument("--max-attempts", type=int, default=3)
+    add_video_loop_args(video_gen)
 
     rev = sub.add_parser("review_qa", help="Review generated QA")
     rev.add_argument("--qa", required=True)
@@ -156,6 +166,26 @@ def main(argv: list[str] | None = None) -> int:
             dry_run=args.dry_run,
         )
         print(f"generated {len(rows)} QA rows")
+        return 0
+    if args.command == "generate_video_qa_loop":
+        rows = generate_video_qa_loop(
+            evidence_path=args.evidence,
+            output_path=args.output,
+            prompts_path=args.prompts_output,
+            rejected_path=args.rejected_output,
+            backend=args.backend,
+            model_id=args.model_id,
+            base_url=args.base_url,
+            target_count=args.target_count,
+            max_attempts=args.max_attempts,
+            max_new_tokens=args.max_new_tokens,
+            max_image_pixels=args.max_image_pixels,
+            dtype=args.dtype,
+            allow_cpu=args.allow_cpu,
+            allow_openai_video_input=args.allow_openai_video_input,
+            dry_run=args.dry_run,
+        )
+        print(f"accepted {len(rows)} video-first QA rows")
         return 0
     if args.command == "review_qa":
         rows = review_qa(

@@ -19,13 +19,25 @@ DEFAULT_MAX_IMAGE_PIXELS = 262144
 class Generator(Protocol):
     model_id: str
 
-    def generate(self, prompt: str, image_paths: list[str] | None = None) -> str:
+    def generate(
+        self,
+        prompt: str,
+        image_paths: list[str] | None = None,
+        video_paths: list[str] | None = None,
+    ) -> str:
         ...
 
 
 def image_to_data_url(path: str | Path) -> str:
     path = Path(path)
     mime = mimetypes.guess_type(path.name)[0] or "image/jpeg"
+    data = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"data:{mime};base64,{data}"
+
+
+def file_to_data_url(path: str | Path) -> str:
+    path = Path(path)
+    mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
     data = base64.b64encode(path.read_bytes()).decode("ascii")
     return f"data:{mime};base64,{data}"
 
@@ -64,7 +76,7 @@ def load_transformers_model(model_id: str, dtype: str = "bfloat16"):
         }
         try:
             return model_cls.from_pretrained(model_id, dtype=torch_dtype, **kwargs)
-        except TypeError:
+        except (TypeError, ValueError):
             return model_cls.from_pretrained(model_id, torch_dtype=torch_dtype, **kwargs)
     except ImportError as exc:
         raise RuntimeError(
@@ -108,12 +120,22 @@ class Qwen3VLTransformersRunner:
         print(f"model_first_param_device={self.device}", flush=True)
         print(f"model_loaded_seconds={time.time() - start:.1f}", flush=True)
 
-    def generate(self, prompt: str, image_paths: list[str] | None = None) -> str:
+    def generate(
+        self,
+        prompt: str,
+        image_paths: list[str] | None = None,
+        video_paths: list[str] | None = None,
+    ) -> str:
         image_paths = image_paths or []
+        video_paths = video_paths or []
         content: list[dict[str, Any]] = [
             {"type": "image", "image": image_path, "max_pixels": self.max_image_pixels}
             for image_path in image_paths
         ]
+        content.extend(
+            {"type": "video", "video": video_path, "max_pixels": self.max_image_pixels, "fps": 1.0}
+            for video_path in video_paths
+        )
         content.append({"type": "text", "text": prompt})
         messages = [{"role": "user", "content": content}]
         text = self.processor.apply_chat_template(
@@ -121,13 +143,19 @@ class Qwen3VLTransformersRunner:
             tokenize=False,
             add_generation_prompt=True,
         )
-        image_inputs, video_inputs = self.process_vision_info(messages)
+        try:
+            vision_info = self.process_vision_info(messages, return_video_kwargs=True)
+            image_inputs, video_inputs, video_kwargs = vision_info
+        except TypeError:
+            image_inputs, video_inputs = self.process_vision_info(messages)
+            video_kwargs = {}
         inputs = self.processor(
             text=[text],
             images=image_inputs,
             videos=video_inputs,
             padding=True,
             return_tensors="pt",
+            **video_kwargs,
         ).to(self.device)
         with self.torch.inference_mode():
             generated = self.model.generate(
@@ -157,17 +185,31 @@ class OpenAICompatibleLocalRunner:
         max_new_tokens: int = 1024,
         timeout: int = 600,
         api_key: str | None = None,
+        allow_video_input: bool = False,
     ) -> None:
         self.model_id = model_id
         self.base_url = base_url.rstrip("/")
         self.max_new_tokens = max_new_tokens
         self.timeout = timeout
         self.api_key = api_key or os.getenv("LOCAL_VLM_API_KEY") or "none"
+        self.allow_video_input = allow_video_input
 
-    def generate(self, prompt: str, image_paths: list[str] | None = None) -> str:
+    def generate(
+        self,
+        prompt: str,
+        image_paths: list[str] | None = None,
+        video_paths: list[str] | None = None,
+    ) -> str:
         content: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
         for path in image_paths or []:
             content.append({"type": "image_url", "image_url": {"url": image_to_data_url(path)}})
+        if video_paths and not self.allow_video_input:
+            raise RuntimeError(
+                "openai-compatible-local backend received video_paths, but video input is disabled. "
+                "Use image fallback or pass --allow-openai-video-input for a server that supports video data URLs."
+            )
+        for path in video_paths or []:
+            content.append({"type": "video_url", "video_url": {"url": file_to_data_url(path)}})
         payload = {
             "model": self.model_id,
             "messages": [{"role": "user", "content": content}],
@@ -193,12 +235,18 @@ class DryRunRunner:
 
     model_id = "dry-run-no-model"
 
-    def generate(self, prompt: str, image_paths: list[str] | None = None) -> str:
+    def generate(
+        self,
+        prompt: str,
+        image_paths: list[str] | None = None,
+        video_paths: list[str] | None = None,
+    ) -> str:
         return json.dumps(
             {
                 "dry_run": True,
                 "prompt_preview": prompt[:1000],
                 "image_count": len(image_paths or []),
+                "video_count": len(video_paths or []),
             },
             ensure_ascii=False,
         )
@@ -213,6 +261,7 @@ def make_runner(
     max_image_pixels: int = DEFAULT_MAX_IMAGE_PIXELS,
     dtype: str = "bfloat16",
     allow_cpu: bool = False,
+    allow_openai_video_input: bool = False,
 ) -> Generator:
     if backend == "transformers-local":
         return Qwen3VLTransformersRunner(
@@ -227,6 +276,7 @@ def make_runner(
             model_id,
             base_url=base_url,
             max_new_tokens=max_new_tokens,
+            allow_video_input=allow_openai_video_input,
         )
     if backend == "dry-run":
         return DryRunRunner()

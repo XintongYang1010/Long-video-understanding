@@ -27,6 +27,15 @@ REQUIRED_QA_FIELDS = {
     "model_id",
     "source_urls",
 }
+VIDEO_FIRST_REQUIRED_FIELDS = {
+    "question_type",
+    "generator_rationale",
+    "why_two_users_needed",
+    "per_user_evidence_claims",
+    "judge_feedback",
+    "answerability_eval",
+    "attempt_count",
+}
 
 
 def extract_json_object(text: str) -> dict[str, Any]:
@@ -60,6 +69,10 @@ def validate_qa_item(item: dict[str, Any], *, strict_review: bool = False) -> li
     missing = sorted(REQUIRED_QA_FIELDS - set(item))
     if missing:
         errors.append(f"missing fields: {', '.join(missing)}")
+    if strict_review:
+        missing_video = sorted(VIDEO_FIRST_REQUIRED_FIELDS - set(item))
+        if missing_video:
+            errors.append(f"missing video-first fields: {', '.join(missing_video)}")
 
     options = item.get("options")
     if not isinstance(options, list) or len(options) != 5:
@@ -100,6 +113,29 @@ def validate_qa_item(item: dict[str, Any], *, strict_review: bool = False) -> li
     if "sufficient" not in combined and "support" not in combined:
         errors.append("combined_answerability must state sufficient support")
 
+    question_type = item.get("question_type")
+    if question_type is not None and question_type not in {"commonality", "difference"}:
+        errors.append("question_type must be commonality or difference")
+
+    answerability = item.get("answerability_eval")
+    if answerability is not None:
+        if not isinstance(answerability, dict):
+            errors.append("answerability_eval must be an object")
+        else:
+            gate = answerability.get("gate")
+            evaluations = answerability.get("evaluations")
+            if strict_review and (not isinstance(gate, dict) or gate.get("passed") is not True):
+                errors.append("answerability gate must pass in strict mode")
+            if strict_review and not isinstance(evaluations, list):
+                errors.append("answerability_eval.evaluations must be a list in strict mode")
+
+    judge = item.get("judge_feedback")
+    if judge is not None:
+        if not isinstance(judge, dict):
+            errors.append("judge_feedback must be an object")
+        elif strict_review and judge.get("review_passed") is not True:
+            errors.append("judge_feedback.review_passed must be true in strict mode")
+
     review = item.get("review")
     if not isinstance(review, dict):
         errors.append("review must be an object")
@@ -131,6 +167,9 @@ def write_qa_csv(jsonl_path: str | Path, csv_path: str | Path) -> int:
         "required_users",
         "combined_answerability",
         "review_passed",
+        "question_type",
+        "attempt_count",
+        "answerability_passed",
     ]
     with csv_path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fields)
@@ -147,7 +186,13 @@ def write_qa_csv(jsonl_path: str | Path, csv_path: str | Path) -> int:
                     "required_users": ";".join(row.get("required_users", [])),
                     "combined_answerability": row.get("combined_answerability", ""),
                     "review_passed": review.get("review_passed", review.get("status", "")),
+                    "question_type": row.get("question_type", ""),
+                    "attempt_count": row.get("attempt_count", ""),
+                    "answerability_passed": (
+                        row.get("answerability_eval", {}).get("gate", {}).get("passed", "")
+                        if isinstance(row.get("answerability_eval"), dict)
+                        else ""
+                    ),
                 }
             )
     return len(rows)
-
