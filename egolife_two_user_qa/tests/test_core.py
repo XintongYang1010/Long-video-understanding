@@ -10,7 +10,7 @@ from egolife_two_user_qa.evidence import group_manifest_clips, summarize_gaze_cs
 from egolife_two_user_qa.gaze_projection import gaussian_bbox_score, load_aria_projection_calibration, project_gaze_row
 from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_token
 from egolife_two_user_qa.prompts import build_video_generation_prompt
-from egolife_two_user_qa.qwen3vl_runner import DryRunRunner
+from egolife_two_user_qa.qwen3vl_runner import DryRunRunner, normalize_video_kwargs
 from egolife_two_user_qa.schema import extract_json_object, validate_qa_item
 from egolife_two_user_qa.video_qa_loop import answerability_gate, dry_run_qa
 
@@ -270,6 +270,11 @@ class VideoFirstTests(unittest.TestCase):
         parsed = json.loads(raw)
         self.assertEqual(parsed["image_count"], 1)
         self.assertEqual(parsed["video_count"], 2)
+
+    def test_normalize_video_kwargs_collapses_fps_list(self) -> None:
+        self.assertEqual(normalize_video_kwargs({"fps": [1.0, 1.0]})["fps"], 1.0)
+        self.assertEqual(normalize_video_kwargs({"fps": []})["fps"], 1.0)
+        self.assertEqual(normalize_video_kwargs({"fps": 2.0})["fps"], 2.0)
 
     def test_video_generation_prompt_does_not_use_observation(self) -> None:
         packet = {
