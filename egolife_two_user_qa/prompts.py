@@ -49,6 +49,13 @@ VIDEO_GENERATION_SCHEMA = {
             "frames_used": ["video-level evidence or approximate moment label"],
         }
     ],
+    "referred_timestamps": [
+        {
+            "user": "name",
+            "timestamp_seconds": 0.0,
+            "moment": "brief visual moment used as evidence",
+        }
+    ],
     "single_user_answerability": {
         "Jake": "insufficient because ...",
         "Alice": "insufficient because ...",
@@ -161,12 +168,13 @@ Goal:
 - Any single required user's video alone must be insufficient to answer completely.
 - The combined required users' videos must make exactly one option correct.
 
-Agent-perspective style:
-- Ask the question as a natural memory or AR assistant question from the users' point of view.
+Instruction:
+- MUST ask the question from FIRST person point of view.
 - Do not use words such as video, footage, recording, frame, dataset, camera, clip, or timestamp.
-- Avoid god-view wording like "what does the camera show" or "in the first person's view".
+- Avoid god-view wording or third person view like "what does the camera show" or "in the first person's view".
 - Do not speculate about private thoughts, identities, intentions, or off-screen facts unless visually supported.
 - Do not make 2D gaze-to-object claims unless projection_status is "projected"; unprojected EgoLife gaze is Aria CPF yaw/pitch/depth, not image pixels.
+- Include referred_timestamps with approximate seconds within each user's clip when a specific moment supports the answer. Use an empty list if you cannot localize the moment.
 {feedback_block}
 Evidence packet metadata:
 {video_packet_brief(packet)}

@@ -170,6 +170,8 @@ def write_qa_csv(jsonl_path: str | Path, csv_path: str | Path) -> int:
         "question_type",
         "attempt_count",
         "answerability_passed",
+        "video_evidence",
+        "referred_timestamps",
     ]
     with csv_path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fields)
@@ -193,6 +195,8 @@ def write_qa_csv(jsonl_path: str | Path, csv_path: str | Path) -> int:
                         if isinstance(row.get("answerability_eval"), dict)
                         else ""
                     ),
+                    "video_evidence": json.dumps(row.get("video_evidence", []), ensure_ascii=False),
+                    "referred_timestamps": json.dumps(row.get("referred_timestamps", []), ensure_ascii=False),
                 }
             )
     return len(rows)

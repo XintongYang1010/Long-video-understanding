@@ -51,6 +51,34 @@ def media_for_clips(
     return images if not videos else [], videos
 
 
+def video_evidence_for_packet(packet: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return deterministic clip/video provenance for the generated QA row."""
+
+    rows = []
+    for clip in packet.get("clips", []):
+        rows.append(
+            {
+                "user": clip.get("agent_name"),
+                "agent_dir": clip.get("agent_dir"),
+                "agent_id": clip.get("agent_id"),
+                "day": clip.get("day"),
+                "time_token": clip.get("time_token"),
+                "clip_clock": clip.get("clip_clock"),
+                "duration_seconds": clip.get("duration_seconds"),
+                "video_url": clip.get("video_url"),
+                "local_video": clip.get("local_video"),
+                "sampled_frames": [
+                    {
+                        "timestamp_seconds": frame.get("timestamp_seconds"),
+                        "path": frame.get("path"),
+                    }
+                    for frame in clip.get("frames", [])
+                ],
+            }
+        )
+    return rows
+
+
 def clips_for_users(packet: dict[str, Any], users: list[str]) -> list[dict[str, Any]]:
     wanted = set(users)
     return [clip for clip in packet.get("clips", []) if clip.get("agent_name") in wanted]
@@ -173,6 +201,8 @@ def dry_run_qa(packet: dict[str, Any], question_type: str) -> dict[str, Any]:
         "review": {"review_passed": False, "status": "dry_run"},
         "model_id": "dry-run-no-model",
         "source_urls": packet.get("source_urls", {}),
+        "video_evidence": video_evidence_for_packet(packet),
+        "referred_timestamps": [],
     }
 
 
@@ -343,6 +373,8 @@ def generate_video_qa_loop(
             qa["required_users"] = packet.get("required_users", qa.get("required_users", []))
             qa["model_id"] = runner.model_id
             qa["source_urls"] = packet.get("source_urls", {})
+            qa["video_evidence"] = video_evidence_for_packet(packet)
+            qa.setdefault("referred_timestamps", [])
             qa["attempt_count"] = attempt
             qa.setdefault("review", {})
             qa["review"]["generator_raw_output"] = raw_generation

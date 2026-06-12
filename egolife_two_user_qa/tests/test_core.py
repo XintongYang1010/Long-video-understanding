@@ -12,7 +12,7 @@ from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_t
 from egolife_two_user_qa.prompts import build_video_generation_prompt
 from egolife_two_user_qa.qwen3vl_runner import DryRunRunner
 from egolife_two_user_qa.schema import extract_json_object, validate_qa_item
-from egolife_two_user_qa.video_qa_loop import answerability_gate
+from egolife_two_user_qa.video_qa_loop import answerability_gate, dry_run_qa
 
 
 class ManifestTests(unittest.TestCase):
@@ -320,6 +320,34 @@ class VideoFirstTests(unittest.TestCase):
             ],
         )
         self.assertFalse(failed["passed"])
+
+    def test_dry_run_qa_includes_video_evidence_provenance(self) -> None:
+        qa = dry_run_qa(
+            {
+                "evidence_id": "E1",
+                "required_users": ["Jake", "Alice"],
+                "source_urls": {"videos": ["video_a", "video_b"]},
+                "clips": [
+                    {
+                        "agent_name": "Jake",
+                        "agent_dir": "A1_JAKE",
+                        "agent_id": "A1",
+                        "day": "DAY1",
+                        "time_token": "11100000",
+                        "clip_clock": "11:10:00.00",
+                        "duration_seconds": 30.0,
+                        "video_url": "video_a",
+                        "local_video": "jake.mp4",
+                        "frames": [{"timestamp_seconds": 10.0, "path": "jake_10.jpg"}],
+                    }
+                ],
+            },
+            "commonality",
+        )
+        self.assertEqual(qa["video_evidence"][0]["user"], "Jake")
+        self.assertEqual(qa["video_evidence"][0]["video_url"], "video_a")
+        self.assertEqual(qa["video_evidence"][0]["sampled_frames"][0]["timestamp_seconds"], 10.0)
+        self.assertEqual(qa["referred_timestamps"], [])
 
 
 if __name__ == "__main__":
