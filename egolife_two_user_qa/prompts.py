@@ -8,11 +8,11 @@ from typing import Any
 
 GENERATION_SCHEMA = {
     "qa_id": "string",
-    "video_id": "record which video used",
     "question": "natural everyday question without timestamps or words like video/footage/recording from first person perspective",
     "options": ["A option", "B option", "C option", "D option", "E option"],
     "correct": "A/B/C/D/E",
     "answer": "exact text of the correct option",
+    "category": "social_interaction/task_coordination/theory_of_mind/temporal_reasoning/environmental_interaction",
     "required_users": ["at least two user names"],
     "evidence": [
         {
@@ -40,6 +40,7 @@ VIDEO_GENERATION_SCHEMA = {
     "options": ["A option", "B option", "C option", "D option", "E option"],
     "correct": "A/B/C/D/E",
     "answer": "exact text of the correct option",
+    "category": "social_interaction/task_coordination/theory_of_mind/temporal_reasoning/environmental_interaction",
     "required_users": ["at least two user names"],
     "evidence": [
         {
