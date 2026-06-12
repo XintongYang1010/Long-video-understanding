@@ -8,11 +8,11 @@ from typing import Any
 
 GENERATION_SCHEMA = {
     "qa_id": "string",
-    "question": "natural everyday question without timestamps or words like video/footage/recording",
+    "video_id": "record which video used",
+    "question": "natural everyday question without timestamps or words like video/footage/recording from first person perspective",
     "options": ["A option", "B option", "C option", "D option", "E option"],
     "correct": "A/B/C/D/E",
     "answer": "exact text of the correct option",
-    "category": "social_interaction/task_coordination/theory_of_mind/temporal_reasoning/environmental_interaction",
     "required_users": ["at least two user names"],
     "evidence": [
         {
@@ -40,7 +40,6 @@ VIDEO_GENERATION_SCHEMA = {
     "options": ["A option", "B option", "C option", "D option", "E option"],
     "correct": "A/B/C/D/E",
     "answer": "exact text of the correct option",
-    "category": "social_interaction/task_coordination/theory_of_mind/temporal_reasoning/environmental_interaction",
     "required_users": ["at least two user names"],
     "evidence": [
         {
@@ -170,6 +169,10 @@ Goal:
 
 Instruction:
 - MUST ask the question from FIRST person point of view.
+- Do not put participant names in the question when they should be the speaker(s). Use "I", "me", "my", "we", or "our" instead.
+- Bad first-person violation: "What item are Jake and Alice both handling together at the table?"
+- Good first-person rewrite: "What item are Alice and I both handling together at the table?"
+- If there are multiple name appears, replace that one participant's name with "I"; for example, rewrite "What did Jake pick up?" as "What did I pick up?"
 - Do not use words such as video, footage, recording, frame, dataset, camera, clip, or timestamp.
 - Avoid god-view wording or third person view like "what does the camera show" or "in the first person's view".
 - Do not speculate about private thoughts, identities, intentions, or off-screen facts unless visually supported.
@@ -191,7 +194,7 @@ You will see the same raw egocentric videos used by the generator. Judge whether
 
 Hard pass criteria:
 1. It is answerable from the provided videos and metadata, not from captions or external knowledge.
-2. The wording is natural from an agent/user memory perspective.
+2. The wording is natural from a first-person agent/user memory perspective, using "I/me/my/we/our" instead of names such as "Jake and Alice" when the named users are the question speakers.
 3. It does not mention video, footage, recording, frame, dataset, camera, clip, or timestamp.
 4. It matches question_type: commonality means a shared/jointly verified fact; difference means a meaningful asymmetry or complementary detail.
 5. At least two required users contribute necessary evidence.
