@@ -74,6 +74,7 @@ def main(argv: list[str] | None = None) -> int:
     video_gen.add_argument("--output", required=True)
     video_gen.add_argument("--prompts-output")
     video_gen.add_argument("--rejected-output")
+    video_gen.add_argument("--intermediate-output")
     video_gen.add_argument("--target-count", type=int, default=20)
     video_gen.add_argument("--max-attempts", type=int, default=3)
     add_video_loop_args(video_gen)
@@ -173,6 +174,7 @@ def main(argv: list[str] | None = None) -> int:
             output_path=args.output,
             prompts_path=args.prompts_output,
             rejected_path=args.rejected_output,
+            intermediate_path=args.intermediate_output,
             backend=args.backend,
             model_id=args.model_id,
             base_url=args.base_url,

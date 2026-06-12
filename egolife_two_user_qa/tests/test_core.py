@@ -12,7 +12,7 @@ from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_t
 from egolife_two_user_qa.prompts import build_video_generation_prompt
 from egolife_two_user_qa.qwen3vl_runner import DryRunRunner, normalize_video_kwargs
 from egolife_two_user_qa.schema import extract_json_object, validate_qa_item
-from egolife_two_user_qa.video_qa_loop import answerability_gate, dry_run_qa
+from egolife_two_user_qa.video_qa_loop import answerability_gate, dry_run_qa, judge_gate
 
 
 class ManifestTests(unittest.TestCase):
@@ -200,6 +200,21 @@ class CandidateMiningTests(unittest.TestCase):
 
 
 class SchemaTests(unittest.TestCase):
+    def passed_judge_checks(self):
+        return {
+            name: {"status": "PASS", "reason": "ok", "fix": ""}
+            for name in [
+                "agent_perspective",
+                "source_scope",
+                "question_type_semantics",
+                "multi_video_necessity",
+                "visual_grounding",
+                "mcq_option_quality",
+                "gaze_safety",
+                "human_auditability",
+            ]
+        }
+
     def valid_item(self):
         return {
             "qa_id": "QA_001",
@@ -226,7 +241,12 @@ class SchemaTests(unittest.TestCase):
                 {"user": "Jake", "claim": "Jake saw the cup"},
                 {"user": "Alice", "claim": "Alice saw the table"},
             ],
-            "judge_feedback": {"review_passed": True},
+            "judge_feedback": {
+                "review_passed": True,
+                "checks": self.passed_judge_checks(),
+                "blocking_failures": [],
+                "feedback_to_generator": "",
+            },
             "answerability_eval": {
                 "evaluations": [
                     {"condition_id": "single_user::Jake", "condition_type": "single_user", "choice": "insufficient"},
@@ -238,6 +258,27 @@ class SchemaTests(unittest.TestCase):
             "attempt_count": 1,
             "model_id": "Qwen/Qwen3-VL-8B-Instruct",
             "source_urls": {"videos": []},
+            "video_evidence": [
+                {
+                    "user": "Jake",
+                    "day": "DAY1",
+                    "time_token": "11100000",
+                    "video_url": "video_a",
+                    "local_video": "jake.mp4",
+                    "sampled_frames": [],
+                }
+            ],
+            "referred_timestamps": [],
+            "human_audit": {"evidence_id": "E1", "video_evidence": []},
+            "generation_trace": [
+                {
+                    "attempt": 1,
+                    "generation": {"prompt": "p", "raw_output": "{}"},
+                    "judge": {"prompt": "j", "raw_output": "{}"},
+                    "answerability": {},
+                    "result": {"accepted": True},
+                }
+            ],
         }
 
     def test_validate_valid_item(self) -> None:
@@ -262,6 +303,12 @@ class SchemaTests(unittest.TestCase):
         item = self.valid_item()
         item["question_type"] = "difference"
         self.assertEqual(validate_qa_item(item, strict_review=True), [])
+
+    def test_strict_validation_requires_structured_judge_checks(self) -> None:
+        item = self.valid_item()
+        item["judge_feedback"] = {"review_passed": True}
+        errors = validate_qa_item(item, strict_review=True)
+        self.assertTrue(any("judge_feedback.checks" in error for error in errors))
 
 
 class VideoFirstTests(unittest.TestCase):
@@ -326,6 +373,30 @@ class VideoFirstTests(unittest.TestCase):
         )
         self.assertFalse(failed["passed"])
 
+    def test_judge_gate_requires_each_structured_check_to_pass(self) -> None:
+        checks = {
+            name: {"status": "PASS", "reason": "ok", "fix": ""}
+            for name in [
+                "agent_perspective",
+                "source_scope",
+                "question_type_semantics",
+                "multi_video_necessity",
+                "visual_grounding",
+                "mcq_option_quality",
+                "gaze_safety",
+                "human_auditability",
+            ]
+        }
+        self.assertTrue(judge_gate({"review_passed": True, "checks": checks})["passed"])
+        checks["multi_video_necessity"] = {
+            "status": "FAIL",
+            "reason": "one video already answers",
+            "fix": "ask for a complementary clue from the second user",
+        }
+        failed = judge_gate({"review_passed": True, "checks": checks})
+        self.assertFalse(failed["passed"])
+        self.assertIn("multi_video_necessity", failed["failed_checks"])
+
     def test_dry_run_qa_includes_video_evidence_provenance(self) -> None:
         qa = dry_run_qa(
             {
@@ -353,6 +424,9 @@ class VideoFirstTests(unittest.TestCase):
         self.assertEqual(qa["video_evidence"][0]["video_url"], "video_a")
         self.assertEqual(qa["video_evidence"][0]["sampled_frames"][0]["timestamp_seconds"], 10.0)
         self.assertEqual(qa["referred_timestamps"], [])
+        self.assertIn("human_audit", qa)
+        self.assertIn("generation_trace", qa)
+        self.assertEqual(qa["generation_trace"][0]["stage"], "dry_run")
 
 
 if __name__ == "__main__":

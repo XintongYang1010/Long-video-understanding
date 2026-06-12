@@ -63,6 +63,7 @@ python -m egolife_two_user_qa generate_video_qa_loop \
   --output "${OUTDIR}/qa_mcq.jsonl" \
   --prompts-output "${OUTDIR}/video_first_prompts.jsonl" \
   --rejected-output "${OUTDIR}/qa_mcq.rejected.jsonl" \
+  --intermediate-output "${OUTDIR}/qa_mcq.intermediate.jsonl" \
   --target-count "${TARGET_COUNT}" \
   --max-attempts "${MAX_ATTEMPTS}" \
   --backend "${BACKEND}" \

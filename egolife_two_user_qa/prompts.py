@@ -82,6 +82,31 @@ ANSWERABILITY_SCHEMA = {
 }
 
 
+JUDGE_CHECK_SCHEMA = {
+    "status": "PASS/FAIL/UNCERTAIN",
+    "reason": "short evidence-grounded explanation",
+    "fix": "specific repair instruction if status is FAIL or UNCERTAIN; empty string if PASS",
+}
+
+
+JUDGE_SCHEMA = {
+    "review_passed": True,
+    "checks": {
+        "agent_perspective": JUDGE_CHECK_SCHEMA,
+        "source_scope": JUDGE_CHECK_SCHEMA,
+        "question_type_semantics": JUDGE_CHECK_SCHEMA,
+        "multi_video_necessity": JUDGE_CHECK_SCHEMA,
+        "visual_grounding": JUDGE_CHECK_SCHEMA,
+        "mcq_option_quality": JUDGE_CHECK_SCHEMA,
+        "gaze_safety": JUDGE_CHECK_SCHEMA,
+        "human_auditability": JUDGE_CHECK_SCHEMA,
+    },
+    "blocking_failures": ["names of failed checks that should block acceptance"],
+    "why_generator_asked_this": "short justification of the generator's likely reason",
+    "feedback_to_generator": "specific edit instructions if review_passed is false; empty string if passed",
+}
+
+
 def packet_brief(packet: dict[str, Any]) -> str:
     clips = []
     for clip in packet.get("clips", []):
@@ -193,15 +218,39 @@ def build_judger_prompt(qa_item: dict[str, Any], packet: dict[str, Any]) -> str:
 
 You will see the same raw egocentric videos used by the generator. Judge whether the generated question is acceptable.
 
-Hard pass criteria:
-1. It is answerable from the provided videos and metadata, not from captions or external knowledge.
-2. The wording is natural from a first-person agent/user memory perspective, using "I/me/my/we/our" instead of names such as "Jake and Alice" when the named users are the question speakers.
-3. It does not mention video, footage, recording, frame, dataset, camera, clip, or timestamp.
-4. It matches question_type: commonality means a shared/jointly verified fact; difference means a meaningful asymmetry or complementary detail.
-5. At least two required users contribute necessary evidence.
-6. No single required user alone can answer completely.
-7. The five options have exactly one correct answer.
-8. Any gaze-to-object claim is allowed only when projection_status is "projected".
+Judge each dimension separately. A QA item should pass only when all blocking dimensions pass.
+
+Blocking dimensions:
+1. agent_perspective:
+   - The question sounds like a natural first-person memory or AR-assistant question.
+   - It uses "I/me/my/we/our" when a required user is the speaker.
+   - It does not use dataset-observer or god-view wording.
+   - It does not mention video, footage, recording, frame, dataset, camera, clip, or timestamp.
+2. source_scope:
+   - The answer can be judged from the provided raw videos and packet metadata only.
+   - It does not rely on captions, pre-written observations, external knowledge, private thoughts, hidden identity, or off-screen facts.
+3. question_type_semantics:
+   - If question_type is commonality, the answer must be a shared/jointly verified fact across required users.
+   - If question_type is difference, the answer must be a meaningful asymmetry or complementary detail between required users.
+4. multi_video_necessity:
+   - At least two required users contribute necessary, non-redundant visual evidence.
+   - The question should not be answerable from one user's video alone.
+   - For aligned same-time clips, the comparison should make sense as the same event/place/task or a clearly related interaction.
+5. visual_grounding:
+   - The correct option is visually grounded in concrete moments in the videos.
+   - The per_user_evidence_claims and referred_timestamps, if present, are specific enough for a human auditor to check.
+6. mcq_option_quality:
+   - There are exactly five non-empty options.
+   - Exactly one option is correct.
+   - Distractors are plausible but not ambiguous or also correct.
+7. gaze_safety:
+   - Any gaze-to-object claim is allowed only when projection_status is "projected".
+   - If projection_status is missing_calibration or unavailable, the question must not assert pixel gaze/object proximity.
+8. human_auditability:
+   - The QA row includes enough user/video/time evidence for a human to inspect the same clips later.
+   - The rationale explains why this question was asked and why each user matters.
+
+Use FAIL for a clear violation, UNCERTAIN when the videos do not provide enough evidence to verify the check, and PASS only when the dimension is satisfied.
 
 Evidence packet metadata:
 {video_packet_brief(packet)}
@@ -209,19 +258,8 @@ Evidence packet metadata:
 Generated QA:
 {json.dumps(qa_item, ensure_ascii=False, indent=2)}
 
-Return one valid JSON object only:
-{{
-  "review_passed": true,
-  "natural_agent_perspective_check": "PASS/FAIL with short explanation",
-  "question_type_check": "PASS/FAIL with short explanation",
-  "two_user_necessity_check": "PASS/FAIL with short explanation",
-  "single_user_insufficiency_check": "PASS/FAIL with short explanation",
-  "mcq_uniqueness_check": "PASS/FAIL with short explanation",
-  "visual_grounding_check": "PASS/FAIL with short explanation",
-  "gaze_claim_check": "PASS/FAIL with short explanation",
-  "why_generator_asked_this": "short justification of the generator's likely reason",
-  "feedback_to_generator": "specific edit instructions if review_passed is false; empty string if passed"
-}}
+Return one valid JSON object only, with this exact shape:
+{json.dumps(JUDGE_SCHEMA, ensure_ascii=False, indent=2)}
 """
 
 
