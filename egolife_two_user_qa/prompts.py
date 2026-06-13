@@ -26,10 +26,12 @@ GENERATION_SCHEMA = {
 
 VIDEO_GENERATION_SCHEMA = {
     "qa_id": "string",
+    "question_type": "commonality or difference",
     "question": "natural first-person question (ask from a AR glass user perspective) without timestamps or words like video/footage/recording/frame/camera",
     "options": ["A option", "B option", "C option", "D option", "E option"],
     "correct": "A/B/C/D/E",
     "answer": "exact text of the correct option",
+    "category": "social_interaction/task_coordination/theory_of_mind/temporal_reasoning/environmental_interaction",
     "required_users": ["at least two user names"],
     "evidence": [
         {
@@ -39,6 +41,27 @@ VIDEO_GENERATION_SCHEMA = {
             "frames_used": ["video-level evidence or approximate moment label"],
         }
     ],
+    "referred_timestamps": [
+        {
+            "user": "name",
+            "timestamp_seconds": 0.0,
+            "moment": "brief visual moment used as evidence",
+        }
+    ],
+    "single_user_answerability": {
+        "Jake": "insufficient because Jake alone only provides ...",
+        "Alice": "insufficient because Alice alone only provides ...",
+    },
+    "combined_answerability": "sufficient because combining the required users' videos supports exactly one option",
+    "generator_rationale": "why this is a natural speaker-anchor plus missing-detail question",
+    "why_two_users_needed": "why each required user contributes necessary non-redundant visual evidence",
+    "per_user_evidence_claims": [
+        {"user": "name", "claim": "claim grounded in that user's own video"}
+    ],
+    "review": {
+        "generator_self_check": "why this cannot be answered by one user alone and is not just asking what both users saw",
+        "status": "draft",
+    },
 }
 
 
@@ -226,6 +249,8 @@ Your job:
 3. The question must require visual evidence from at least two required users.
 4. Any single required user's video alone must be insufficient; the combined required users' videos must make exactly one option correct.
 5. Fill the evidence field with each needed user's visual fact and a specific timeframe.
+6. Return every field in the JSON shape exactly. Do not omit category, single_user_answerability, combined_answerability, generator_rationale, why_two_users_needed, per_user_evidence_claims, referred_timestamps, or review.
+7. The answer field must exactly equal the text of options[correct].
 
 Guidelines:
 1) Ask in a natural, informal, everyday way, like someone looking back at their memories.
@@ -238,6 +263,8 @@ For example, If the question is asked from Jake's perspective, Jake's name shoul
 6) Options must be multi-word, plausible, parallel in length/style, and have exactly one correct answer.
 7) False options may use Jake, Alice, Tasha, Lucia, Katrina, or Shure when helpful, please refer to guideline 3) for name requirement.
 8) The gaze input is provided as <gaze_coordinate>, a 2D image coordinate (x, y) indicating the user's attended area. Ask questions about visible objects, regions, or actions near what the user attended to.
+9) single_user_answerability must be an object with one entry for each required user, and each entry must explicitly say "insufficient because ...".
+10) combined_answerability must explicitly say "sufficient because ..." and explain why the combined videos support the correct option.
 
 {example_block}
 

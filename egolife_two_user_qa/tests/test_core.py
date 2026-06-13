@@ -12,7 +12,13 @@ from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_t
 from egolife_two_user_qa.prompts import build_video_generation_prompt
 from egolife_two_user_qa.qwen3vl_runner import DryRunRunner, normalize_video_kwargs
 from egolife_two_user_qa.schema import extract_json_object, validate_qa_item
-from egolife_two_user_qa.video_qa_loop import answerability_gate, build_review_from_gates, dry_run_qa, judge_gate
+from egolife_two_user_qa.video_qa_loop import (
+    answerability_gate,
+    build_review_from_gates,
+    complete_generator_metadata,
+    dry_run_qa,
+    judge_gate,
+)
 
 
 class ManifestTests(unittest.TestCase):
@@ -377,6 +383,36 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("Look directly at the videos", prompt)
         self.assertIn("local_video", prompt)
         self.assertNotIn("SHOULD_NOT_APPEAR", prompt)
+        self.assertIn("single_user_answerability", prompt)
+        self.assertIn("combined_answerability", prompt)
+        self.assertIn("why_two_users_needed", prompt)
+
+    def test_complete_generator_metadata_repairs_old_generator_shape(self) -> None:
+        packet = {"required_users": ["Jake", "Alice"]}
+        qa = {
+            "qa_id": "Q1",
+            "question": "After I left the table, what was still happening there?",
+            "options": ["food prep", "phone charging", "dish washing", "door opening", "bag packing"],
+            "correct": "A",
+            "answer": "wrong text",
+            "required_users": ["Jake", "Alice"],
+            "evidence": [
+                {
+                    "user": "Jake",
+                    "needed_fact": "Jake left the table.",
+                    "timeframe": "early in the clip",
+                    "frames_used": ["around 5s"],
+                }
+            ],
+            "model_id": "dry-run",
+            "source_urls": {},
+        }
+        complete_generator_metadata(qa, packet=packet, question_type="commonality")
+        self.assertEqual(qa["answer"], "food prep")
+        self.assertEqual(qa["question_type"], "commonality")
+        self.assertIn("insufficient", qa["single_user_answerability"]["Jake"])
+        self.assertIn("sufficient", qa["combined_answerability"])
+        self.assertEqual(validate_qa_item(qa), [])
 
     def test_answerability_gate_requires_combined_correct_and_singles_not_correct(self) -> None:
         qa = {"correct": "A"}

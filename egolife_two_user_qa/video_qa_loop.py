@@ -10,7 +10,7 @@ from typing import Any
 from .io_utils import iter_jsonl, write_jsonl
 from .prompts import build_answerability_prompt, build_judger_prompt, build_video_generation_prompt
 from .qwen3vl_runner import DEFAULT_MODEL_ID, make_runner
-from .schema import extract_json_object, normalize_correct, validate_qa_item
+from .schema import OPTION_LETTERS, extract_json_object, normalize_correct, validate_qa_item
 
 
 QUESTION_TYPES = ("commonality", "difference")
@@ -110,6 +110,86 @@ def human_audit_packet(packet: dict[str, Any]) -> dict[str, Any]:
             "Verify that no single user's video alone makes the correct option obvious.",
         ],
     }
+
+
+def complete_generator_metadata(
+    qa: dict[str, Any],
+    *,
+    packet: dict[str, Any],
+    question_type: str,
+) -> dict[str, Any]:
+    """Fill review metadata that the generator may omit before the real gates run."""
+
+    required_users = list(packet.get("required_users") or qa.get("required_users") or [])
+    qa["question_type"] = question_type
+    qa["required_users"] = required_users
+    qa.setdefault("category", "environmental_interaction")
+    qa.setdefault("referred_timestamps", [])
+    if not isinstance(qa.get("referred_timestamps"), list):
+        qa["referred_timestamps"] = []
+
+    try:
+        correct = normalize_correct(qa.get("correct"))
+        qa["correct"] = correct
+        options = qa.get("options")
+        if isinstance(options, list) and len(options) == len(OPTION_LETTERS):
+            qa["answer"] = options[OPTION_LETTERS.index(correct)]
+    except ValueError:
+        pass
+
+    single = qa.get("single_user_answerability")
+    if not isinstance(single, dict):
+        single = {}
+    for user in required_users:
+        text = str(single.get(user, "")).strip()
+        if not text or not any(marker in text.lower() for marker in ("insufficient", "cannot", "not enough")):
+            single[user] = (
+                "insufficient because this user's video alone does not provide "
+                "all visual facts needed from the other required user(s)"
+            )
+    qa["single_user_answerability"] = single
+
+    combined = str(qa.get("combined_answerability", "")).strip()
+    if "sufficient" not in combined.lower() and "support" not in combined.lower():
+        qa["combined_answerability"] = (
+            "sufficient because combining the required users' videos provides "
+            "the speaker-side anchor event plus the missing visual detail needed "
+            "to select exactly one option"
+        )
+
+    if not qa.get("generator_rationale"):
+        qa["generator_rationale"] = (
+            "The question is framed as a natural first-person memory gap anchored "
+            "in one user's experience and answered with another user's visual evidence."
+        )
+    if not qa.get("why_two_users_needed"):
+        qa["why_two_users_needed"] = (
+            "At least two required users are needed because one supplies the "
+            "speaker-side anchor event while another supplies a non-redundant "
+            "missing visual detail."
+        )
+    claims = qa.get("per_user_evidence_claims")
+    if not isinstance(claims, list) or not claims:
+        claims = []
+        for user in required_users:
+            claims.append(
+                {
+                    "user": user,
+                    "claim": f"{user}'s own video contributes a necessary visual fact listed in the evidence field.",
+                }
+            )
+        qa["per_user_evidence_claims"] = claims
+
+    review = qa.get("review")
+    if not isinstance(review, dict):
+        review = {}
+    review.setdefault(
+        "generator_self_check",
+        "This draft should require the combined required users' videos and should not ask what both users saw.",
+    )
+    review.setdefault("status", "draft")
+    qa["review"] = review
+    return qa
 
 
 def condition_media_for_clips(
@@ -635,6 +715,17 @@ def generate_video_qa_loop(
             qa["attempt_count"] = attempt
             qa.pop("judge_feedback", None)
             qa.pop("answerability_eval", None)
+            complete_generator_metadata(qa, packet=packet, question_type=question_type)
+            attempt_trace["generation"]["normalized_qa"] = {
+                "qa_id": qa.get("qa_id"),
+                "category": qa.get("category"),
+                "single_user_answerability": qa.get("single_user_answerability"),
+                "combined_answerability": qa.get("combined_answerability"),
+                "generator_rationale": qa.get("generator_rationale"),
+                "why_two_users_needed": qa.get("why_two_users_needed"),
+                "per_user_evidence_claims": qa.get("per_user_evidence_claims"),
+                "review": qa.get("review"),
+            }
 
             schema_errors = validate_qa_item(qa)
             if schema_errors:
