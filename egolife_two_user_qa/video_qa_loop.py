@@ -279,6 +279,49 @@ def judge_gate(judge: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def build_review_from_gates(
+    *,
+    judge: dict[str, Any] | None,
+    answerability: dict[str, Any] | None,
+    schema_errors: list[str] | None,
+    accepted: bool,
+    rejection_stage: str | None = None,
+    final_reason: str | None = None,
+) -> dict[str, Any]:
+    """Build the final review object stored inside each QA row.
+
+    Generator self-checks stay in generation_trace. The final review is derived
+    from the judger, answerability evaluator, and deterministic schema checks.
+    """
+
+    schema_errors = list(schema_errors or [])
+    schema_passed = not schema_errors
+    if accepted:
+        status = "passed"
+    elif rejection_stage == "judger":
+        status = "rejected_by_judger"
+    elif rejection_stage == "answerability":
+        status = "rejected_by_answerability"
+    else:
+        status = "rejected_by_schema"
+
+    return {
+        "status": status,
+        "review_passed": bool(accepted),
+        "judger": judge if isinstance(judge, dict) else {},
+        "answerability": answerability if isinstance(answerability, dict) else {},
+        "schema_validation": {
+            "passed": schema_passed,
+            "errors": schema_errors,
+        },
+        "final_decision": {
+            "accepted": bool(accepted),
+            "rejection_stage": None if accepted else (rejection_stage or "schema"),
+            "reason": final_reason or ("passed all gates" if accepted else "rejected"),
+        },
+    }
+
+
 def dry_run_qa(packet: dict[str, Any], question_type: str) -> dict[str, Any]:
     users = packet.get("required_users", [])[:2]
     return {
@@ -296,10 +339,19 @@ def dry_run_qa(packet: dict[str, Any], question_type: str) -> dict[str, Any]:
         "generator_rationale": "dry-run placeholder",
         "why_two_users_needed": "dry-run placeholder",
         "per_user_evidence_claims": [{"user": user, "claim": "dry-run placeholder"} for user in users],
-        "judge_feedback": {},
-        "answerability_eval": {},
         "attempt_count": 0,
-        "review": {"review_passed": False, "status": "dry_run"},
+        "review": {
+            "review_passed": False,
+            "status": "dry_run",
+            "judger": {},
+            "answerability": {},
+            "schema_validation": {"passed": False, "errors": []},
+            "final_decision": {
+                "accepted": False,
+                "rejection_stage": "dry_run",
+                "reason": "No model review was run in dry-run mode.",
+            },
+        },
         "model_id": "dry-run-no-model",
         "source_urls": packet.get("source_urls", {}),
         "video_evidence": video_evidence_for_packet(packet),
@@ -516,6 +568,7 @@ def generate_video_qa_loop(
 
         packet_rejections = []
         packet_trace = []
+        last_review = None
         for attempt in range(1, max_attempts + 1):
             gen_prompt = build_video_generation_prompt(packet, question_type, feedback=feedback)
             attempt_trace: dict[str, Any] = {
@@ -580,13 +633,21 @@ def generate_video_qa_loop(
             qa["human_audit"] = human_audit_packet(packet)
             qa["generation_trace"] = packet_trace
             qa["attempt_count"] = attempt
-            qa.setdefault("review", {})
-            qa["review"]["generator_raw_output"] = raw_generation
+            qa.pop("judge_feedback", None)
+            qa.pop("answerability_eval", None)
 
             schema_errors = validate_qa_item(qa)
             if schema_errors:
                 feedback = "Schema errors to fix: " + "; ".join(schema_errors)
-                qa["review"]["schema_errors"] = schema_errors
+                qa["review"] = build_review_from_gates(
+                    judge=None,
+                    answerability=None,
+                    schema_errors=schema_errors,
+                    accepted=False,
+                    rejection_stage="schema",
+                    final_reason=feedback,
+                )
+                last_review = qa["review"]
                 attempt_trace["schema_errors"] = schema_errors
                 attempt_trace["result"] = {"accepted": False, "reason": feedback}
                 packet_rejections.append({"attempt": attempt, "reason": feedback, "qa": qa})
@@ -617,13 +678,21 @@ def generate_video_qa_loop(
             judge["raw_output"] = raw_judge
             judge["gate"] = judge_gate(judge)
             attempt_trace["judge"]["parsed"] = judge
-            qa["judge_feedback"] = judge
             if judge["gate"].get("passed") is not True:
                 feedback = str(
                     judge.get("feedback_to_generator")
                     or judge["gate"].get("reason")
                     or "Judger rejected the question."
                 )
+                qa["review"] = build_review_from_gates(
+                    judge=judge,
+                    answerability=None,
+                    schema_errors=[],
+                    accepted=False,
+                    rejection_stage="judger",
+                    final_reason=feedback,
+                )
+                last_review = qa["review"]
                 attempt_trace["result"] = {"accepted": False, "reason": feedback}
                 packet_rejections.append({"attempt": attempt, "reason": feedback, "qa": qa})
                 continue
@@ -636,25 +705,41 @@ def generate_video_qa_loop(
                 allow_openai_video_input=allow_openai_video_input,
                 prompt_rows=prompts,
             )
-            qa["answerability_eval"] = answerability
             attempt_trace["answerability"] = answerability
             if answerability.get("gate", {}).get("passed") is not True:
                 feedback = "Answerability gate failed: " + str(answerability.get("gate", {}).get("reason", ""))
+                qa["review"] = build_review_from_gates(
+                    judge=judge,
+                    answerability=answerability,
+                    schema_errors=[],
+                    accepted=False,
+                    rejection_stage="answerability",
+                    final_reason=feedback,
+                )
+                last_review = qa["review"]
                 attempt_trace["result"] = {"accepted": False, "reason": feedback}
                 packet_rejections.append({"attempt": attempt, "reason": feedback, "qa": qa})
                 continue
 
-            qa["review"] = {
-                **qa.get("review", {}),
-                "review_passed": True,
-                "status": "passed",
-                "judger_passed": True,
-                "answerability_passed": True,
-            }
+            qa["review"] = build_review_from_gates(
+                judge=judge,
+                answerability=answerability,
+                schema_errors=[],
+                accepted=True,
+                final_reason="passed all gates",
+            )
             strict_errors = validate_qa_item(qa, strict_review=True)
             if strict_errors:
                 feedback = "Strict validation errors: " + "; ".join(strict_errors)
-                qa["review"]["schema_errors"] = strict_errors
+                qa["review"] = build_review_from_gates(
+                    judge=judge,
+                    answerability=answerability,
+                    schema_errors=strict_errors,
+                    accepted=False,
+                    rejection_stage="schema",
+                    final_reason=feedback,
+                )
+                last_review = qa["review"]
                 attempt_trace["schema_errors"] = strict_errors
                 attempt_trace["result"] = {"accepted": False, "reason": feedback}
                 packet_rejections.append({"attempt": attempt, "reason": feedback, "qa": qa})
@@ -662,6 +747,7 @@ def generate_video_qa_loop(
 
             attempt_trace["result"] = {"accepted": True, "reason": "passed all gates"}
             qa["generation_trace"] = packet_trace
+            last_review = qa["review"]
             accepted.append(qa)
             intermediate_rows.append(
                 {
@@ -682,6 +768,8 @@ def generate_video_qa_loop(
                 "generation_trace": packet_trace,
                 "human_audit": human_audit_packet(packet),
             }
+            if last_review is not None:
+                rejected_row["review"] = last_review
             rejected.append(rejected_row)
             intermediate_rows.append({**rejected_row, "status": "rejected"})
 
@@ -689,8 +777,7 @@ def generate_video_qa_loop(
         write_jsonl(prompts_path, prompts)
     if intermediate_path:
         write_jsonl(intermediate_path, intermediate_rows)
-    if not dry_run:
-        write_jsonl(output_path, accepted)
+    write_jsonl(output_path, accepted)
     if rejected_path and rejected:
         write_jsonl(rejected_path, rejected)
     return accepted

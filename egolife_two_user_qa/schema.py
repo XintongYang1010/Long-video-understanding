@@ -32,8 +32,6 @@ VIDEO_FIRST_REQUIRED_FIELDS = {
     "generator_rationale",
     "why_two_users_needed",
     "per_user_evidence_claims",
-    "judge_feedback",
-    "answerability_eval",
     "attempt_count",
     "video_evidence",
     "referred_timestamps",
@@ -132,39 +130,6 @@ def validate_qa_item(item: dict[str, Any], *, strict_review: bool = False) -> li
     if question_type is not None and question_type not in {"commonality", "difference"}:
         errors.append("question_type must be commonality or difference")
 
-    answerability = item.get("answerability_eval")
-    if answerability is not None:
-        if not isinstance(answerability, dict):
-            errors.append("answerability_eval must be an object")
-        else:
-            gate = answerability.get("gate")
-            evaluations = answerability.get("evaluations")
-            if strict_review and (not isinstance(gate, dict) or gate.get("passed") is not True):
-                errors.append("answerability gate must pass in strict mode")
-            if strict_review and not isinstance(evaluations, list):
-                errors.append("answerability_eval.evaluations must be a list in strict mode")
-
-    judge = item.get("judge_feedback")
-    if judge is not None:
-        if not isinstance(judge, dict):
-            errors.append("judge_feedback must be an object")
-        elif strict_review:
-            if judge.get("review_passed") is not True:
-                errors.append("judge_feedback.review_passed must be true in strict mode")
-            checks = judge.get("checks")
-            if not isinstance(checks, dict):
-                errors.append("judge_feedback.checks must be an object in strict mode")
-            else:
-                missing_checks = sorted(VIDEO_FIRST_JUDGE_CHECKS - set(checks))
-                if missing_checks:
-                    errors.append(f"judge_feedback.checks missing: {', '.join(missing_checks)}")
-                for check_name, check_value in checks.items():
-                    if not isinstance(check_value, dict):
-                        errors.append(f"judge check {check_name} must be an object")
-                        continue
-                    if str(check_value.get("status", "")).upper() != "PASS":
-                        errors.append(f"judge check {check_name} must be PASS in strict mode")
-
     if strict_review:
         video_evidence = item.get("video_evidence")
         if not isinstance(video_evidence, list) or not video_evidence:
@@ -179,8 +144,49 @@ def validate_qa_item(item: dict[str, Any], *, strict_review: bool = False) -> li
     review = item.get("review")
     if not isinstance(review, dict):
         errors.append("review must be an object")
-    elif strict_review and review.get("review_passed") is not True and review.get("status") != "passed":
-        errors.append("review must pass in strict mode")
+    elif strict_review:
+        if review.get("review_passed") is not True or review.get("status") != "passed":
+            errors.append("review must pass in strict mode")
+
+        judge = review.get("judger")
+        if not isinstance(judge, dict):
+            errors.append("review.judger must be an object in strict mode")
+        else:
+            if judge.get("review_passed") is not True:
+                errors.append("review.judger.review_passed must be true in strict mode")
+            gate = judge.get("gate")
+            if not isinstance(gate, dict) or gate.get("passed") is not True:
+                errors.append("review.judger.gate.passed must be true in strict mode")
+            checks = judge.get("checks")
+            if not isinstance(checks, dict):
+                errors.append("review.judger.checks must be an object in strict mode")
+            else:
+                missing_checks = sorted(VIDEO_FIRST_JUDGE_CHECKS - set(checks))
+                if missing_checks:
+                    errors.append(f"review.judger.checks missing: {', '.join(missing_checks)}")
+                for check_name, check_value in checks.items():
+                    if not isinstance(check_value, dict):
+                        errors.append(f"judge check {check_name} must be an object")
+                        continue
+                    if str(check_value.get("status", "")).upper() != "PASS":
+                        errors.append(f"judge check {check_name} must be PASS in strict mode")
+
+        answerability = review.get("answerability")
+        if not isinstance(answerability, dict):
+            errors.append("review.answerability must be an object in strict mode")
+        else:
+            gate = answerability.get("gate")
+            evaluations = answerability.get("evaluations")
+            if not isinstance(gate, dict) or gate.get("passed") is not True:
+                errors.append("review.answerability.gate.passed must be true in strict mode")
+            if not isinstance(evaluations, list):
+                errors.append("review.answerability.evaluations must be a list in strict mode")
+
+        schema_validation = review.get("schema_validation")
+        if not isinstance(schema_validation, dict):
+            errors.append("review.schema_validation must be an object in strict mode")
+        elif schema_validation.get("passed") is not True:
+            errors.append("review.schema_validation.passed must be true in strict mode")
 
     return errors
 
@@ -210,6 +216,7 @@ def write_qa_csv(jsonl_path: str | Path, csv_path: str | Path) -> int:
         "question_type",
         "attempt_count",
         "answerability_passed",
+        "review",
         "video_evidence",
         "referred_timestamps",
         "human_audit",
@@ -233,10 +240,11 @@ def write_qa_csv(jsonl_path: str | Path, csv_path: str | Path) -> int:
                     "question_type": row.get("question_type", ""),
                     "attempt_count": row.get("attempt_count", ""),
                     "answerability_passed": (
-                        row.get("answerability_eval", {}).get("gate", {}).get("passed", "")
-                        if isinstance(row.get("answerability_eval"), dict)
+                        review.get("answerability", {}).get("gate", {}).get("passed", "")
+                        if isinstance(review.get("answerability"), dict)
                         else ""
                     ),
+                    "review": json.dumps(review, ensure_ascii=False),
                     "video_evidence": json.dumps(row.get("video_evidence", []), ensure_ascii=False),
                     "referred_timestamps": json.dumps(row.get("referred_timestamps", []), ensure_ascii=False),
                     "human_audit": json.dumps(row.get("human_audit", {}), ensure_ascii=False),

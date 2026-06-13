@@ -12,7 +12,7 @@ from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_t
 from egolife_two_user_qa.prompts import build_video_generation_prompt
 from egolife_two_user_qa.qwen3vl_runner import DryRunRunner, normalize_video_kwargs
 from egolife_two_user_qa.schema import extract_json_object, validate_qa_item
-from egolife_two_user_qa.video_qa_loop import answerability_gate, dry_run_qa, judge_gate
+from egolife_two_user_qa.video_qa_loop import answerability_gate, build_review_from_gates, dry_run_qa, judge_gate
 
 
 class ManifestTests(unittest.TestCase):
@@ -217,6 +217,21 @@ class SchemaTests(unittest.TestCase):
         }
 
     def valid_item(self):
+        judger = {
+            "review_passed": True,
+            "checks": self.passed_judge_checks(),
+            "blocking_failures": [],
+            "feedback_to_generator": "",
+            "gate": {"passed": True, "reason": "all structured judger checks passed", "failed_checks": []},
+        }
+        answerability = {
+            "evaluations": [
+                {"condition_id": "single_user::Jake", "condition_type": "single_user", "choice": "insufficient"},
+                {"condition_id": "single_user::Alice", "condition_type": "single_user", "choice": "B"},
+                {"condition_id": "combined_all_users::Jake+Alice", "condition_type": "combined_all_users", "choice": "A"},
+            ],
+            "gate": {"passed": True, "reason": "combined correct and singles insufficient or wrong"},
+        }
         return {
             "qa_id": "QA_001",
             "question": "What did we put near the table?",
@@ -234,7 +249,18 @@ class SchemaTests(unittest.TestCase):
                 "Alice": "insufficient because she only saw the destination",
             },
             "combined_answerability": "sufficient because together they support the answer",
-            "review": {"review_passed": True},
+            "review": {
+                "status": "passed",
+                "review_passed": True,
+                "judger": judger,
+                "answerability": answerability,
+                "schema_validation": {"passed": True, "errors": []},
+                "final_decision": {
+                    "accepted": True,
+                    "rejection_stage": None,
+                    "reason": "passed all gates",
+                },
+            },
             "question_type": "commonality",
             "generator_rationale": "The question is natural and grounded in both users' views.",
             "why_two_users_needed": "Jake and Alice each provide a necessary visual fact.",
@@ -242,20 +268,6 @@ class SchemaTests(unittest.TestCase):
                 {"user": "Jake", "claim": "Jake saw the cup"},
                 {"user": "Alice", "claim": "Alice saw the table"},
             ],
-            "judge_feedback": {
-                "review_passed": True,
-                "checks": self.passed_judge_checks(),
-                "blocking_failures": [],
-                "feedback_to_generator": "",
-            },
-            "answerability_eval": {
-                "evaluations": [
-                    {"condition_id": "single_user::Jake", "condition_type": "single_user", "choice": "insufficient"},
-                    {"condition_id": "single_user::Alice", "condition_type": "single_user", "choice": "B"},
-                    {"condition_id": "combined_all_users::Jake+Alice", "condition_type": "combined_all_users", "choice": "A"},
-                ],
-                "gate": {"passed": True, "reason": "combined correct and singles insufficient or wrong"},
-            },
             "attempt_count": 1,
             "model_id": "Qwen/Qwen3-VL-8B-Instruct",
             "source_urls": {"videos": []},
@@ -307,9 +319,21 @@ class SchemaTests(unittest.TestCase):
 
     def test_strict_validation_requires_structured_judge_checks(self) -> None:
         item = self.valid_item()
-        item["judge_feedback"] = {"review_passed": True}
+        item["review"]["judger"] = {"review_passed": True, "gate": {"passed": True}}
         errors = validate_qa_item(item, strict_review=True)
-        self.assertTrue(any("judge_feedback.checks" in error for error in errors))
+        self.assertTrue(any("review.judger.checks" in error for error in errors))
+
+    def test_strict_validation_uses_review_not_top_level_review_fields(self) -> None:
+        item = self.valid_item()
+        self.assertNotIn("judge_feedback", item)
+        self.assertNotIn("answerability_eval", item)
+        self.assertEqual(validate_qa_item(item, strict_review=True), [])
+
+    def test_strict_validation_requires_review_answerability_gate(self) -> None:
+        item = self.valid_item()
+        item["review"]["answerability"]["gate"] = {"passed": False, "reason": "single user leaked answer"}
+        errors = validate_qa_item(item, strict_review=True)
+        self.assertTrue(any("review.answerability.gate.passed" in error for error in errors))
 
 
 class VideoFirstTests(unittest.TestCase):
@@ -422,6 +446,61 @@ class VideoFirstTests(unittest.TestCase):
         failed = judge_gate({"review_passed": True, "checks": checks})
         self.assertFalse(failed["passed"])
         self.assertIn("first_person_naturalness", failed["failed_checks"])
+
+    def test_build_review_from_gates_for_accepted_row(self) -> None:
+        review = build_review_from_gates(
+            judge={"review_passed": True, "gate": {"passed": True}},
+            answerability={"gate": {"passed": True}, "evaluations": []},
+            schema_errors=[],
+            accepted=True,
+            final_reason="passed all gates",
+        )
+        self.assertEqual(review["status"], "passed")
+        self.assertTrue(review["review_passed"])
+        self.assertTrue(review["judger"]["gate"]["passed"])
+        self.assertTrue(review["answerability"]["gate"]["passed"])
+
+    def test_build_review_from_gates_for_judger_rejection(self) -> None:
+        review = build_review_from_gates(
+            judge={
+                "review_passed": False,
+                "feedback_to_generator": "ask from the speaker's own memory gap",
+                "gate": {"passed": False, "reason": "not first-person"},
+            },
+            answerability=None,
+            schema_errors=[],
+            accepted=False,
+            rejection_stage="judger",
+            final_reason="not first-person",
+        )
+        self.assertEqual(review["status"], "rejected_by_judger")
+        self.assertFalse(review["review_passed"])
+        self.assertEqual(review["final_decision"]["rejection_stage"], "judger")
+
+    def test_build_review_from_gates_for_answerability_rejection(self) -> None:
+        review = build_review_from_gates(
+            judge={"review_passed": True, "gate": {"passed": True}},
+            answerability={"gate": {"passed": False, "reason": "single user answered correctly"}},
+            schema_errors=[],
+            accepted=False,
+            rejection_stage="answerability",
+            final_reason="single user answered correctly",
+        )
+        self.assertEqual(review["status"], "rejected_by_answerability")
+        self.assertFalse(review["answerability"]["gate"]["passed"])
+
+    def test_build_review_from_gates_for_schema_rejection(self) -> None:
+        review = build_review_from_gates(
+            judge={"review_passed": True, "gate": {"passed": True}},
+            answerability={"gate": {"passed": True}, "evaluations": []},
+            schema_errors=["answer must equal options[correct]"],
+            accepted=False,
+            rejection_stage="schema",
+            final_reason="strict validation failed",
+        )
+        self.assertEqual(review["status"], "rejected_by_schema")
+        self.assertFalse(review["schema_validation"]["passed"])
+        self.assertEqual(review["schema_validation"]["errors"], ["answer must equal options[correct]"])
 
     def test_dry_run_qa_includes_video_evidence_provenance(self) -> None:
         qa = dry_run_qa(
