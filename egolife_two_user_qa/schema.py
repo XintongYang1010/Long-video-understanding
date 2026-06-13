@@ -35,6 +35,20 @@ VIDEO_FIRST_REQUIRED_FIELDS = {
     "judge_feedback",
     "answerability_eval",
     "attempt_count",
+    "video_evidence",
+    "referred_timestamps",
+    "human_audit",
+    "generation_trace",
+}
+VIDEO_FIRST_JUDGE_CHECKS = {
+    "agent_perspective",
+    "source_scope",
+    "question_type_semantics",
+    "multi_video_necessity",
+    "visual_grounding",
+    "mcq_option_quality",
+    "gaze_safety",
+    "human_auditability",
 }
 
 
@@ -133,8 +147,33 @@ def validate_qa_item(item: dict[str, Any], *, strict_review: bool = False) -> li
     if judge is not None:
         if not isinstance(judge, dict):
             errors.append("judge_feedback must be an object")
-        elif strict_review and judge.get("review_passed") is not True:
-            errors.append("judge_feedback.review_passed must be true in strict mode")
+        elif strict_review:
+            if judge.get("review_passed") is not True:
+                errors.append("judge_feedback.review_passed must be true in strict mode")
+            checks = judge.get("checks")
+            if not isinstance(checks, dict):
+                errors.append("judge_feedback.checks must be an object in strict mode")
+            else:
+                missing_checks = sorted(VIDEO_FIRST_JUDGE_CHECKS - set(checks))
+                if missing_checks:
+                    errors.append(f"judge_feedback.checks missing: {', '.join(missing_checks)}")
+                for check_name, check_value in checks.items():
+                    if not isinstance(check_value, dict):
+                        errors.append(f"judge check {check_name} must be an object")
+                        continue
+                    if str(check_value.get("status", "")).upper() != "PASS":
+                        errors.append(f"judge check {check_name} must be PASS in strict mode")
+
+    if strict_review:
+        video_evidence = item.get("video_evidence")
+        if not isinstance(video_evidence, list) or not video_evidence:
+            errors.append("video_evidence must be a non-empty list in strict mode")
+        generation_trace = item.get("generation_trace")
+        if not isinstance(generation_trace, list) or not generation_trace:
+            errors.append("generation_trace must be a non-empty list in strict mode")
+        human_audit = item.get("human_audit")
+        if not isinstance(human_audit, dict):
+            errors.append("human_audit must be an object in strict mode")
 
     review = item.get("review")
     if not isinstance(review, dict):
@@ -170,6 +209,10 @@ def write_qa_csv(jsonl_path: str | Path, csv_path: str | Path) -> int:
         "question_type",
         "attempt_count",
         "answerability_passed",
+        "video_evidence",
+        "referred_timestamps",
+        "human_audit",
+        "generation_trace",
     ]
     with csv_path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fields)
@@ -193,6 +236,10 @@ def write_qa_csv(jsonl_path: str | Path, csv_path: str | Path) -> int:
                         if isinstance(row.get("answerability_eval"), dict)
                         else ""
                     ),
+                    "video_evidence": json.dumps(row.get("video_evidence", []), ensure_ascii=False),
+                    "referred_timestamps": json.dumps(row.get("referred_timestamps", []), ensure_ascii=False),
+                    "human_audit": json.dumps(row.get("human_audit", {}), ensure_ascii=False),
+                    "generation_trace": json.dumps(row.get("generation_trace", []), ensure_ascii=False),
                 }
             )
     return len(rows)

@@ -1,37 +1,37 @@
-# EgoLife Two-User QA Pilot
+# EgoLife 双用户 QA Pilot
 
-This module builds a 20-item pilot set of multiple-choice QA examples from EgoLife videos. Each question is intended to require evidence from at least two users' egocentric streams.
+这个模块用于从 EgoLife 视频中构造 20 条 pilot 多选题。每道题都要求至少两个用户的第一视角视频共同提供证据，单个用户的视频不能完整回答。
 
-The default model target is `Qwen/Qwen3-VL-8B-Instruct`. No OpenRouter/Gemini API key is used. `HF_TOKEN` is optional and is only used by Hugging Face downloads.
+默认模型是 `Qwen/Qwen3-VL-8B-Instruct`。流程不使用 OpenRouter/Gemini 等商业 API key。`HF_TOKEN` 只作为 Hugging Face 下载或限流辅助，不作为推理 API key。
 
-## Pipeline
+## 主流程
 
-The main path is now video-first. Qwen3-VL receives the aligned EgoLife videos directly, then a judge/evaluator loop filters out questions that are single-user answerable or not answerable from the combined videos:
+当前主路径是 video-first。也就是说，Qwen3-VL 直接接收对齐后的 EgoLife 原始视频，而不是先把视频转成 caption/observation 再出题。之后用 judger 和 answerability evaluation 过滤掉单用户可答、合并视频也答不准、或者问题口吻不自然的题。
 
 ```text
 EgoLife video + EyeGaze/EyeTracking tree
 -> build_manifest
--> prepare_evidence: align at least two users by day/time token and cache videos/gaze
+-> prepare_evidence: 按 day / time token 对齐至少两个用户，并缓存视频/gaze
 -> generate_video_qa_loop:
-   -> generator: directly watches multi-user videos and proposes commonality/difference MCQ
-   -> judger: explains why the question was asked and gives feedback
-   -> answerability eval: tests single-user videos and combined videos
--> validate_outputs: deterministic schema/gate checks
+   -> generator: 直接看多用户视频，生成 commonality/difference MCQ
+   -> judger: 解释为什么问这个问题，并给 generator 反馈
+   -> answerability eval: 分别测试单用户视频和合并视频能否答题
+-> validate_outputs: 做确定性的 schema/gate 检查
 ```
 
-The older `observe_clips -> mine_candidates -> generate_qa -> review_qa` caption/observation path remains available as a legacy/debug baseline, but it is no longer the pilot path.
+旧路径 `observe_clips -> mine_candidates -> generate_qa -> review_qa` 仍保留为 legacy/debug baseline，但不再作为 pilot 主路径。旧路径会先生成 clip observation/caption，再做 semantic candidate mining；现在老师反馈后，主流程改成让 VLM 直接看视频出题。
 
-## Gaze Projection
+## Gaze 投影说明
 
-EgoLife EyeGaze CSVs are not EgoEverything-style image pixels. They contain Project Aria CPF yaw/pitch/depth values such as `left_yaw_rads_cpf`, `right_yaw_rads_cpf`, `pitch_rads_cpf`, and `depth_m`. The pipeline therefore does not invent `gaze_x/gaze_y`.
+EgoLife EyeGaze CSV 不是 EgoEverything 里的 image pixel gaze。它给的是 Project Aria CPF 坐标系下的 yaw/pitch/depth，例如 `left_yaw_rads_cpf`、`right_yaw_rads_cpf`、`pitch_rads_cpf` 和 `depth_m`。所以代码不能凭空构造 `gaze_x/gaze_y`。
 
-By default, gaze summaries are marked:
+默认情况下 gaze summary 会标记为：
 
 ```json
 {"projection_status": "missing_calibration"}
 ```
 
-To enable 2D gaze points for EgoEverything-style distance/Gaussian sampling, pass an Aria RGB calibration directory:
+如果想启用 EgoEverything 那种 2D gaze point 到 object bbox center 的距离/Gaussian sampling，需要传入 Aria RGB calibration：
 
 ```bash
 python -m egolife_two_user_qa observe_clips \
@@ -40,11 +40,11 @@ python -m egolife_two_user_qa observe_clips \
   --aria-calibration-dir /path/to/aria_calibrations
 ```
 
-For strict Aria projection, provide a VRS/no-image VRS file or `online_calibration.jsonl` and install `projectaria-tools`; the code then uses Project Aria's native `CameraCalibration.project()` path. A JSON calibration is also accepted only when it contains explicit RGB intrinsics plus `T_camera_cpf`, or `T_device_camera` and `T_device_cpf`; that JSON route assumes the calibration has already been exported into a pinhole-compatible form. If the public EgoLife Hugging Face files are used as released and no calibration/VRS is supplied, the correct behavior is to keep 2D projection unavailable and rely on video frames plus unprojected 3D gaze statistics.
+更严格的 Aria 投影需要提供 VRS/no-image VRS 文件或 `online_calibration.jsonl`，并安装 `projectaria-tools`。代码会优先走 Project Aria 原生 `CameraCalibration.project()`。JSON calibration 也可以用，但必须显式包含 RGB intrinsics 加 `T_camera_cpf`，或者 `T_device_camera` 和 `T_device_cpf`。如果只使用公开 EgoLife Hugging Face 文件且没有 calibration/VRS，正确行为就是保持 2D projection unavailable，只使用视频帧和未投影的 3D gaze 统计。
 
-## Local CPU Dry Run
+## 本地 CPU Dry Run
 
-The dry run validates Hugging Face manifest construction, evidence packet preparation, video-first prompt creation, and schema tooling. It does not load Qwen3-VL.
+dry run 用来验证 Hugging Face manifest、evidence packet、video-first prompt 和 schema 工具链。它不会加载 Qwen3-VL，也不会真的生成高质量 QA。
 
 ```bash
 python -m egolife_two_user_qa build_manifest \
@@ -65,11 +65,14 @@ python -m egolife_two_user_qa generate_video_qa_loop \
   --evidence egolife_two_user_qa/outputs/pilot_20/evidence_manifest.dryrun.jsonl \
   --output egolife_two_user_qa/outputs/pilot_20/qa_mcq.video_first.dryrun.jsonl \
   --prompts-output egolife_two_user_qa/outputs/pilot_20/video_first_prompts.dryrun.jsonl \
+  --intermediate-output egolife_two_user_qa/outputs/pilot_20/video_first_intermediate.dryrun.jsonl \
   --target-count 1 \
   --dry-run
 ```
 
 ## GPU Pilot Run
+
+正式生成 20 条 QA 需要 GPU 或支持视频输入的本地 VLM server。
 
 ```bash
 bash scripts/run_qwen3vl_gpu.sh \
@@ -79,7 +82,7 @@ bash scripts/run_qwen3vl_gpu.sh \
   --max-new-tokens 1536
 ```
 
-For a local OpenAI-compatible server, first start vLLM/SGLang/llama.cpp, then pass:
+如果使用本地 OpenAI-compatible server，比如 vLLM/SGLang/llama.cpp，先启动 server，然后运行：
 
 ```bash
 python -m egolife_two_user_qa generate_video_qa_loop \
@@ -88,14 +91,15 @@ python -m egolife_two_user_qa generate_video_qa_loop \
   --evidence egolife_two_user_qa/outputs/pilot_20_video_first/evidence_manifest.jsonl \
   --output egolife_two_user_qa/outputs/pilot_20_video_first/qa_mcq.jsonl \
   --prompts-output egolife_two_user_qa/outputs/pilot_20_video_first/video_first_prompts.jsonl \
+  --intermediate-output egolife_two_user_qa/outputs/pilot_20_video_first/qa_mcq.intermediate.jsonl \
   --allow-openai-video-input
 ```
 
-Without `--allow-openai-video-input`, the OpenAI-compatible backend uses sampled frame images as a fallback because not every local server accepts video data URLs.
+如果不传 `--allow-openai-video-input`，OpenAI-compatible backend 会退回 sampled frame images，因为不是每个本地 server 都支持 video data URL。
 
-## Output Schema
+## 输出 Schema
 
-Each row in `qa_mcq.jsonl` contains:
+`qa_mcq.jsonl` 每一行是一条 QA，包含：
 
 - `qa_id`
 - `question`
@@ -114,11 +118,28 @@ Each row in `qa_mcq.jsonl` contains:
 - `judge_feedback`
 - `answerability_eval`
 - `attempt_count`
+- `video_evidence`
+- `referred_timestamps`
+- `human_audit`
+- `generation_trace`
 - `review`
 - `model_id`
 - `source_urls`
 
-Run validation with:
+`judge_feedback` 现在是结构化 rubric，不再只是一个简单的 pass/fail。strict validation 要求下面这些 blocking checks 全部通过：
+
+- `agent_perspective`
+- `source_scope`
+- `question_type_semantics`
+- `multi_video_necessity`
+- `visual_grounding`
+- `mcq_option_quality`
+- `gaze_safety`
+- `human_auditability`
+
+`generation_trace` 保存人眼核查需要的 intermediate data，包括 generation prompt/raw output、judger prompt/raw output、retry 时传回 generator 的 feedback、answerability conditions，以及每个 condition 实际使用的视频路径。只要传入 `--intermediate-output`，同样的 trace 也会单独写成 JSONL，方便后续人工检查。
+
+运行严格校验：
 
 ```bash
 python -m egolife_two_user_qa validate_outputs \

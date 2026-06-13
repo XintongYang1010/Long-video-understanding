@@ -10,9 +10,9 @@ from egolife_two_user_qa.evidence import group_manifest_clips, summarize_gaze_cs
 from egolife_two_user_qa.gaze_projection import gaussian_bbox_score, load_aria_projection_calibration, project_gaze_row
 from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_token
 from egolife_two_user_qa.prompts import build_video_generation_prompt
-from egolife_two_user_qa.qwen3vl_runner import DryRunRunner
+from egolife_two_user_qa.qwen3vl_runner import DryRunRunner, normalize_video_kwargs
 from egolife_two_user_qa.schema import extract_json_object, validate_qa_item
-from egolife_two_user_qa.video_qa_loop import answerability_gate
+from egolife_two_user_qa.video_qa_loop import answerability_gate, dry_run_qa, judge_gate
 
 
 class ManifestTests(unittest.TestCase):
@@ -200,6 +200,21 @@ class CandidateMiningTests(unittest.TestCase):
 
 
 class SchemaTests(unittest.TestCase):
+    def passed_judge_checks(self):
+        return {
+            name: {"status": "PASS", "reason": "ok", "fix": ""}
+            for name in [
+                "agent_perspective",
+                "source_scope",
+                "question_type_semantics",
+                "multi_video_necessity",
+                "visual_grounding",
+                "mcq_option_quality",
+                "gaze_safety",
+                "human_auditability",
+            ]
+        }
+
     def valid_item(self):
         return {
             "qa_id": "QA_001",
@@ -226,7 +241,12 @@ class SchemaTests(unittest.TestCase):
                 {"user": "Jake", "claim": "Jake saw the cup"},
                 {"user": "Alice", "claim": "Alice saw the table"},
             ],
-            "judge_feedback": {"review_passed": True},
+            "judge_feedback": {
+                "review_passed": True,
+                "checks": self.passed_judge_checks(),
+                "blocking_failures": [],
+                "feedback_to_generator": "",
+            },
             "answerability_eval": {
                 "evaluations": [
                     {"condition_id": "single_user::Jake", "condition_type": "single_user", "choice": "insufficient"},
@@ -238,6 +258,27 @@ class SchemaTests(unittest.TestCase):
             "attempt_count": 1,
             "model_id": "Qwen/Qwen3-VL-8B-Instruct",
             "source_urls": {"videos": []},
+            "video_evidence": [
+                {
+                    "user": "Jake",
+                    "day": "DAY1",
+                    "time_token": "11100000",
+                    "video_url": "video_a",
+                    "local_video": "jake.mp4",
+                    "sampled_frames": [],
+                }
+            ],
+            "referred_timestamps": [],
+            "human_audit": {"evidence_id": "E1", "video_evidence": []},
+            "generation_trace": [
+                {
+                    "attempt": 1,
+                    "generation": {"prompt": "p", "raw_output": "{}"},
+                    "judge": {"prompt": "j", "raw_output": "{}"},
+                    "answerability": {},
+                    "result": {"accepted": True},
+                }
+            ],
         }
 
     def test_validate_valid_item(self) -> None:
@@ -263,6 +304,12 @@ class SchemaTests(unittest.TestCase):
         item["question_type"] = "difference"
         self.assertEqual(validate_qa_item(item, strict_review=True), [])
 
+    def test_strict_validation_requires_structured_judge_checks(self) -> None:
+        item = self.valid_item()
+        item["judge_feedback"] = {"review_passed": True}
+        errors = validate_qa_item(item, strict_review=True)
+        self.assertTrue(any("judge_feedback.checks" in error for error in errors))
+
 
 class VideoFirstTests(unittest.TestCase):
     def test_dry_run_runner_accepts_video_paths(self) -> None:
@@ -270,6 +317,11 @@ class VideoFirstTests(unittest.TestCase):
         parsed = json.loads(raw)
         self.assertEqual(parsed["image_count"], 1)
         self.assertEqual(parsed["video_count"], 2)
+
+    def test_normalize_video_kwargs_collapses_fps_list(self) -> None:
+        self.assertEqual(normalize_video_kwargs({"fps": [1.0, 1.0]})["fps"], 1.0)
+        self.assertEqual(normalize_video_kwargs({"fps": []})["fps"], 1.0)
+        self.assertEqual(normalize_video_kwargs({"fps": 2.0})["fps"], 2.0)
 
     def test_video_generation_prompt_does_not_use_observation(self) -> None:
         packet = {
@@ -320,6 +372,61 @@ class VideoFirstTests(unittest.TestCase):
             ],
         )
         self.assertFalse(failed["passed"])
+
+    def test_judge_gate_requires_each_structured_check_to_pass(self) -> None:
+        checks = {
+            name: {"status": "PASS", "reason": "ok", "fix": ""}
+            for name in [
+                "agent_perspective",
+                "source_scope",
+                "question_type_semantics",
+                "multi_video_necessity",
+                "visual_grounding",
+                "mcq_option_quality",
+                "gaze_safety",
+                "human_auditability",
+            ]
+        }
+        self.assertTrue(judge_gate({"review_passed": True, "checks": checks})["passed"])
+        checks["multi_video_necessity"] = {
+            "status": "FAIL",
+            "reason": "one video already answers",
+            "fix": "ask for a complementary clue from the second user",
+        }
+        failed = judge_gate({"review_passed": True, "checks": checks})
+        self.assertFalse(failed["passed"])
+        self.assertIn("multi_video_necessity", failed["failed_checks"])
+
+    def test_dry_run_qa_includes_video_evidence_provenance(self) -> None:
+        qa = dry_run_qa(
+            {
+                "evidence_id": "E1",
+                "required_users": ["Jake", "Alice"],
+                "source_urls": {"videos": ["video_a", "video_b"]},
+                "clips": [
+                    {
+                        "agent_name": "Jake",
+                        "agent_dir": "A1_JAKE",
+                        "agent_id": "A1",
+                        "day": "DAY1",
+                        "time_token": "11100000",
+                        "clip_clock": "11:10:00.00",
+                        "duration_seconds": 30.0,
+                        "video_url": "video_a",
+                        "local_video": "jake.mp4",
+                        "frames": [{"timestamp_seconds": 10.0, "path": "jake_10.jpg"}],
+                    }
+                ],
+            },
+            "commonality",
+        )
+        self.assertEqual(qa["video_evidence"][0]["user"], "Jake")
+        self.assertEqual(qa["video_evidence"][0]["video_url"], "video_a")
+        self.assertEqual(qa["video_evidence"][0]["sampled_frames"][0]["timestamp_seconds"], 10.0)
+        self.assertEqual(qa["referred_timestamps"], [])
+        self.assertIn("human_audit", qa)
+        self.assertIn("generation_trace", qa)
+        self.assertEqual(qa["generation_trace"][0]["stage"], "dry_run")
 
 
 if __name__ == "__main__":

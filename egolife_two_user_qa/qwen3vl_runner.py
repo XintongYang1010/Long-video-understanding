@@ -51,6 +51,16 @@ def cuda_available() -> bool:
         return False
 
 
+def normalize_video_kwargs(video_kwargs: dict[str, Any]) -> dict[str, Any]:
+    """Keep Qwen video kwargs compatible across qwen-vl-utils/Transformers versions."""
+
+    normalized = dict(video_kwargs)
+    if isinstance(normalized.get("fps"), list):
+        fps_values = normalized["fps"]
+        normalized["fps"] = fps_values[0] if fps_values else 1.0
+    return normalized
+
+
 def load_transformers_model(model_id: str, dtype: str = "bfloat16"):
     try:
         import torch
@@ -149,6 +159,7 @@ class Qwen3VLTransformersRunner:
         except TypeError:
             image_inputs, video_inputs = self.process_vision_info(messages)
             video_kwargs = {}
+        video_kwargs = normalize_video_kwargs(video_kwargs)
         inputs = self.processor(
             text=[text],
             images=image_inputs,

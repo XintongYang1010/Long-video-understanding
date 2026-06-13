@@ -14,6 +14,16 @@ from .schema import extract_json_object, normalize_correct, validate_qa_item
 
 
 QUESTION_TYPES = ("commonality", "difference")
+BLOCKING_JUDGE_CHECKS = (
+    "agent_perspective",
+    "source_scope",
+    "question_type_semantics",
+    "multi_video_necessity",
+    "visual_grounding",
+    "mcq_option_quality",
+    "gaze_safety",
+    "human_auditability",
+)
 
 
 def existing_path(value: str | None) -> str | None:
@@ -49,6 +59,73 @@ def media_for_clips(
     if backend == "openai-compatible-local" and not allow_openai_video_input:
         return images, []
     return images if not videos else [], videos
+
+
+def video_evidence_for_packet(packet: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return deterministic clip/video provenance for the generated QA row."""
+
+    rows = []
+    for clip in packet.get("clips", []):
+        local_video = clip.get("local_video")
+        rows.append(
+            {
+                "user": clip.get("agent_name"),
+                "agent_dir": clip.get("agent_dir"),
+                "agent_id": clip.get("agent_id"),
+                "day": clip.get("day"),
+                "time_token": clip.get("time_token"),
+                "clip_clock": clip.get("clip_clock"),
+                "duration_seconds": clip.get("duration_seconds"),
+                "video_url": clip.get("video_url"),
+                "local_video": local_video,
+                "local_video_exists": bool(existing_path(local_video)),
+                "gaze_url": clip.get("gaze_url"),
+                "gaze_summary": clip.get("gaze_summary"),
+                "sampled_frames": [
+                    {
+                        "timestamp_seconds": frame.get("timestamp_seconds"),
+                        "path": frame.get("path"),
+                        "path_exists": bool(existing_path(frame.get("path"))),
+                    }
+                    for frame in clip.get("frames", [])
+                ],
+            }
+        )
+    return rows
+
+
+def human_audit_packet(packet: dict[str, Any]) -> dict[str, Any]:
+    """Compact evidence bundle intended for manual review of one generated QA."""
+
+    return {
+        "evidence_id": packet.get("evidence_id"),
+        "required_users": packet.get("required_users", []),
+        "requirement": packet.get("requirement"),
+        "source_urls": packet.get("source_urls", {}),
+        "video_evidence": video_evidence_for_packet(packet),
+        "review_instructions": [
+            "Open each listed local_video or video_url for the required users.",
+            "Check the referred_timestamps and per_user_evidence_claims against the visible content.",
+            "Verify that no single user's video alone makes the correct option obvious.",
+        ],
+    }
+
+
+def condition_media_for_clips(
+    *,
+    condition: dict[str, Any],
+    clips: list[dict[str, Any]],
+    image_paths: list[str],
+    video_paths: list[str],
+) -> dict[str, Any]:
+    return {
+        "condition_id": condition.get("condition_id"),
+        "condition_type": condition.get("condition_type"),
+        "users": condition.get("users", []),
+        "image_paths": image_paths,
+        "video_paths": video_paths,
+        "video_evidence": video_evidence_for_packet({"clips": clips}),
+    }
 
 
 def clips_for_users(packet: dict[str, Any], users: list[str]) -> list[dict[str, Any]]:
@@ -150,6 +227,57 @@ def answerability_gate(qa_item: dict[str, Any], evaluations: list[dict[str, Any]
     }
 
 
+def judge_gate(judge: dict[str, Any]) -> dict[str, Any]:
+    """Deterministically gate structured judger output.
+
+    The model still proposes review_passed, but acceptance also requires every
+    blocking rubric check to be PASS when the structured checks are present.
+    """
+
+    if judge.get("review_passed") is not True:
+        return {
+            "passed": False,
+            "reason": str(judge.get("feedback_to_generator") or "judger review_passed is not true"),
+            "failed_checks": list(judge.get("blocking_failures") or []),
+        }
+
+    checks = judge.get("checks")
+    if not isinstance(checks, dict):
+        return {
+            "passed": True,
+            "reason": "legacy judger output passed without structured checks",
+            "failed_checks": [],
+        }
+
+    failed = []
+    missing = []
+    for name in BLOCKING_JUDGE_CHECKS:
+        check = checks.get(name)
+        if not isinstance(check, dict):
+            missing.append(name)
+            continue
+        status = str(check.get("status", "")).strip().upper()
+        if status != "PASS":
+            failed.append(name)
+    if missing or failed:
+        details = []
+        if failed:
+            details.append("failed checks: " + ", ".join(failed))
+        if missing:
+            details.append("missing checks: " + ", ".join(missing))
+        return {
+            "passed": False,
+            "reason": "; ".join(details),
+            "failed_checks": failed + missing,
+        }
+
+    return {
+        "passed": True,
+        "reason": "all structured judger checks passed",
+        "failed_checks": [],
+    }
+
+
 def dry_run_qa(packet: dict[str, Any], question_type: str) -> dict[str, Any]:
     users = packet.get("required_users", [])[:2]
     return {
@@ -173,6 +301,23 @@ def dry_run_qa(packet: dict[str, Any], question_type: str) -> dict[str, Any]:
         "review": {"review_passed": False, "status": "dry_run"},
         "model_id": "dry-run-no-model",
         "source_urls": packet.get("source_urls", {}),
+        "video_evidence": video_evidence_for_packet(packet),
+        "referred_timestamps": [],
+        "human_audit": human_audit_packet(packet),
+        "generation_trace": [
+            {
+                "attempt": 0,
+                "stage": "dry_run",
+                "question_type": question_type,
+                "note": "No model was called; prompts and media paths were generated for plumbing validation.",
+                "media": {
+                    "image_paths": [],
+                    "video_paths": [
+                        path for clip in packet.get("clips", []) if (path := clip_video_path(clip))
+                    ],
+                },
+            }
+        ],
     }
 
 
@@ -202,6 +347,12 @@ def run_answerability_eval(
                 "prompt": prompt,
                 "image_paths": image_paths,
                 "video_paths": video_paths,
+                "condition_media": condition_media_for_clips(
+                    condition=condition,
+                    clips=clips,
+                    image_paths=image_paths,
+                    video_paths=video_paths,
+                ),
             }
         )
         raw = runner.generate(prompt, image_paths=image_paths, video_paths=video_paths)
@@ -215,7 +366,19 @@ def run_answerability_eval(
                 "evidence_used": "",
                 "insufficient_reason": f"parse_failed: {exc}",
             }
-        evaluations.append({**condition, **answer, "raw_output": raw})
+        evaluations.append(
+            {
+                **condition,
+                **answer,
+                "raw_output": raw,
+                "condition_media": condition_media_for_clips(
+                    condition=condition,
+                    clips=clips,
+                    image_paths=image_paths,
+                    video_paths=video_paths,
+                ),
+            }
+        )
     gate = answerability_gate(qa_item, evaluations)
     return {"evaluations": evaluations, "gate": gate}
 
@@ -226,6 +389,7 @@ def generate_video_qa_loop(
     output_path: str | Path,
     prompts_path: str | Path | None,
     rejected_path: str | Path | None,
+    intermediate_path: str | Path | None = None,
     backend: str,
     model_id: str = DEFAULT_MODEL_ID,
     base_url: str = "http://127.0.0.1:8000/v1",
@@ -249,6 +413,7 @@ def generate_video_qa_loop(
         allow_openai_video_input=allow_openai_video_input,
     )
     prompts = []
+    intermediate_rows = []
     accepted: list[dict[str, Any]] = []
     rejected: list[dict[str, Any]] = []
     targets = target_type_counts(target_count)
@@ -271,6 +436,22 @@ def generate_video_qa_loop(
             qa = dry_run_qa(packet, question_type)
             gen_prompt = build_video_generation_prompt(packet, question_type)
             judge_prompt = build_judger_prompt(qa, packet)
+            dry_trace = {
+                "evidence_id": packet.get("evidence_id"),
+                "qa_id": qa.get("qa_id"),
+                "question_type": question_type,
+                "attempt": 1,
+                "feedback_in": None,
+                "media": {
+                    "image_paths": image_paths,
+                    "video_paths": video_paths,
+                    "human_audit": human_audit_packet(packet),
+                },
+                "generation": {"prompt": gen_prompt, "raw_output": None},
+                "judge": {"prompt": judge_prompt, "raw_output": None},
+                "answerability": {"conditions": []},
+                "result": {"accepted": False, "dry_run": True},
+            }
             prompts.append(
                 {
                     "stage": "generation",
@@ -309,15 +490,49 @@ def generate_video_qa_loop(
                         "prompt": build_answerability_prompt(qa, condition),
                         "image_paths": cond_images,
                         "video_paths": cond_videos,
+                        "condition_media": condition_media_for_clips(
+                            condition=condition,
+                            clips=condition_clips,
+                            image_paths=cond_images,
+                            video_paths=cond_videos,
+                        ),
                     }
                 )
+                dry_trace["answerability"]["conditions"].append(
+                    condition_media_for_clips(
+                        condition=condition,
+                        clips=condition_clips,
+                        image_paths=cond_images,
+                        video_paths=cond_videos,
+                    )
+                )
+            qa["generation_trace"] = [dry_trace]
+            qa["human_audit"] = human_audit_packet(packet)
+            intermediate_rows.append(dry_trace)
             counts[question_type] += 1
             accepted.append(qa)
             continue
 
         packet_rejections = []
+        packet_trace = []
         for attempt in range(1, max_attempts + 1):
             gen_prompt = build_video_generation_prompt(packet, question_type, feedback=feedback)
+            attempt_trace: dict[str, Any] = {
+                "evidence_id": packet.get("evidence_id"),
+                "question_type": question_type,
+                "attempt": attempt,
+                "feedback_in": feedback,
+                "media": {
+                    "image_paths": image_paths,
+                    "video_paths": video_paths,
+                    "human_audit": human_audit_packet(packet),
+                },
+                "generation": {"prompt": gen_prompt},
+                "judge": {},
+                "answerability": {},
+                "result": {},
+            }
+            packet_trace.append(attempt_trace)
             prompts.append(
                 {
                     "stage": "generation",
@@ -330,19 +545,39 @@ def generate_video_qa_loop(
                 }
             )
             raw_generation = runner.generate(gen_prompt, image_paths=image_paths, video_paths=video_paths)
+            attempt_trace["generation"]["raw_output"] = raw_generation
             try:
                 qa = extract_json_object(raw_generation)
             except Exception as exc:
                 feedback = f"Generator output was not valid JSON: {exc}"
+                attempt_trace["result"] = {"accepted": False, "reason": feedback}
                 packet_rejections.append({"attempt": attempt, "reason": feedback, "raw_output": raw_generation})
                 continue
 
             qa.setdefault("qa_id", f"QA_{len(accepted) + 1:03d}_{packet.get('evidence_id')}")
+            attempt_trace["qa_id"] = qa.get("qa_id")
+            attempt_trace["generation"]["parsed_qa"] = {
+                "qa_id": qa.get("qa_id"),
+                "question": qa.get("question"),
+                "options": qa.get("options"),
+                "correct": qa.get("correct"),
+                "answer": qa.get("answer"),
+                "required_users": qa.get("required_users"),
+                "question_type": qa.get("question_type"),
+                "generator_rationale": qa.get("generator_rationale"),
+                "why_two_users_needed": qa.get("why_two_users_needed"),
+                "per_user_evidence_claims": qa.get("per_user_evidence_claims"),
+                "referred_timestamps": qa.get("referred_timestamps"),
+            }
             qa["evidence_id"] = packet.get("evidence_id")
             qa["question_type"] = question_type
             qa["required_users"] = packet.get("required_users", qa.get("required_users", []))
             qa["model_id"] = runner.model_id
             qa["source_urls"] = packet.get("source_urls", {})
+            qa["video_evidence"] = video_evidence_for_packet(packet)
+            qa.setdefault("referred_timestamps", [])
+            qa["human_audit"] = human_audit_packet(packet)
+            qa["generation_trace"] = packet_trace
             qa["attempt_count"] = attempt
             qa.setdefault("review", {})
             qa["review"]["generator_raw_output"] = raw_generation
@@ -351,10 +586,13 @@ def generate_video_qa_loop(
             if schema_errors:
                 feedback = "Schema errors to fix: " + "; ".join(schema_errors)
                 qa["review"]["schema_errors"] = schema_errors
+                attempt_trace["schema_errors"] = schema_errors
+                attempt_trace["result"] = {"accepted": False, "reason": feedback}
                 packet_rejections.append({"attempt": attempt, "reason": feedback, "qa": qa})
                 continue
 
             judge_prompt = build_judger_prompt(qa, packet)
+            attempt_trace["judge"]["prompt"] = judge_prompt
             prompts.append(
                 {
                     "stage": "judge",
@@ -367,6 +605,7 @@ def generate_video_qa_loop(
                 }
             )
             raw_judge = runner.generate(judge_prompt, image_paths=image_paths, video_paths=video_paths)
+            attempt_trace["judge"]["raw_output"] = raw_judge
             try:
                 judge = extract_json_object(raw_judge)
             except Exception as exc:
@@ -375,9 +614,16 @@ def generate_video_qa_loop(
                     "feedback_to_generator": f"Judger output was not valid JSON: {exc}",
                 }
             judge["raw_output"] = raw_judge
+            judge["gate"] = judge_gate(judge)
+            attempt_trace["judge"]["parsed"] = judge
             qa["judge_feedback"] = judge
-            if judge.get("review_passed") is not True:
-                feedback = str(judge.get("feedback_to_generator") or "Judger rejected the question.")
+            if judge["gate"].get("passed") is not True:
+                feedback = str(
+                    judge.get("feedback_to_generator")
+                    or judge["gate"].get("reason")
+                    or "Judger rejected the question."
+                )
+                attempt_trace["result"] = {"accepted": False, "reason": feedback}
                 packet_rejections.append({"attempt": attempt, "reason": feedback, "qa": qa})
                 continue
 
@@ -390,8 +636,10 @@ def generate_video_qa_loop(
                 prompt_rows=prompts,
             )
             qa["answerability_eval"] = answerability
+            attempt_trace["answerability"] = answerability
             if answerability.get("gate", {}).get("passed") is not True:
                 feedback = "Answerability gate failed: " + str(answerability.get("gate", {}).get("reason", ""))
+                attempt_trace["result"] = {"accepted": False, "reason": feedback}
                 packet_rejections.append({"attempt": attempt, "reason": feedback, "qa": qa})
                 continue
 
@@ -406,23 +654,40 @@ def generate_video_qa_loop(
             if strict_errors:
                 feedback = "Strict validation errors: " + "; ".join(strict_errors)
                 qa["review"]["schema_errors"] = strict_errors
+                attempt_trace["schema_errors"] = strict_errors
+                attempt_trace["result"] = {"accepted": False, "reason": feedback}
                 packet_rejections.append({"attempt": attempt, "reason": feedback, "qa": qa})
                 continue
 
+            attempt_trace["result"] = {"accepted": True, "reason": "passed all gates"}
+            qa["generation_trace"] = packet_trace
             accepted.append(qa)
+            intermediate_rows.append(
+                {
+                    "evidence_id": packet.get("evidence_id"),
+                    "qa_id": qa.get("qa_id"),
+                    "question_type": question_type,
+                    "status": "accepted",
+                    "attempts": packet_trace,
+                }
+            )
             counts[question_type] += 1
             break
         else:
-            rejected.append(
-                {
-                    "evidence_id": packet.get("evidence_id"),
-                    "question_type": question_type,
-                    "attempts": packet_rejections,
-                }
-            )
+            rejected_row = {
+                "evidence_id": packet.get("evidence_id"),
+                "question_type": question_type,
+                "attempts": packet_rejections,
+                "generation_trace": packet_trace,
+                "human_audit": human_audit_packet(packet),
+            }
+            rejected.append(rejected_row)
+            intermediate_rows.append({**rejected_row, "status": "rejected"})
 
     if prompts_path:
         write_jsonl(prompts_path, prompts)
+    if intermediate_path:
+        write_jsonl(intermediate_path, intermediate_rows)
     if not dry_run:
         write_jsonl(output_path, accepted)
     if rejected_path and rejected:
@@ -448,6 +713,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", required=True)
     parser.add_argument("--prompts-output")
     parser.add_argument("--rejected-output")
+    parser.add_argument("--intermediate-output")
     parser.add_argument("--target-count", type=int, default=20)
     parser.add_argument("--max-attempts", type=int, default=3)
     add_video_loop_args(parser)
@@ -457,6 +723,7 @@ def main(argv: list[str] | None = None) -> int:
         output_path=args.output,
         prompts_path=args.prompts_output,
         rejected_path=args.rejected_output,
+        intermediate_path=args.intermediate_output,
         backend=args.backend,
         model_id=args.model_id,
         base_url=args.base_url,
