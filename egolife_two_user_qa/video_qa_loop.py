@@ -15,6 +15,7 @@ from .schema import extract_json_object, normalize_correct, validate_qa_item
 
 QUESTION_TYPES = ("commonality", "difference")
 BLOCKING_JUDGE_CHECKS = (
+    "first_person_naturalness",
     "agent_perspective",
     "source_scope",
     "question_type_semantics",

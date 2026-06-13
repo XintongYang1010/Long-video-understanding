@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Video Generation Prompt</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #ffffff;
+      --text: #17202a;
+      --muted: #5f6b7a;
+      --panel: #ffffff;
+      --border: #d9dee7;
+      --accent: #1264a3;
+      --accent-soft: #eaf4fb;
+      --code-bg: #ffffff;
+      --code-text: #17202a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+    }
+
+    main {
+      width: min(1080px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+      overflow-wrap: anywhere;
+    }
+
+    header {
+      padding: 0 0 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 18px 0;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    ol,
+    ul {
+      margin: 0;
+      padding-left: 24px;
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    code {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 0.95em;
+    }
+
+    pre {
+      margin: 0;
+      padding: 18px;
+      max-width: 100%;
+      overflow-x: hidden;
+      border-radius: 8px;
+      background: var(--code-bg);
+      color: var(--code-text);
+      border: 1px solid var(--border);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .prompt {
+      white-space: pre-wrap;
+    }
+
+    .label {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 640px) {
+      main {
+        width: min(100% - 20px, 1080px);
+        padding: 20px 0 32px;
+      }
+
+      section {
+        padding: 14px;
+      }
+
+      pre {
+        padding: 12px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Video Generation Prompt</h1>
+      <p>Readable presentation of <code>build_video_generation_prompt</code> for video-first EgoLife MCQ generation.</p>
+    </header>
+
+    <section>
+      <span class="label">Purpose</span>
+      <h2>What This Prompt Asks The Model To Do</h2>
+      <ol>
+        <li>Generate exactly one five-option multiple-choice question from raw egocentric videos.</li>
+        <li>Keep the question aligned with either <code>commonality</code> or <code>difference</code>.</li>
+        <li>Require at least two users' visual evidence so one user alone is not enough.</li>
+        <li>Ask in a natural first-person or shared-memory style.</li>
+        <li>Use <code>&lt;gaze_coordinate&gt;</code> as a 2D human-attention cue when available.</li>
+        <li>Return one JSON object matching <code>VIDEO_GENERATION_SCHEMA</code>.</li>
+      </ol>
+    </section>
+
+    <section>
+      <span class="label">Recorded JSON</span>
+      <h2>Output Record Format</h2>
+      <pre>{
+  "qa_id": "string",
+  "question": "natural first-person question from an AR-glasses user perspective, without words like video/footage/recording/frame/camera",
+  "options": [
+    "A option",
+    "B option",
+    "C option",
+    "D option",
+    "E option"
+  ],
+  "correct": "A/B/C/D/E",
+  "answer": "exact text of the correct option",
+  "required_users": [
+    "at least two user names"
+  ],
+  "evidence": [
+    {
+      "user": "name",
+      "needed_fact": "visual fact contributed by this user's own view",
+      "timeframe": "specific start-end time range or approximate moment in this user's video",
+      "frames_used": [
+        "video-level evidence or approximate moment label"
+      ]
+    }
+  ]
+}</pre>
+    </section>
+
+    <section>
+      <span class="label">Prompt Design</span>
+      <h2>Type Instruction And Feedback</h2>
+      <pre>type_instruction = {
+  "commonality": (
+    "Create a commonality question: the answer should identify something that is shared, "
+    "jointly established, or mutually verified across the required users' egocentric videos."
+  ),
+  "difference": (
+    "Create a difference question: the answer should identify a meaningful difference, "
+    "asymmetry, or complementary detail between the required users' egocentric videos."
+  )
+}[question_type]
+
+feedback_block = (
+  "\nPrevious judger/evaluator feedback to fix:\n"
+  f"{feedback}\n"
+  "You must incorporate this feedback into the new question, options, answer, and evidence. "
+  "Do not repeat the rejected issue.\n"
+  if feedback
+  else ""
+)</pre>
+    </section>
+
+    <section>
+      <span class="label">Prompt Text</span>
+      <h2>Returned Prompt</h2>
+      <pre class="prompt">You are an assistant tasked with generating one meaningful, contextually grounded MCQ from raw egocentric videos.
+
+Input: raw videos from multiple people during the same time interval. They may be near each other, or in different places. Look directly at the videos and use only visual evidence, video metadata, and the provided 2D gaze coordinates when available. Do not use captions, subtitles, transcripts, or pre-written observations.
+
+Your job:
+1. Generate exactly one five-option multiple-choice question.
+2. The question_type must be "{question_type}": {type_instruction}
+3. The question must require visual evidence from at least two required users.
+4. Any single required user's video alone must be insufficient; the combined required users' videos must make exactly one option correct.
+5. Fill the evidence field with each needed user's visual fact and a specific timeframe.
+
+Guidelines:
+1) Ask in a natural, informal, everyday way, like someone looking back at their memories.
+For example, "Where did I put my glasses when I was having lunch with Tasha and Alice?"
+2) Use first-person or shared-memory wording from an AR-glasses user's perspective, such as "I", "me", "my", "we", or "our"...
+3) Do not name a required user in the question or the answer when the question is asked from that person's perspective.
+For example, If the question is asked from Jake's perspective, Jake's name should not appear in the question or the answer.
+4) Do not use words such as video, footage, recording, frame, dataset, camera, clip, caption, subtitle, or timestamp in the question or options.
+5) Keep the question specific, concrete, conversational, and visually grounded.
+6) Options must be multi-word, plausible, parallel in length/style, and have exactly one correct answer.
+7) False options may use Jake, Alice, Tasha, Lucia, Katrina, or Shure when helpful, please refer to guideline 3) for name requirement.
+8) The gaze input is provided as &lt;gaze_coordinate&gt;, a 2D image coordinate (x, y) indicating the user's attended area. Ask questions about visible objects, regions, or actions near what the user attended to.
+
+{feedback_block}
+Evidence packet metadata:
+{video_packet_brief(packet)}
+
+Return one valid JSON object only, with this exact shape:
+{json.dumps(VIDEO_GENERATION_SCHEMA, ensure_ascii=False, indent=2)}</pre>
+    </section>
+
+    <section>
+      <span class="label">Source Function</span>
+      <h2>Python Version</h2>
+      <pre>def build_video_generation_prompt(
+    packet: dict[str, Any],
+    question_type: str,
+    feedback: str | None = None,
+) -&gt; str:
+    type_instruction = {
+        "commonality": (
+            "Create a commonality question: the answer should identify something that is shared, "
+            "jointly established, or mutually verified across the required users' egocentric videos."
+        ),
+        "difference": (
+            "Create a difference question: the answer should identify a meaningful difference, "
+            "asymmetry, or complementary detail between the required users' egocentric videos."
+        ),
+    }[question_type]
+    feedback_block = (
+        "\nPrevious judger/evaluator feedback to fix:\n"
+        f"{feedback}\n"
+        "You must incorporate this feedback into the new question, options, answer, and evidence. "
+        "Do not repeat the rejected issue.\n"
+        if feedback
+        else ""
+    )
+    return f"""You are an assistant tasked with generating one meaningful, contextually grounded MCQ from raw egocentric videos.
+
+Input: raw videos from multiple people during the same time interval. They may be near each other, or in different places. Look directly at the videos and use only visual evidence, video metadata, and the provided 2D gaze coordinates when available. Do not use captions, subtitles, transcripts, or pre-written observations.
+
+Your job:
+1. Generate exactly one five-option multiple-choice question.
+2. The question_type must be "{question_type}": {type_instruction}
+3. The question must require visual evidence from at least two required users.
+4. Any single required user's video alone must be insufficient; the combined required users' videos must make exactly one option correct.
+5. Fill the evidence field with each needed user's visual fact and a specific timeframe.
+
+Guidelines:
+1) Ask in a natural, informal, everyday way, like someone looking back at their memories.
+For example, "Where did I put my glasses when I was having lunch with Tasha and Alice?"
+2) Use first-person or shared-memory wording from an AR-glasses user's perspective, such as "I", "me", "my", "we", or "our"...
+3) Do not name a required user in the question or the answer when the question is asked from that person's perspective.
+For example, If the question is asked from Jake's perspective, Jake's name should not appear in the question or the answer.
+4) Do not use words such as video, footage, recording, frame, dataset, camera, clip, caption, subtitle, or timestamp in the question or options.
+5) Keep the question specific, concrete, conversational, and visually grounded.
+6) Options must be multi-word, plausible, parallel in length/style, and have exactly one correct answer.
+7) False options may use Jake, Alice, Tasha, Lucia, Katrina, or Shure when helpful, please refer to guideline 3) for name requirement.
+8) The gaze input is provided as &lt;gaze_coordinate&gt;, a 2D image coordinate (x, y) indicating the user's attended area. Ask questions about visible objects, regions, or actions near what the user attended to.
+
+{feedback_block}
+Evidence packet metadata:
+{video_packet_brief(packet)}
+
+Return one valid JSON object only, with this exact shape:
+{json.dumps(VIDEO_GENERATION_SCHEMA, ensure_ascii=False, indent=2)}
+"""</pre>
+    </section>
+  </main>
+</body>
+</html>
