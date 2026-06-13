@@ -41,6 +41,7 @@ VIDEO_FIRST_REQUIRED_FIELDS = {
     "generation_trace",
 }
 VIDEO_FIRST_JUDGE_CHECKS = {
+    "first_person_naturalness",
     "agent_perspective",
     "source_scope",
     "question_type_semantics",

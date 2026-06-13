@@ -204,6 +204,7 @@ class SchemaTests(unittest.TestCase):
         return {
             name: {"status": "PASS", "reason": "ok", "fix": ""}
             for name in [
+                "first_person_naturalness",
                 "agent_perspective",
                 "source_scope",
                 "question_type_semantics",
@@ -377,6 +378,7 @@ class VideoFirstTests(unittest.TestCase):
         checks = {
             name: {"status": "PASS", "reason": "ok", "fix": ""}
             for name in [
+                "first_person_naturalness",
                 "agent_perspective",
                 "source_scope",
                 "question_type_semantics",
@@ -396,6 +398,30 @@ class VideoFirstTests(unittest.TestCase):
         failed = judge_gate({"review_passed": True, "checks": checks})
         self.assertFalse(failed["passed"])
         self.assertIn("multi_video_necessity", failed["failed_checks"])
+
+    def test_judge_gate_blocks_unnatural_non_first_person_question(self) -> None:
+        checks = {
+            name: {"status": "PASS", "reason": "ok", "fix": ""}
+            for name in [
+                "first_person_naturalness",
+                "agent_perspective",
+                "source_scope",
+                "question_type_semantics",
+                "multi_video_necessity",
+                "visual_grounding",
+                "mcq_option_quality",
+                "gaze_safety",
+                "human_auditability",
+            ]
+        }
+        checks["first_person_naturalness"] = {
+            "status": "FAIL",
+            "reason": "question names Jake and Alice instead of asking from first person",
+            "fix": "rewrite as a natural everyday first-person question using I or we",
+        }
+        failed = judge_gate({"review_passed": True, "checks": checks})
+        self.assertFalse(failed["passed"])
+        self.assertIn("first_person_naturalness", failed["failed_checks"])
 
     def test_dry_run_qa_includes_video_evidence_provenance(self) -> None:
         qa = dry_run_qa(
