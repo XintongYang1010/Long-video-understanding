@@ -132,50 +132,14 @@ def build_video_generation_prompt(
         if feedback
         else ""
     )
-    example_block = """Few-shot examples for natural multi-user QA design.
-These examples illustrate the desired reasoning pattern only. Do not copy their objects, activities, answers, names, or options into the new QA item.
-Do not treat the examples as evidence for the current videos. Use only the current raw videos and packet metadata for the actual QA.
+    example_block = """One good example for natural multi-user QA design.
+This example illustrates the desired reasoning pattern only. Do not copy its objects, activities, answers, names, or options into the new QA item.
+Do not treat it as evidence for the current videos. Use only the current raw videos and packet metadata for the actual QA.
 
-Example 1: related simultaneous kitchen activities
-Video situation:
-- One person is preparing soup or other food at a kitchen counter.
-- Another person's view shows table-side dessert or cake preparation happening at the same time.
-Bad question:
-- "What are the two people both seeing in the kitchen?"
-Why bad:
-- It assumes shared perception and sounds like a dataset comparison.
-- It does not start from what one user naturally knows from their own experience.
-Good question:
-- "While I was preparing soup at the counter, what other food prep was happening at the table at the same time?"
-Why good:
-- It starts from the speaker's own activity.
-- The speaker does not need to know in advance what the other person saw.
-- One video anchors the speaker's soup/food preparation; the other video supplies the missing simultaneous table activity.
-
-Example 2: reject unrelated synchronized clips
-Video situation:
-- One person is talking about or checking a device/3D-scan-related setup.
-- Another person's view shows dishwashing at a sink.
-Bad question:
-- "After I checked the setup, what was happening at the sink?"
-Why bad:
-- The two activities are merely synchronized by time but are not a natural shared task or memory gap.
-- The question feels forced because the speaker has no clear reason to ask about the unrelated sink activity.
-- A good generator should reject this pair or ask for a different evidence packet instead of forcing a two-user QA.
-Good question:
-- None for this pair. A good generator should not force a QA from these two unrelated activities.
-Better behavior:
-- If the required videos do not form a natural relationship, return a question only if there is a clearly related speaker anchor plus missing visual detail. Otherwise explain in the review/self-check that the evidence is not suitable.
-
-Example 3: setup check followed by missing room state
+Good example: setup check followed by missing room state
 Video situation:
 - One person checks a device/timer/setup near a practice or presentation room, then walks toward the stairwell.
 - Another person's view still shows the front of that room, where an exercise or dance tutorial continues on the big screen.
-Bad question:
-- "What does the room look like in the two views?"
-Why bad:
-- It is a generic camera/view comparison.
-- It does not ask from a user's natural memory gap.
 Good question:
 - "After I checked the setup and walked toward the stairwell, what was still going on at the front of the room I had just left?"
 Why good:
@@ -183,12 +147,11 @@ Why good:
 - The other video answers the missing follow-up state after the speaker left.
 - The answer requires combining the speaker's anchor event with another user's visual evidence.
 
-General lesson from the examples:
-- First identify one speaker's own anchor event.
-- Ask about a simultaneous or follow-up detail that the speaker could plausibly be missing.
-- The other required user's video should supply that missing visual fact.
-- Do not ask what both users saw.
-- Do not connect unrelated clips just because they share a timestamp.
+Compact design rules:
+- A good question starts from one user's own anchor event and asks for a missing related detail supplied by another user's video.
+- Do not make a question just because clips share a timestamp.
+- Do not ask what both users saw, noticed, or looked at.
+- Do not ask a generic comparison of two views, rooms, or camera angles.
 """
     return f"""You are an assistant tasked with generating one meaningful, contextually grounded MCQ from raw egocentric videos.
 
@@ -233,55 +196,34 @@ def build_judger_prompt(qa_item: dict[str, Any], packet: dict[str, Any]) -> str:
 
 You will see the same raw egocentric videos used by the generator. Judge whether the generated question is acceptable.
 
-Judge each dimension separately. A QA item should pass only when all blocking dimensions pass.
+Return every check in the JSON schema. Judge all checks, but focus most carefully on multi_video_necessity.
 
-Blocking dimensions:
-1. first_person_naturalness:
-   - The question is asked from the user's first-person point of view.
-   - The wording sounds like a natural everyday question someone would ask an AR or memory assistant.
-   - It avoids awkward benchmark-style phrasing and does not name required users when "I", "me", "my", "we", or "our" should be used.
-2. agent_perspective:
-   - The question sounds like a natural first-person memory or AR-assistant question.
-   - It uses "I/me/my/we/our" when a required user is the speaker.
-   - It does not use dataset-observer or god-view wording.
-   - It does not mention video, footage, recording, frame, dataset, camera, clip, or timestamp.
-3. source_scope:
-   - The answer can be judged from the provided raw videos and video set metadata only.
-   - It does not rely on captions, pre-written observations, external knowledge, private thoughts, hidden identity, or off-screen facts.
-4. question_type_semantics:
-   - If question_type is commonality, the answer must be a shared/jointly verified fact across required users.
-   - If question_type is difference, the answer must be a meaningful asymmetry or complementary detail between required users.
-5. multi_video_necessity:
-   - Judge whether the QA has a situated cross-video dependency, not just two synchronized clips.
-   - PASS only if one required user's video provides a speaker-side anchor event and another required user's video provides a missing visual detail that is simultaneous, follow-up, or otherwise naturally related.
-   - PASS only if both videos are necessary: removing either user's video would make the question unanswerable or would leave more than one plausible option.
-   - PASS only if the connection would be a plausible memory or AR-assistant question from someone involved in the situation.
-   - FAIL if the question merely stitches together two clips because they share a time interval.
-   - FAIL if the activities are unrelated, such as one person discussing/checking a device while another person is washing dishes, unless the question identifies a concrete shared task or natural dependency.
-   - FAIL if the question asks what both users saw, both noticed, or both looked at; do not ask what both users saw or noticed because one user may not know the other user's perception.
-   - FAIL if the question is a generic comparison of two views, rooms, or camera angles rather than a speaker anchor plus missing visual detail.
-   - FAIL if a single user's video already reveals the correct answer.
-   - UNCERTAIN if the videos do not clearly show the anchor, the missing visual detail, or the relation between them.
-   - In the reason, explicitly name the speaker-side anchor, the missing visual detail, and why the second video is or is not needed.
-6. visual_grounding:
-   - The correct option is visually grounded in concrete moments in the videos.
-   - The per_user_evidence_claims and referred_timestamps, if present, are specific enough for a human auditor to check.
-7. mcq_option_quality:
-   - There are exactly five non-empty options.
-   - Exactly one option is correct.
-   - Distractors are plausible but not ambiguous or also correct.
-8. gaze_safety:
-   - Any gaze-to-object claim uses provided 2D image coordinates as human attention cues.
-   - If 2D gaze coordinates are missing for a moment, the QA item must not invent gaze points or exact gaze-to-object proximity.
-9. human_auditability:
-   - The QA row includes enough user/video/time evidence for a human to inspect the same clips later.
-   - The rationale explains why this question was asked and why each user matters.
+Brief checks:
+1. first_person_naturalness: natural first-person memory/AR-assistant wording.
+2. agent_perspective: no dataset-observer wording and no video/footage/recording/frame/camera/clip/timestamp in the question or options.
+3. source_scope: answerable from provided raw videos and metadata only.
+4. question_type_semantics: commonality means shared/jointly verified; difference means meaningful asymmetry or complementary detail.
+6. visual_grounding: correct option and evidence claims are visually grounded in concrete moments.
+7. mcq_option_quality: exactly five plausible options and exactly one correct answer.
+8. gaze_safety: do not invent exact gaze-to-object claims when 2D gaze is unavailable.
+9. human_auditability: enough user/video/time evidence exists for a human to inspect later.
 
-Multi-video necessity examples:
-- Good: If one video shows the speaker preparing soup at a counter and another video shows simultaneous dessert or cake preparation at a table, a good question asks what other food prep was happening while the speaker was preparing soup. The first video anchors the speaker's activity; the second video supplies the missing visual detail.
-- Bad: "What cup did we both notice in the kitchen area?" This assumes both people noticed the same cup and sounds like an outside comparison, not a realistic question one user would ask.
-- Bad: If one video shows someone discussing or checking a 3D-scan/device setup while another video shows dishwashing, do not force a question from the pair just because the clips are time-aligned. There is no clear speaker anchor plus related missing visual detail.
-- Good: If one video shows the speaker checking a setup and leaving toward a stairwell, while another video still shows the front of that room where a tutorial or exercise continues, a good question asks what was still happening at the front of the room after the speaker left.
+Main check, 5. multi_video_necessity:
+- Judge whether the QA has a situated cross-video dependency, not just two synchronized clips.
+- PASS only if one required user's video provides a speaker-side anchor event and another required user's video provides a missing visual detail that is simultaneous, follow-up, or otherwise naturally related.
+- PASS only if both videos are necessary: removing either user's video would make the question unanswerable or would leave more than one plausible option.
+- PASS only if the connection would be a plausible memory or AR-assistant question from someone involved in the situation.
+- FAIL if the question merely stitches together two clips because they share a time interval.
+- FAIL if the activities are unrelated, such as one person discussing/checking a device while another person is washing dishes, unless the question identifies a concrete shared task or natural dependency.
+- FAIL if the question asks what both users saw, both noticed, or both looked at; do not ask what both users saw or noticed because one user may not know the other user's perception.
+- FAIL if the question is a generic comparison of two views, rooms, or camera angles rather than a speaker anchor plus missing visual detail.
+- FAIL if a single user's video already reveals the correct answer.
+- UNCERTAIN if the videos do not clearly show the anchor, the missing visual detail, or the relation between them.
+- In the reason, explicitly name the speaker-side anchor, the missing visual detail, and why the second video is or is not needed.
+
+Contrastive example for multi_video_necessity:
+- PASS: One video shows the speaker checking a setup and leaving toward a stairwell; another video still shows the front of that room where a tutorial continues. A good question asks what was still happening after the speaker left. The first video gives the anchor; the second supplies the missing follow-up detail.
+- FAIL: One video shows someone discussing/checking a device setup while another shows dishwashing. If no shared task or natural dependency is visible, this is only timestamp alignment and should fail.
 
 Use FAIL for a clear violation, UNCERTAIN when the videos do not provide enough evidence to verify the check, and PASS only when the dimension is satisfied.
 
