@@ -28,11 +28,26 @@ REQUIRED_QA_FIELDS = {
     "source_urls",
 }
 
-GENERIC_OTHER_ACTIVITY_PATTERNS = (
-    "what was the other person doing",
-    "what was everyone else doing",
-    "what were the others doing",
-    "what were other people doing",
+GENERIC_OTHER_ACTIVITY_RE = re.compile(
+    r"\bwhat\s+(?:was|were)\s+"
+    r"(?:the\s+other\s+person|another\s+person|everyone\s+else|the\s+others|other\s+people|others)\s+"
+    r"doing\b"
+)
+GENERIC_OTHER_ACTIVITY_TAILS = (
+    "",
+    "?",
+    "nearby",
+    "near me",
+    "near us",
+    "around me",
+    "around us",
+    "around the room",
+    "in the room",
+    "in the area",
+    "in the same room",
+    "at the same time",
+    "at that moment",
+    "at the table",
 )
 VIDEO_FIRST_REQUIRED_FIELDS = {
     "question_type",
@@ -139,7 +154,7 @@ def validate_qa_item(item: dict[str, Any], *, strict_review: bool = False) -> li
 
     if strict_review:
         question_text = str(item.get("question", "")).strip().lower()
-        if any(pattern in question_text for pattern in GENERIC_OTHER_ACTIVITY_PATTERNS):
+        if _uses_generic_other_activity_wording(question_text):
             errors.append(
                 "question uses generic other-person activity wording; ask for a concrete missing visual detail "
                 "tied to the speaker-side anchor"
@@ -204,6 +219,15 @@ def validate_qa_item(item: dict[str, Any], *, strict_review: bool = False) -> li
             errors.append("review.schema_validation.passed must be true in strict mode")
 
     return errors
+
+
+def _uses_generic_other_activity_wording(question_text: str) -> bool:
+    normalized = " ".join(question_text.strip().lower().split())
+    match = GENERIC_OTHER_ACTIVITY_RE.search(normalized)
+    if not match:
+        return False
+    tail = normalized[match.end() :].strip(" .?")
+    return any(tail == generic_tail or tail.startswith(f"{generic_tail} ") for generic_tail in GENERIC_OTHER_ACTIVITY_TAILS)
 
 
 def load_and_validate(path: str | Path, *, strict_review: bool = False) -> tuple[int, list[str]]:
