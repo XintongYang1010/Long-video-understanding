@@ -248,6 +248,7 @@ class Qwen3VLTransformersRunner:
         ).to(self.device)
         encode_seconds = time.time() - start
         input_tokens = int(inputs.input_ids.shape[-1]) if hasattr(inputs, "input_ids") else -1
+        inputs.pop("video_metadata", None)
         print(
             f"qwen_processor_encoded_seconds={encode_seconds:.1f} input_tokens={input_tokens}",
             flush=True,
