@@ -264,12 +264,27 @@ def build_evidence_packet(
         duration = ffprobe_duration(local_video) if local_video.exists() else None
         frame_rows: list[dict[str, Any]] = []
         if local_video.exists():
-            frame_rows = extract_frames(
-                local_video,
-                packet_dir / clip["agent_dir"],
-                frames_per_clip=frames_per_clip,
-                duration=duration,
-            )
+            frame_dir = packet_dir / clip["agent_dir"]
+            try:
+                frame_rows = extract_frames(
+                    local_video,
+                    frame_dir,
+                    frames_per_clip=frames_per_clip,
+                    duration=duration,
+                )
+            except subprocess.CalledProcessError:
+                if not download_media:
+                    raise
+                local_video.unlink(missing_ok=True)
+                shutil.rmtree(frame_dir, ignore_errors=True)
+                download_file(clip["video_url"], local_video)
+                duration = ffprobe_duration(local_video) if local_video.exists() else None
+                frame_rows = extract_frames(
+                    local_video,
+                    frame_dir,
+                    frames_per_clip=frames_per_clip,
+                    duration=duration,
+                )
         calibration_path = find_clip_calibration(aria_calibration_dir, clip)
         gaze_summary = (
             summarize_gaze_csv(local_gaze, calibration_path=calibration_path) if local_gaze.exists() else {}
