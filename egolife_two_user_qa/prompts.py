@@ -193,6 +193,29 @@ Return every check in the JSON schema. Judge all checks, but focus most carefull
 Brief checks:
 1. first_person_naturalness: natural first-person memory/AR-assistant wording.
 2. agent_perspective: no dataset-observer wording and no video/footage/recording/frame/camera/clip/timestamp in the question or options.
+3. source_scope: answerable from provided raw videos and metadata only.
+4. question_type_semantics: commonality means shared/jointly verified; difference means meaningful asymmetry or complementary detail.
+6. visual_grounding: correct option and evidence claims are visually grounded in concrete moments.
+7. mcq_option_quality: exactly five plausible options and exactly one correct answer.
+8. gaze_safety: do not invent exact gaze-to-object claims when 2D gaze is unavailable.
+9. human_auditability: enough user/video/time evidence exists for a human to inspect later.
+
+Main check, 5. multi_video_necessity:
+- Judge whether the QA has a situated cross-video dependency, not just two synchronized clips.
+- PASS only if one required user's video provides a speaker-side anchor event and another required user's video provides a missing visual detail that is simultaneous, follow-up, or otherwise naturally related.
+- PASS only if both videos are necessary: removing either user's video would make the question unanswerable or would leave more than one plausible option.
+- PASS only if the connection would be a plausible memory or AR-assistant question from someone involved in the situation.
+- FAIL if the question merely stitches together two clips because they share a time interval.
+- FAIL if the activities are unrelated, such as one person discussing/checking a device while another person is washing dishes, unless the question identifies a concrete shared task or natural dependency.
+- FAIL if the question asks what both users saw, both noticed, or both looked at; do not ask what both users saw or noticed because one user may not know the other user's perception.
+- FAIL if the question is a generic comparison of two views, rooms, or camera angles rather than a speaker anchor plus missing visual detail.
+- FAIL if a single user's video already reveals the correct answer.
+- UNCERTAIN if the videos do not clearly show the anchor, the missing visual detail, or the relation between them.
+- In the reason, explicitly name the speaker-side anchor, the missing visual detail, and why the second video is or is not needed.
+
+Contrastive example for multi_video_necessity:
+- PASS: One video shows the speaker checking a setup and leaving toward a stairwell; another video still shows the front of that room where a tutorial continues. A good question asks what was still happening after the speaker left. The first video gives the anchor; the second supplies the missing follow-up detail.
+- FAIL: One video shows someone discussing/checking a device setup while another shows dishwashing. If no shared task or natural dependency is visible, this is only timestamp alignment and should fail.
 
 Use FAIL for a clear violation, UNCERTAIN when the videos do not provide enough evidence to verify the check, and PASS only when the dimension is satisfied.
 
