@@ -116,8 +116,10 @@ def build_video_generation_prompt(
 ) -> str:
     type_instruction = {
         "commonality": (
-            "Create a commonality question: the answer should identify something that is shared, "
-            "jointly established, or mutually verified across the required users' egocentric videos."
+            "Create a commonality question only when the common state is established by combining "
+            "a speaker-side anchor from one required user's video with a missing related detail "
+            "visible only in another required user's video. Do not ask for an object, action, or "
+            "room state that each single video independently reveals."
         ),
         "difference": (
             "Create a difference question: the answer should identify a meaningful difference, "
@@ -149,8 +151,12 @@ Why good:
 
 Compact design rules:
 - A good question starts from one user's own anchor event and asks for a missing related detail supplied by another user's video.
+- The speaker's video must not already reveal the correct answer; the other user's video must add the missing visual detail.
+- If either single user's video can select the correct option, discard the question and create a different one.
 - Do not make a question just because clips share a timestamp.
 - Do not ask what both users saw, noticed, or looked at.
+- Do not ask what both users did, handled, had, shared, or were doing together.
+- Do not ask "what was the other person doing nearby" if the speaker's own view can already show it.
 - Do not ask a generic comparison of two views, rooms, or camera angles.
 """
     return f"""You are an assistant tasked with generating one meaningful, contextually grounded MCQ from raw egocentric videos.
@@ -160,11 +166,12 @@ Input: raw videos from multiple people during the same time interval. They may b
 Your job:
 1. Generate exactly one five-option multiple-choice question.
 2. The question_type must be "{question_type}": {type_instruction}
-3. The question must require visual evidence from at least two required users.
-4. Any single required user's video alone must be insufficient; the combined required users' videos must make exactly one option correct.
-5. Fill the evidence field with each needed user's visual fact and a specific timeframe.
-6. Return every field in the JSON shape exactly. Do not omit category, single_user_answerability, combined_answerability, generator_rationale, why_two_users_needed, per_user_evidence_claims, referred_timestamps, or review.
-7. The answer field must exactly equal the text of options[correct].
+3. The question must start from one user's speaker-side anchor event, then ask about a missing related detail that is visible only in another required user's video.
+4. The question must require visual evidence from at least two required users. Timestamp overlap is not enough.
+5. Any single required user's video alone must be insufficient; the combined required users' videos must make exactly one option correct.
+6. Fill the evidence field with each needed user's visual fact and a specific timeframe.
+7. Return every field in the JSON shape exactly. Do not omit category, single_user_answerability, combined_answerability, generator_rationale, why_two_users_needed, per_user_evidence_claims, referred_timestamps, or review.
+8. The answer field must exactly equal the text of options[correct], and correct must be one letter: A, B, C, D, or E.
 
 Guidelines:
 1) Ask in a natural, informal, everyday way, like someone looking back at their memories.
@@ -179,6 +186,9 @@ For example, If the question is asked from Jake's perspective, Jake's name shoul
 8) The gaze input is provided as <gaze_coordinate>, a 2D image coordinate (x, y) indicating the user's attended area. Ask questions about visible objects, regions, or actions near what the user attended to.
 9) single_user_answerability must be an object with one entry for each required user, and each entry must explicitly say "insufficient because ...".
 10) combined_answerability must explicitly say "sufficient because ..." and explain why the combined videos support the correct option.
+11) Before returning, mentally run the single-user test. If Jake alone, Alice alone, or any other single required user can answer the question, rewrite it.
+12) Avoid these rejected patterns: "What did we both...", "What did we all...", "What did everyone...", "What did I and Alice both...", "What were we doing together...", and "What was the other person doing nearby?".
+13) For commonality questions, the commonality must be the relationship between the speaker's anchor and the second user's missing detail, not merely a shared object or shared action visible in both views.
 
 {example_block}
 
