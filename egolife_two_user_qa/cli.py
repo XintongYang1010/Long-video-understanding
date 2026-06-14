@@ -76,6 +76,7 @@ def main(argv: list[str] | None = None) -> int:
     val.add_argument("--qa", required=True)
     val.add_argument("--report", required=True)
     val.add_argument("--csv-output")
+    val.add_argument("--human-review-output")
     val.add_argument("--strict-review", action="store_true")
 
     args = parser.parse_args(argv)
@@ -164,6 +165,7 @@ def main(argv: list[str] | None = None) -> int:
             qa_path=args.qa,
             report_path=args.report,
             csv_path=args.csv_output,
+            human_review_path=args.human_review_output,
             strict_review=args.strict_review,
         )
     raise AssertionError(args.command)

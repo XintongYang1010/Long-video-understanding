@@ -11,7 +11,7 @@ from egolife_two_user_qa.gaze_projection import gaussian_bbox_score, load_aria_p
 from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_token
 from egolife_two_user_qa.prompts import build_video_generation_prompt
 from egolife_two_user_qa.qwen3vl_runner import DryRunRunner, normalize_video_kwargs, split_video_inputs_and_metadata
-from egolife_two_user_qa.schema import extract_json_object, validate_qa_item
+from egolife_two_user_qa.schema import extract_json_object, validate_qa_item, write_human_review_sheet
 from egolife_two_user_qa.video_qa_loop import (
     answerability_gate,
     build_review_from_gates,
@@ -341,6 +341,23 @@ class SchemaTests(unittest.TestCase):
         item["review"]["answerability"]["gate"] = {"passed": False, "reason": "single user leaked answer"}
         errors = validate_qa_item(item, strict_review=True)
         self.assertTrue(any("review.answerability.gate.passed" in error for error in errors))
+
+    def test_write_human_review_sheet(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            qa_path = Path(tmp) / "qa_mcq.jsonl"
+            sheet_path = Path(tmp) / "human_review_sheet.md"
+            item = self.valid_item()
+            qa_path.write_text(json.dumps(item) + "\n", encoding="utf-8")
+
+            count = write_human_review_sheet(qa_path, sheet_path)
+
+            text = sheet_path.read_text(encoding="utf-8")
+            self.assertEqual(count, 1)
+            self.assertIn("# EgoLife Human Review Sheet", text)
+            self.assertIn(item["question"], text)
+            self.assertIn(item["answer"], text)
+            self.assertIn("Jake and Alice each provide a necessary visual fact.", text)
+            self.assertIn("jake.mp4", text)
 
 class VideoFirstTests(unittest.TestCase):
     def test_dry_run_runner_accepts_video_paths(self) -> None:

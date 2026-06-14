@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .io_utils import write_json
 from .qwen3vl_runner import DEFAULT_MODEL_ID
-from .schema import load_and_validate, write_qa_csv
+from .schema import load_and_validate, write_human_review_sheet, write_qa_csv
 
 
 def validate_outputs(
@@ -15,11 +15,14 @@ def validate_outputs(
     qa_path: str | Path,
     report_path: str | Path,
     csv_path: str | Path | None = None,
+    human_review_path: str | Path | None = None,
     strict_review: bool = False,
 ) -> int:
     count, errors = load_and_validate(qa_path, strict_review=strict_review)
     if csv_path:
         write_qa_csv(qa_path, csv_path)
+    if human_review_path:
+        write_human_review_sheet(qa_path, human_review_path)
     report = {
         "qa_path": str(qa_path),
         "qa_count": count,
@@ -67,6 +70,7 @@ def main(argv: list[str] | None = None) -> int:
     val.add_argument("--qa", required=True)
     val.add_argument("--report", required=True)
     val.add_argument("--csv-output")
+    val.add_argument("--human-review-output")
     val.add_argument("--strict-review", action="store_true")
 
     args = parser.parse_args(argv)
@@ -75,6 +79,7 @@ def main(argv: list[str] | None = None) -> int:
             qa_path=args.qa,
             report_path=args.report,
             csv_path=args.csv_output,
+            human_review_path=args.human_review_output,
             strict_review=args.strict_review,
         )
     raise AssertionError(args.command)

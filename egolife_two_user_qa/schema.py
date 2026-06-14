@@ -253,3 +253,101 @@ def write_qa_csv(jsonl_path: str | Path, csv_path: str | Path) -> int:
                 }
             )
     return len(rows)
+
+
+def _markdown_value(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, (dict, list)):
+        return json.dumps(value, ensure_ascii=False)
+    return str(value)
+
+
+def write_human_review_sheet(jsonl_path: str | Path, sheet_path: str | Path) -> int:
+    rows = list(iter_jsonl(jsonl_path))
+    sheet_path = Path(sheet_path)
+    sheet_path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        "# EgoLife Human Review Sheet",
+        "",
+        f"- Source QA: `{jsonl_path}`",
+        f"- Accepted rows: {len(rows)}",
+        "",
+    ]
+    for index, row in enumerate(rows, 1):
+        review = row.get("review") if isinstance(row.get("review"), dict) else {}
+        final = review.get("final_decision") if isinstance(review.get("final_decision"), dict) else {}
+        answerability = review.get("answerability") if isinstance(review.get("answerability"), dict) else {}
+        judger = review.get("judger") if isinstance(review.get("judger"), dict) else {}
+        lines.extend(
+            [
+                f"## {index}. {row.get('qa_id', '')}",
+                "",
+                f"- Evidence ID: `{row.get('evidence_id', '')}`",
+                f"- Question type: {_markdown_value(row.get('question_type'))}",
+                f"- Required users: {', '.join(row.get('required_users', []))}",
+                f"- Review status: {_markdown_value(review.get('status'))}",
+                f"- Review passed: {_markdown_value(review.get('review_passed'))}",
+                f"- Judger gate passed: {_markdown_value((judger.get('gate') or {}).get('passed') if isinstance(judger.get('gate'), dict) else '')}",
+                f"- Answerability gate passed: {_markdown_value((answerability.get('gate') or {}).get('passed') if isinstance(answerability.get('gate'), dict) else '')}",
+                f"- Final reason: {_markdown_value(final.get('reason'))}",
+                "",
+                "### Question",
+                "",
+                _markdown_value(row.get("question")),
+                "",
+                "### Options",
+                "",
+            ]
+        )
+        options = row.get("options") if isinstance(row.get("options"), list) else []
+        for letter, option in zip(OPTION_LETTERS, options):
+            marker = " (correct)" if row.get("correct") == letter else ""
+            lines.append(f"- {letter}. {option}{marker}")
+        lines.extend(
+            [
+                "",
+                "### Answer",
+                "",
+                _markdown_value(row.get("answer")),
+                "",
+                "### Why Two Users Are Needed",
+                "",
+                _markdown_value(row.get("why_two_users_needed")),
+                "",
+                "### Combined Answerability",
+                "",
+                _markdown_value(row.get("combined_answerability")),
+                "",
+                "### Per-User Evidence",
+                "",
+            ]
+        )
+        evidence = row.get("evidence") if isinstance(row.get("evidence"), list) else []
+        if evidence:
+            for item in evidence:
+                user = item.get("user", "") if isinstance(item, dict) else ""
+                fact = item.get("needed_fact", item.get("claim", "")) if isinstance(item, dict) else item
+                timeframe = item.get("timeframe", "") if isinstance(item, dict) else ""
+                lines.append(f"- {user}: {_markdown_value(fact)} ({_markdown_value(timeframe)})")
+        else:
+            lines.append("- none")
+        lines.extend(["", "### Video Evidence", ""])
+        video_evidence = row.get("video_evidence") if isinstance(row.get("video_evidence"), list) else []
+        if video_evidence:
+            for item in video_evidence:
+                if not isinstance(item, dict):
+                    lines.append(f"- {_markdown_value(item)}")
+                    continue
+                user = item.get("user", "")
+                local_video = item.get("local_video") or item.get("video_path") or ""
+                video_url = item.get("video_url", "")
+                clip_clock = item.get("clip_clock", "")
+                lines.append(
+                    f"- {user}: `{local_video}` clock={_markdown_value(clip_clock)} url={_markdown_value(video_url)}"
+                )
+        else:
+            lines.append("- none")
+        lines.append("")
+    sheet_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return len(rows)

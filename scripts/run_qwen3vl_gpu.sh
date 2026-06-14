@@ -76,5 +76,6 @@ python -m egolife_two_user_qa generate_video_qa_loop \
 python -m egolife_two_user_qa validate_outputs \
   --qa "${OUTDIR}/qa_mcq.jsonl" \
   --csv-output "${OUTDIR}/qa_mcq.csv" \
+  --human-review-output "${OUTDIR}/human_review_sheet.md" \
   --report "${OUTDIR}/generation_report.md" \
   --strict-review
