@@ -133,7 +133,7 @@ Answerability evaluation 是 behavioral gate。它回答的是：
 
 - `prompts.py`
   - 定义 generator prompt、structured judger prompt、answerability prompt；
-  - `build_judger_prompt()` 要求模型输出 8 个 checks，每个 check 都有 `status/reason/fix`。
+  - `build_judger_prompt()` 要求模型输出 9 个 checks，每个 check 都有 `status/reason/fix`。
 
 - `video_qa_loop.py`
   - `judge_gate()` 读取 structured judger output；
@@ -141,7 +141,7 @@ Answerability evaluation 是 behavioral gate。它回答的是：
   - `generation_trace` 保存每次 attempt 的 prompt、raw output、judge feedback 和 answerability 结果。
 
 - `schema.py`
-  - strict validation 要求 `judge_feedback.checks` 存在；
+  - strict validation 要求 `review.judger.checks` 存在；
   - strict validation 要求 `video_evidence`、`human_audit`、`generation_trace` 存在。
 
 - `tests/test_core.py`

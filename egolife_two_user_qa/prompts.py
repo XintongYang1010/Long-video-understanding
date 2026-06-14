@@ -396,34 +396,3 @@ Use only the provided images, observations, complementarity notes, and packet me
 Return one valid JSON object only, with this exact shape:
 {json.dumps(GENERATION_SCHEMA, ensure_ascii=False, indent=2)}
 """
-
-
-def build_review_prompt(qa_item: dict[str, Any], packet: dict[str, Any]) -> str:
-    return f"""You are reviewing a generated EgoLife two-user MCQ.
-
-Hard pass criteria:
-1. At least two required_users are essential.
-2. No single required user can answer the question completely alone.
-3. The combined evidence from required users supports exactly one correct option.
-4. The wording is natural and does not mention timestamps, video, footage, recording, frames, dataset, or camera.
-5. There are exactly five options and correct is one of A/B/C/D/E.
-6. Any gaze-to-object claim uses projected 2D gaze only when `projection_status` is `projected`; unprojected CPF angle summaries are not treated as image pixels.
-
-Evidence packet:
-{packet_brief(packet)}
-
-Generated QA:
-{json.dumps(qa_item, ensure_ascii=False, indent=2)}
-
-Return one valid JSON object only:
-{{
-  "qa_id": "{qa_item.get('qa_id', '')}",
-  "review_passed": true,
-  "fact_verification": "PASS/FAIL with short explanation",
-  "single_user_check": "PASS/FAIL with short explanation",
-  "combined_user_check": "PASS/FAIL with short explanation",
-  "mcq_check": "PASS/FAIL with short explanation",
-  "wording_check": "PASS/FAIL with short explanation",
-  "modification_suggestions": ""
-}}
-"""

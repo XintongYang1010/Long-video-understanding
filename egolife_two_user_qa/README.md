@@ -19,7 +19,7 @@ EgoLife video + EyeGaze/EyeTracking tree
 -> validate_outputs: 做确定性的 schema/gate 检查
 ```
 
-旧路径 `observe_clips -> mine_candidates -> generate_qa -> review_qa` 仍保留为 legacy/debug baseline，但不再作为 pilot 主路径。旧路径会先生成 clip observation/caption，再做 semantic candidate mining；现在老师反馈后，主流程改成让 VLM 直接看视频出题。
+`observe_clips`、`mine_candidates` 和 `generate_qa` 只保留作调试辅助，不作为 pilot 主路径。正式 QA 生成、judger、answerability evaluation 和最终 review 都在 `generate_video_qa_loop` 内完成，避免旧 review prompt 和当前 judge rubric 混用。
 
 ## Gaze 投影说明
 
@@ -115,8 +115,6 @@ python -m egolife_two_user_qa generate_video_qa_loop \
 - `generator_rationale`
 - `why_two_users_needed`
 - `per_user_evidence_claims`
-- `judge_feedback`
-- `answerability_eval`
 - `attempt_count`
 - `video_evidence`
 - `referred_timestamps`
@@ -126,8 +124,9 @@ python -m egolife_two_user_qa generate_video_qa_loop \
 - `model_id`
 - `source_urls`
 
-`judge_feedback` 现在是结构化 rubric，不再只是一个简单的 pass/fail。strict validation 要求下面这些 blocking checks 全部通过：
+最终 `review` 由 `generate_video_qa_loop` 根据 judger、answerability evaluation 和 deterministic schema validation 生成。strict validation 要求 `review.status == "passed"`、`review.review_passed == true`，并且下面这些 judger blocking checks 全部为 `PASS`：
 
+- `first_person_naturalness`
 - `agent_perspective`
 - `source_scope`
 - `question_type_semantics`
