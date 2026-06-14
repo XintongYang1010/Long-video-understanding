@@ -6,24 +6,6 @@ import json
 from typing import Any
 
 
-GENERATION_SCHEMA = {
-    "id": "string",
-    "question": "natural everyday question without timestamps or words like video/footage/recording from first person (user) perspective",
-    "options": ["A option", "B option", "C option", "D option", "E option"],
-    "correct": "A/B/C/D/E",
-    "answer": "exact text of the correct option",
-    "required_users": ["at least two user names"],
-    "evidence": [
-        {
-            "user": "name",
-            "needed_fact": "visual fact contributed by this user's view",
-            "timeframe": "specific start-end time range or approximate moment in this user's video for generate the question",
-            "frames_used": ["frame path or frame timestamp labels"],
-        }
-    ],
-}
-
-
 VIDEO_GENERATION_SCHEMA = {
     "qa_id": "string",
     "question_type": "commonality or difference",
@@ -98,37 +80,6 @@ JUDGE_SCHEMA = {
     "why_generator_asked_this": "short justification of the generator's likely reason",
     "feedback_to_generator": "specific edit instructions if review_passed is false; empty string if passed",
 }
-
-
-def packet_brief(packet: dict[str, Any]) -> str:
-    clips = []
-    for clip in packet.get("clips", []):
-        frame_lines = [
-            f"{idx + 1}. {frame.get('path')} at {frame.get('timestamp_seconds')}s"
-            for idx, frame in enumerate(clip.get("frames", []))
-        ]
-        clips.append(
-            {
-                "user": clip.get("agent_name"),
-                "day": clip.get("day"),
-                "clip_clock": clip.get("clip_clock"),
-                "video_url": clip.get("video_url"),
-                "gaze_summary": clip.get("gaze_summary"),
-                "observation": clip.get("observation"),
-                "frames": frame_lines,
-            }
-        )
-    return json.dumps(
-        {
-            "evidence_id": packet.get("evidence_id"),
-            "candidate_type": packet.get("candidate_type"),
-            "required_users": packet.get("required_users"),
-            "complementarity": packet.get("complementarity"),
-            "clips": clips,
-        },
-        ensure_ascii=False,
-        indent=2,
-    )
 
 
 def video_packet_brief(packet: dict[str, Any]) -> str:
@@ -369,30 +320,4 @@ Rules:
 
 Return one valid JSON object only with this exact shape:
 {json.dumps(ANSWERABILITY_SCHEMA, ensure_ascii=False, indent=2)}
-"""
-
-
-def build_generation_prompt(packet: dict[str, Any]) -> str:
-    return f"""You are constructing a high-quality multi-user egocentric video QA item.
-
-Goal:
-- Create exactly one multiple-choice question that requires evidence from at least two EgoLife users.
-- A single user's frames must be insufficient to answer the question completely.
-- The combined evidence from the required users must make exactly one option correct.
-- Use the complementarity notes: the question should combine one distinct fact from each required user.
-
-Style constraints:
-- The question should sound like a natural daily-life memory question asked to an AR/VR assistant.
-- Do not mention timestamps, video, footage, recording, frames, dataset, or camera.
-- Use first-person phrasing when natural ("Where did I...", "What did we...").
-- Avoid private speculation that is not visually supported.
-- Treat EgoLife gaze CSV values as Aria CPF yaw/pitch/depth. Only use 2D gaze-to-object claims if `projection_status` is `projected`; if it is `missing_calibration`, do not claim image-pixel gaze or bbox proximity.
-
-Evidence packet:
-{packet_brief(packet)}
-
-Use only the provided images, observations, complementarity notes, and packet metadata. If the evidence is not enough, still return JSON but set review.status to "reject_insufficient_evidence" and explain why.
-
-Return one valid JSON object only, with this exact shape:
-{json.dumps(GENERATION_SCHEMA, ensure_ascii=False, indent=2)}
 """

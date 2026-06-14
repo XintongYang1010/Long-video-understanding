@@ -19,7 +19,7 @@ EgoLife video + EyeGaze/EyeTracking tree
 -> validate_outputs: 做确定性的 schema/gate 检查
 ```
 
-`observe_clips`、`mine_candidates` 和 `generate_qa` 只保留作调试辅助，不作为 pilot 主路径。正式 QA 生成、judger、answerability evaluation 和最终 review 都在 `generate_video_qa_loop` 内完成，避免旧 review prompt 和当前 judge rubric 混用。
+`observe_clips` 和 `mine_candidates` 只保留作调试辅助，不作为 pilot 主路径。正式 QA 生成、judger、answerability evaluation 和最终 review 都在 `generate_video_qa_loop` 内完成，避免旧 prompt 和当前 judge rubric 混用。
 
 ## Gaze 投影说明
 

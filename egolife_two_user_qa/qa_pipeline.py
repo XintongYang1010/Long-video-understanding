@@ -1,83 +1,13 @@
-"""Generation, review, and validation orchestration for EgoLife two-user QA."""
+"""Validation helpers for EgoLife two-user QA outputs."""
 
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import Any
 
-from .io_utils import iter_jsonl, write_json, write_jsonl
-from .prompts import build_generation_prompt
-from .qwen3vl_runner import DEFAULT_MODEL_ID, make_runner
-from .schema import extract_json_object, load_and_validate, validate_qa_item, write_qa_csv
-
-
-def image_paths_from_packet(packet: dict[str, Any]) -> list[str]:
-    paths = []
-    for clip in packet.get("clips", []):
-        for frame in clip.get("frames", []):
-            path = frame.get("path")
-            if path and Path(path).exists():
-                paths.append(path)
-    return paths
-
-
-def generate_qa(
-    *,
-    evidence_path: str | Path,
-    output_path: str | Path,
-    prompts_path: str | Path | None,
-    backend: str,
-    model_id: str = DEFAULT_MODEL_ID,
-    base_url: str = "http://127.0.0.1:8000/v1",
-    target_count: int = 20,
-    max_new_tokens: int = 1024,
-    max_image_pixels: int = 262144,
-    dtype: str = "bfloat16",
-    allow_cpu: bool = False,
-    dry_run: bool = False,
-) -> list[dict[str, Any]]:
-    runner = make_runner(
-        "dry-run" if dry_run else backend,
-        model_id=model_id,
-        base_url=base_url,
-        max_new_tokens=max_new_tokens,
-        max_image_pixels=max_image_pixels,
-        dtype=dtype,
-        allow_cpu=allow_cpu,
-    )
-    rows = []
-    prompt_rows = []
-    for packet in iter_jsonl(evidence_path):
-        if len(rows) >= target_count:
-            break
-        prompt = build_generation_prompt(packet)
-        images = image_paths_from_packet(packet)
-        prompt_rows.append(
-            {
-                "evidence_id": packet["evidence_id"],
-                "prompt": prompt,
-                "image_paths": images,
-            }
-        )
-        if dry_run:
-            continue
-        raw = runner.generate(prompt, images)
-        qa = extract_json_object(raw)
-        qa.setdefault("qa_id", f"QA_{len(rows) + 1:03d}_{packet['evidence_id']}")
-        qa["evidence_id"] = packet["evidence_id"]
-        qa["model_id"] = runner.model_id
-        qa["source_urls"] = packet.get("source_urls", {})
-        qa.setdefault("review", {})
-        qa["review"]["generator_raw_output"] = raw
-        validate_errors = validate_qa_item(qa)
-        qa["review"]["schema_errors"] = validate_errors
-        rows.append(qa)
-    if prompts_path:
-        write_jsonl(prompts_path, prompt_rows)
-    if not dry_run:
-        write_jsonl(output_path, rows)
-    return rows
+from .io_utils import write_json
+from .qwen3vl_runner import DEFAULT_MODEL_ID
+from .schema import load_and_validate, write_qa_csv
 
 
 def validate_outputs(
@@ -130,15 +60,8 @@ def add_runner_args(parser: argparse.ArgumentParser) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="EgoLife two-user QA generation helpers")
+    parser = argparse.ArgumentParser(description="EgoLife two-user QA validation helpers")
     sub = parser.add_subparsers(dest="command", required=True)
-
-    gen = sub.add_parser("generate_qa")
-    gen.add_argument("--evidence", required=True)
-    gen.add_argument("--output", required=True)
-    gen.add_argument("--prompts-output")
-    gen.add_argument("--target-count", type=int, default=20)
-    add_runner_args(gen)
 
     val = sub.add_parser("validate_outputs")
     val.add_argument("--qa", required=True)
@@ -147,23 +70,6 @@ def main(argv: list[str] | None = None) -> int:
     val.add_argument("--strict-review", action="store_true")
 
     args = parser.parse_args(argv)
-    if args.command == "generate_qa":
-        rows = generate_qa(
-            evidence_path=args.evidence,
-            output_path=args.output,
-            prompts_path=args.prompts_output,
-            backend=args.backend,
-            model_id=args.model_id,
-            base_url=args.base_url,
-            target_count=args.target_count,
-            max_new_tokens=args.max_new_tokens,
-            max_image_pixels=args.max_image_pixels,
-            dtype=args.dtype,
-            allow_cpu=args.allow_cpu,
-            dry_run=args.dry_run,
-        )
-        print(f"generated {len(rows)} QA rows")
-        return 0
     if args.command == "validate_outputs":
         return validate_outputs(
             qa_path=args.qa,

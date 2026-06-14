@@ -8,7 +8,7 @@ from .evidence import prepare_evidence
 from .manifest import build_manifest
 from .candidate_mining import mine_candidates
 from .observations import observe_clips
-from .qa_pipeline import add_runner_args, generate_qa, validate_outputs
+from .qa_pipeline import add_runner_args, validate_outputs
 from .video_qa_loop import add_video_loop_args, generate_video_qa_loop
 
 
@@ -61,13 +61,6 @@ def main(argv: list[str] | None = None) -> int:
     mine.add_argument("--users-per-case", type=int, default=2)
     mine.add_argument("--max-time-gap-seconds", type=float, default=90.0)
     mine.add_argument("--min-score", type=int, default=5)
-
-    gen = sub.add_parser("generate_qa", help="Generate QA from evidence packets")
-    gen.add_argument("--evidence", required=True)
-    gen.add_argument("--output", required=True)
-    gen.add_argument("--prompts-output")
-    gen.add_argument("--target-count", type=int, default=20)
-    add_runner_args(gen)
 
     video_gen = sub.add_parser("generate_video_qa_loop", help="Generate video-first QA with judge/eval retry loop")
     video_gen.add_argument("--evidence", required=True)
@@ -144,23 +137,6 @@ def main(argv: list[str] | None = None) -> int:
             min_score=args.min_score,
         )
         print(f"wrote {len(rows)} semantic candidates to {args.output}")
-        return 0
-    if args.command == "generate_qa":
-        rows = generate_qa(
-            evidence_path=args.evidence,
-            output_path=args.output,
-            prompts_path=args.prompts_output,
-            backend=args.backend,
-            model_id=args.model_id,
-            base_url=args.base_url,
-            target_count=args.target_count,
-            max_new_tokens=args.max_new_tokens,
-            max_image_pixels=args.max_image_pixels,
-            dtype=args.dtype,
-            allow_cpu=args.allow_cpu,
-            dry_run=args.dry_run,
-        )
-        print(f"generated {len(rows)} QA rows")
         return 0
     if args.command == "generate_video_qa_loop":
         rows = generate_video_qa_loop(
