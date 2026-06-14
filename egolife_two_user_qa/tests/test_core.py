@@ -18,6 +18,7 @@ from egolife_two_user_qa.video_qa_loop import (
     complete_generator_metadata,
     dry_run_qa,
     judge_gate,
+    qa_for_judger_prompt,
 )
 
 
@@ -578,6 +579,16 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("human_audit", qa)
         self.assertIn("generation_trace", qa)
         self.assertEqual(qa["generation_trace"][0]["stage"], "dry_run")
+
+    def test_qa_for_judger_prompt_excludes_trace_fields(self) -> None:
+        item = SchemaTests("test_validate_valid_item").valid_item()
+        compact = qa_for_judger_prompt(item)
+        self.assertIn("question", compact)
+        self.assertIn("evidence", compact)
+        self.assertNotIn("generation_trace", compact)
+        self.assertNotIn("human_audit", compact)
+        self.assertNotIn("video_evidence", compact)
+        self.assertNotIn("source_urls", compact)
 
 
 if __name__ == "__main__":

@@ -226,6 +226,31 @@ def condition_media_for_clips(
     }
 
 
+def qa_for_judger_prompt(qa: dict[str, Any]) -> dict[str, Any]:
+    """Return only the generated QA fields the judger needs to evaluate."""
+
+    wanted = [
+        "qa_id",
+        "evidence_id",
+        "question_type",
+        "question",
+        "options",
+        "correct",
+        "answer",
+        "category",
+        "required_users",
+        "evidence",
+        "single_user_answerability",
+        "combined_answerability",
+        "generator_rationale",
+        "why_two_users_needed",
+        "per_user_evidence_claims",
+        "referred_timestamps",
+        "review",
+    ]
+    return {key: qa[key] for key in wanted if key in qa}
+
+
 def clips_for_users(packet: dict[str, Any], users: list[str]) -> list[dict[str, Any]]:
     wanted = set(users)
     return [clip for clip in packet.get("clips", []) if clip.get("agent_name") in wanted]
@@ -602,7 +627,7 @@ def generate_video_qa_loop(
         if dry_run:
             qa = dry_run_qa(packet, question_type)
             gen_prompt = build_video_generation_prompt(packet, question_type)
-            judge_prompt = build_judger_prompt(qa, packet)
+            judge_prompt = build_judger_prompt(qa_for_judger_prompt(qa), packet)
             dry_trace = {
                 "evidence_id": packet.get("evidence_id"),
                 "qa_id": qa.get("qa_id"),
@@ -793,7 +818,7 @@ def generate_video_qa_loop(
                 packet_rejections.append({"attempt": attempt, "reason": feedback, "qa": qa})
                 continue
 
-            judge_prompt = build_judger_prompt(qa, packet)
+            judge_prompt = build_judger_prompt(qa_for_judger_prompt(qa), packet)
             attempt_trace["judge"]["prompt"] = judge_prompt
             prompts.append(
                 {
