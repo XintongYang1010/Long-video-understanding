@@ -227,6 +227,7 @@ Main check, 5. multi_video_necessity:
 - FAIL if the activities are unrelated, such as one person discussing/checking a device while another person is washing dishes, unless the question identifies a concrete shared task or natural dependency.
 - FAIL if the question asks what both users saw, both noticed, or both looked at; do not ask what both users saw or noticed because one user may not know the other user's perception.
 - FAIL if the question is a generic comparison of two views, rooms, or camera angles rather than a speaker anchor plus missing visual detail.
+- FAIL if the question generically asks what "the other person", "everyone else", or "others" were doing nearby, in the room, or at the same time, unless it names a concrete missing visual detail that is naturally tied to the speaker-side anchor.
 - FAIL if a single user's video already reveals the correct answer.
 - UNCERTAIN if the videos do not clearly show the anchor, the missing visual detail, or the relation between them.
 - In the reason, explicitly name the speaker-side anchor, the missing visual detail, and why the second video is or is not needed.

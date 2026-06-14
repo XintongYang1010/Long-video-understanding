@@ -27,6 +27,13 @@ REQUIRED_QA_FIELDS = {
     "model_id",
     "source_urls",
 }
+
+GENERIC_OTHER_ACTIVITY_PATTERNS = (
+    "what was the other person doing",
+    "what was everyone else doing",
+    "what were the others doing",
+    "what were other people doing",
+)
 VIDEO_FIRST_REQUIRED_FIELDS = {
     "question_type",
     "generator_rationale",
@@ -129,6 +136,14 @@ def validate_qa_item(item: dict[str, Any], *, strict_review: bool = False) -> li
     question_type = item.get("question_type")
     if question_type is not None and question_type not in {"commonality", "difference"}:
         errors.append("question_type must be commonality or difference")
+
+    if strict_review:
+        question_text = str(item.get("question", "")).strip().lower()
+        if any(pattern in question_text for pattern in GENERIC_OTHER_ACTIVITY_PATTERNS):
+            errors.append(
+                "question uses generic other-person activity wording; ask for a concrete missing visual detail "
+                "tied to the speaker-side anchor"
+            )
 
     if strict_review:
         video_evidence = item.get("video_evidence")
