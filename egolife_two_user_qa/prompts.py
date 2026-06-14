@@ -160,11 +160,8 @@ Input: raw videos from multiple people during the same time interval. They may b
 Your job:
 1. Generate exactly one five-option multiple-choice question.
 2. The question_type must be "{question_type}": {type_instruction}
-3. The question must require visual evidence from at least two required users.
 4. Any single required user's video alone must be insufficient; the combined required users' videos must make exactly one option correct.
 5. Fill the evidence field with each needed user's visual fact and a specific timeframe.
-6. Return every field in the JSON shape exactly. Do not omit category, single_user_answerability, combined_answerability, generator_rationale, why_two_users_needed, per_user_evidence_claims, referred_timestamps, or review.
-7. The answer field must exactly equal the text of options[correct].
 
 Guidelines:
 1) Ask in a natural, informal, everyday way, like someone looking back at their memories.
@@ -173,12 +170,7 @@ For example, "Where did I put my glasses when I was having lunch with Tasha and 
 3) Do not name a required user in the question or the answer when the question is asked from that person's perspective.
 For example, If the question is asked from Jake's perspective, Jake's name should not appear in the question or the answer.
 4) Do not use words such as video, footage, recording, frame, dataset, camera, clip, caption, subtitle, or timestamp in the question or options.
-5) Keep the question specific, concrete, conversational, and visually grounded.
-6) Options must be multi-word, plausible, parallel in length/style, and have exactly one correct answer.
-7) False options may use Jake, Alice, Tasha, Lucia, Katrina, or Shure when helpful, please refer to guideline 3) for name requirement.
-8) The gaze input is provided as <gaze_coordinate>, a 2D image coordinate (x, y) indicating the user's attended area. Ask questions about visible objects, regions, or actions near what the user attended to.
-9) single_user_answerability must be an object with one entry for each required user, and each entry must explicitly say "insufficient because ...".
-10) combined_answerability must explicitly say "sufficient because ..." and explain why the combined videos support the correct option.
+
 
 {example_block}
 
@@ -201,29 +193,6 @@ Return every check in the JSON schema. Judge all checks, but focus most carefull
 Brief checks:
 1. first_person_naturalness: natural first-person memory/AR-assistant wording.
 2. agent_perspective: no dataset-observer wording and no video/footage/recording/frame/camera/clip/timestamp in the question or options.
-3. source_scope: answerable from provided raw videos and metadata only.
-4. question_type_semantics: commonality means shared/jointly verified; difference means meaningful asymmetry or complementary detail.
-6. visual_grounding: correct option and evidence claims are visually grounded in concrete moments.
-7. mcq_option_quality: exactly five plausible options and exactly one correct answer.
-8. gaze_safety: do not invent exact gaze-to-object claims when 2D gaze is unavailable.
-9. human_auditability: enough user/video/time evidence exists for a human to inspect later.
-
-Main check, 5. multi_video_necessity:
-- Judge whether the QA has a situated cross-video dependency, not just two synchronized clips.
-- PASS only if one required user's video provides a speaker-side anchor event and another required user's video provides a missing visual detail that is simultaneous, follow-up, or otherwise naturally related.
-- PASS only if both videos are necessary: removing either user's video would make the question unanswerable or would leave more than one plausible option.
-- PASS only if the connection would be a plausible memory or AR-assistant question from someone involved in the situation.
-- FAIL if the question merely stitches together two clips because they share a time interval.
-- FAIL if the activities are unrelated, such as one person discussing/checking a device while another person is washing dishes, unless the question identifies a concrete shared task or natural dependency.
-- FAIL if the question asks what both users saw, both noticed, or both looked at; do not ask what both users saw or noticed because one user may not know the other user's perception.
-- FAIL if the question is a generic comparison of two views, rooms, or camera angles rather than a speaker anchor plus missing visual detail.
-- FAIL if a single user's video already reveals the correct answer.
-- UNCERTAIN if the videos do not clearly show the anchor, the missing visual detail, or the relation between them.
-- In the reason, explicitly name the speaker-side anchor, the missing visual detail, and why the second video is or is not needed.
-
-Contrastive example for multi_video_necessity:
-- PASS: One video shows the speaker checking a setup and leaving toward a stairwell; another video still shows the front of that room where a tutorial continues. A good question asks what was still happening after the speaker left. The first video gives the anchor; the second supplies the missing follow-up detail.
-- FAIL: One video shows someone discussing/checking a device setup while another shows dishwashing. If no shared task or natural dependency is visible, this is only timestamp alignment and should fail.
 
 Use FAIL for a clear violation, UNCERTAIN when the videos do not provide enough evidence to verify the check, and PASS only when the dimension is satisfied.
 
