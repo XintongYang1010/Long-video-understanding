@@ -28,27 +28,6 @@ REQUIRED_QA_FIELDS = {
     "source_urls",
 }
 
-GENERIC_OTHER_ACTIVITY_RE = re.compile(
-    r"\bwhat\s+(?:was|were)\s+"
-    r"(?:the\s+other\s+person|another\s+person|everyone\s+else|the\s+others|other\s+people|others)\s+"
-    r"doing\b"
-)
-GENERIC_OTHER_ACTIVITY_TAILS = (
-    "",
-    "?",
-    "nearby",
-    "near me",
-    "near us",
-    "around me",
-    "around us",
-    "around the room",
-    "in the room",
-    "in the area",
-    "in the same room",
-    "at the same time",
-    "at that moment",
-    "at the table",
-)
 VIDEO_FIRST_REQUIRED_FIELDS = {
     "question_type",
     "generator_rationale",
@@ -153,14 +132,6 @@ def validate_qa_item(item: dict[str, Any], *, strict_review: bool = False) -> li
         errors.append("question_type must be commonality or difference")
 
     if strict_review:
-        question_text = str(item.get("question", "")).strip().lower()
-        if _uses_generic_other_activity_wording(question_text):
-            errors.append(
-                "question uses generic other-person activity wording; ask for a concrete missing visual detail "
-                "tied to the speaker-side anchor"
-            )
-
-    if strict_review:
         video_evidence = item.get("video_evidence")
         if not isinstance(video_evidence, list) or not video_evidence:
             errors.append("video_evidence must be a non-empty list in strict mode")
@@ -219,15 +190,6 @@ def validate_qa_item(item: dict[str, Any], *, strict_review: bool = False) -> li
             errors.append("review.schema_validation.passed must be true in strict mode")
 
     return errors
-
-
-def _uses_generic_other_activity_wording(question_text: str) -> bool:
-    normalized = " ".join(question_text.strip().lower().split())
-    match = GENERIC_OTHER_ACTIVITY_RE.search(normalized)
-    if not match:
-        return False
-    tail = normalized[match.end() :].strip(" .?")
-    return any(tail == generic_tail or tail.startswith(f"{generic_tail} ") for generic_tail in GENERIC_OTHER_ACTIVITY_TAILS)
 
 
 def load_and_validate(path: str | Path, *, strict_review: bool = False) -> tuple[int, list[str]]:

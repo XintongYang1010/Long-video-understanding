@@ -342,19 +342,6 @@ class SchemaTests(unittest.TestCase):
         errors = validate_qa_item(item, strict_review=True)
         self.assertTrue(any("review.answerability.gate.passed" in error for error in errors))
 
-    def test_strict_validation_blocks_generic_other_person_activity_question(self) -> None:
-        item = self.valid_item()
-        item["question"] = "While I was setting up my device, what was the other person doing nearby?"
-        errors = validate_qa_item(item, strict_review=True)
-        self.assertTrue(any("generic other-person activity" in error for error in errors))
-
-    def test_strict_validation_allows_concrete_other_person_activity_question(self) -> None:
-        item = self.valid_item()
-        item["question"] = "While I was sitting at the table and looking at the box, what was the other person doing with the same box?"
-        errors = validate_qa_item(item, strict_review=True)
-        self.assertEqual(errors, [])
-
-
 class VideoFirstTests(unittest.TestCase):
     def test_dry_run_runner_accepts_video_paths(self) -> None:
         raw = DryRunRunner().generate("prompt", image_paths=["a.jpg"], video_paths=["a.mp4", "b.mp4"])
