@@ -9,6 +9,7 @@ import os
 import time
 import urllib.request
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Protocol
 
 
@@ -59,6 +60,65 @@ def normalize_video_kwargs(video_kwargs: dict[str, Any]) -> dict[str, Any]:
         fps_values = normalized["fps"]
         normalized["fps"] = fps_values[0] if fps_values else 1.0
     return normalized
+
+
+def coerce_video_metadata(value: Any) -> Any:
+    """Return a Transformers-compatible video metadata object when possible."""
+
+    if not isinstance(value, dict):
+        return value
+    frames_indices = value.get("frames_indices")
+    if frames_indices is not None:
+        frames_indices = list(frames_indices)
+    total_num_frames = value.get("total_num_frames")
+    if total_num_frames is None and frames_indices is not None:
+        total_num_frames = len(frames_indices)
+    try:
+        total_num_frames = int(round(float(total_num_frames)))
+    except (TypeError, ValueError):
+        total_num_frames = 0
+    kwargs = {
+        "total_num_frames": total_num_frames,
+        "fps": value.get("fps"),
+        "width": value.get("width"),
+        "height": value.get("height"),
+        "duration": value.get("duration"),
+        "video_backend": value.get("video_backend"),
+        "frames_indices": frames_indices,
+    }
+    try:
+        from transformers.video_utils import VideoMetadata
+
+        return VideoMetadata(**kwargs)
+    except Exception:
+        return SimpleNamespace(**kwargs)
+
+
+def split_video_inputs_and_metadata(
+    video_inputs: Any,
+    video_kwargs: dict[str, Any],
+) -> tuple[Any, dict[str, Any]]:
+    """Split qwen-vl-utils ``(video, metadata)`` pairs for Qwen3-VL processors."""
+
+    if video_inputs is None:
+        return video_inputs, normalize_video_kwargs(video_kwargs)
+    normalized_kwargs = normalize_video_kwargs(video_kwargs)
+    fixed_video_inputs = []
+    metadata_rows = []
+    found_metadata = False
+    for item in video_inputs:
+        if isinstance(item, tuple) and len(item) == 2:
+            video, metadata = item
+            fixed_video_inputs.append(video)
+            metadata_rows.append(coerce_video_metadata(metadata))
+            found_metadata = True
+        else:
+            fixed_video_inputs.append(item)
+            metadata_rows.append(None)
+    if found_metadata:
+        normalized_kwargs["video_metadata"] = metadata_rows
+        normalized_kwargs["return_metadata"] = True
+    return fixed_video_inputs, normalized_kwargs
 
 
 def load_transformers_model(model_id: str, dtype: str = "bfloat16"):
@@ -177,7 +237,7 @@ class Qwen3VLTransformersRunner:
                 video_kwargs = {}
         vision_seconds = time.time() - start
         print(f"qwen_vision_processed_seconds={vision_seconds:.1f}", flush=True)
-        video_kwargs = normalize_video_kwargs(video_kwargs)
+        video_inputs, video_kwargs = split_video_inputs_and_metadata(video_inputs, video_kwargs)
         inputs = self.processor(
             text=[text],
             images=image_inputs,

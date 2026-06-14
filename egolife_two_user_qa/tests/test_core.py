@@ -10,7 +10,7 @@ from egolife_two_user_qa.evidence import group_manifest_clips, summarize_gaze_cs
 from egolife_two_user_qa.gaze_projection import gaussian_bbox_score, load_aria_projection_calibration, project_gaze_row
 from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_token
 from egolife_two_user_qa.prompts import build_video_generation_prompt
-from egolife_two_user_qa.qwen3vl_runner import DryRunRunner, normalize_video_kwargs
+from egolife_two_user_qa.qwen3vl_runner import DryRunRunner, normalize_video_kwargs, split_video_inputs_and_metadata
 from egolife_two_user_qa.schema import extract_json_object, validate_qa_item
 from egolife_two_user_qa.video_qa_loop import (
     answerability_gate,
@@ -353,6 +353,16 @@ class VideoFirstTests(unittest.TestCase):
         self.assertEqual(normalize_video_kwargs({"fps": [1.0, 1.0]})["fps"], 1.0)
         self.assertEqual(normalize_video_kwargs({"fps": []})["fps"], 1.0)
         self.assertEqual(normalize_video_kwargs({"fps": 2.0})["fps"], 2.0)
+
+    def test_split_video_inputs_and_metadata(self) -> None:
+        video = object()
+        metadata = {"fps": 30.0, "frames_indices": [0, 15], "total_num_frames": 60}
+        videos, kwargs = split_video_inputs_and_metadata([(video, metadata)], {"fps": [1.0]})
+        self.assertEqual(videos, [video])
+        self.assertTrue(kwargs["return_metadata"])
+        self.assertEqual(kwargs["fps"], 1.0)
+        self.assertEqual(kwargs["video_metadata"][0].fps, 30.0)
+        self.assertEqual(kwargs["video_metadata"][0].frames_indices, [0, 15])
 
     def test_video_generation_prompt_does_not_use_observation(self) -> None:
         packet = {
