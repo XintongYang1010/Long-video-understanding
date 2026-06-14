@@ -148,17 +148,35 @@ class Qwen3VLTransformersRunner:
         )
         content.append({"type": "text", "text": prompt})
         messages = [{"role": "user", "content": content}]
+        start = time.time()
+        print(
+            "qwen_generate_start "
+            f"images={len(image_paths)} videos={len(video_paths)} prompt_chars={len(prompt)}",
+            flush=True,
+        )
         text = self.processor.apply_chat_template(
             messages,
             tokenize=False,
             add_generation_prompt=True,
         )
         try:
-            vision_info = self.process_vision_info(messages, return_video_kwargs=True)
+            vision_info = self.process_vision_info(
+                messages,
+                return_video_kwargs=True,
+                return_video_metadata=True,
+            )
             image_inputs, video_inputs, video_kwargs = vision_info
         except TypeError:
-            image_inputs, video_inputs = self.process_vision_info(messages)
-            video_kwargs = {}
+            try:
+                image_inputs, video_inputs, video_kwargs = self.process_vision_info(
+                    messages,
+                    return_video_kwargs=True,
+                )
+            except TypeError:
+                image_inputs, video_inputs = self.process_vision_info(messages)
+                video_kwargs = {}
+        vision_seconds = time.time() - start
+        print(f"qwen_vision_processed_seconds={vision_seconds:.1f}", flush=True)
         video_kwargs = normalize_video_kwargs(video_kwargs)
         inputs = self.processor(
             text=[text],
@@ -168,12 +186,25 @@ class Qwen3VLTransformersRunner:
             return_tensors="pt",
             **video_kwargs,
         ).to(self.device)
+        encode_seconds = time.time() - start
+        input_tokens = int(inputs.input_ids.shape[-1]) if hasattr(inputs, "input_ids") else -1
+        print(
+            f"qwen_processor_encoded_seconds={encode_seconds:.1f} input_tokens={input_tokens}",
+            flush=True,
+        )
         with self.torch.inference_mode():
             generated = self.model.generate(
                 **inputs,
                 max_new_tokens=self.max_new_tokens,
                 do_sample=False,
             )
+        total_seconds = time.time() - start
+        output_tokens = int(generated.shape[-1] - inputs.input_ids.shape[-1])
+        print(
+            f"qwen_model_generate_seconds={total_seconds - encode_seconds:.1f} "
+            f"total_seconds={total_seconds:.1f} output_tokens={output_tokens}",
+            flush=True,
+        )
         trimmed = [
             out_ids[len(in_ids) :]
             for in_ids, out_ids in zip(inputs.input_ids, generated)

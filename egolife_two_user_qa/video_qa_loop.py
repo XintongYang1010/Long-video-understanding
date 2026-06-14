@@ -4,13 +4,30 @@ from __future__ import annotations
 
 import argparse
 import itertools
+import time
 from pathlib import Path
 from typing import Any
 
-from .io_utils import iter_jsonl, write_jsonl
+from .io_utils import append_jsonl, iter_jsonl, write_jsonl
 from .prompts import build_answerability_prompt, build_judger_prompt, build_video_generation_prompt
 from .qwen3vl_runner import DEFAULT_MODEL_ID, make_runner
 from .schema import OPTION_LETTERS, extract_json_object, normalize_correct, validate_qa_item
+
+
+class StreamingJsonlRows(list[dict[str, Any]]):
+    """Keep an in-memory row list while also flushing each row to disk."""
+
+    def __init__(self, path: str | Path | None) -> None:
+        super().__init__()
+        self.path = Path(path) if path else None
+        if self.path:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            self.path.write_text("", encoding="utf-8")
+
+    def append(self, row: dict[str, Any]) -> None:
+        super().append(row)
+        if self.path:
+            append_jsonl(self.path, row)
 
 
 QUESTION_TYPES = ("commonality", "difference")
@@ -488,7 +505,21 @@ def run_answerability_eval(
                 ),
             }
         )
+        stage_start = time.time()
+        print(
+            "qa_stage_start "
+            f"stage=answerability qa_id={qa_item.get('qa_id')} "
+            f"condition_id={condition['condition_id']} "
+            f"images={len(image_paths)} videos={len(video_paths)}",
+            flush=True,
+        )
         raw = runner.generate(prompt, image_paths=image_paths, video_paths=video_paths)
+        print(
+            "qa_stage_done "
+            f"stage=answerability qa_id={qa_item.get('qa_id')} "
+            f"condition_id={condition['condition_id']} seconds={time.time() - stage_start:.1f}",
+            flush=True,
+        )
         try:
             answer = extract_json_object(raw)
         except Exception as exc:
@@ -545,12 +576,15 @@ def generate_video_qa_loop(
         allow_cpu=allow_cpu,
         allow_openai_video_input=allow_openai_video_input,
     )
-    prompts = []
-    intermediate_rows = []
+    prompts = StreamingJsonlRows(prompts_path)
+    intermediate_rows = StreamingJsonlRows(intermediate_path)
     accepted: list[dict[str, Any]] = []
     rejected: list[dict[str, Any]] = []
     targets = target_type_counts(target_count)
     counts = {question_type: 0 for question_type in QUESTION_TYPES}
+    write_jsonl(output_path, [])
+    if rejected_path:
+        write_jsonl(rejected_path, [])
 
     for packet in iter_jsonl(evidence_path):
         if len(accepted) >= target_count:
@@ -678,7 +712,22 @@ def generate_video_qa_loop(
                     "video_paths": video_paths,
                 }
             )
+            stage_start = time.time()
+            print(
+                "qa_stage_start "
+                f"stage=generation evidence_id={packet.get('evidence_id')} "
+                f"question_type={question_type} attempt={attempt} "
+                f"images={len(image_paths)} videos={len(video_paths)}",
+                flush=True,
+            )
             raw_generation = runner.generate(gen_prompt, image_paths=image_paths, video_paths=video_paths)
+            print(
+                "qa_stage_done "
+                f"stage=generation evidence_id={packet.get('evidence_id')} "
+                f"question_type={question_type} attempt={attempt} "
+                f"seconds={time.time() - stage_start:.1f}",
+                flush=True,
+            )
             attempt_trace["generation"]["raw_output"] = raw_generation
             try:
                 qa = extract_json_object(raw_generation)
@@ -757,7 +806,22 @@ def generate_video_qa_loop(
                     "video_paths": video_paths,
                 }
             )
+            stage_start = time.time()
+            print(
+                "qa_stage_start "
+                f"stage=judge evidence_id={packet.get('evidence_id')} "
+                f"qa_id={qa.get('qa_id')} attempt={attempt} "
+                f"images={len(image_paths)} videos={len(video_paths)}",
+                flush=True,
+            )
             raw_judge = runner.generate(judge_prompt, image_paths=image_paths, video_paths=video_paths)
+            print(
+                "qa_stage_done "
+                f"stage=judge evidence_id={packet.get('evidence_id')} "
+                f"qa_id={qa.get('qa_id')} attempt={attempt} "
+                f"seconds={time.time() - stage_start:.1f}",
+                flush=True,
+            )
             attempt_trace["judge"]["raw_output"] = raw_judge
             try:
                 judge = extract_json_object(raw_judge)
