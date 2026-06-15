@@ -15,7 +15,10 @@ from egolife_two_user_qa.schema import extract_json_object, validate_qa_item, wr
 from egolife_two_user_qa.video_qa_loop import (
     answerability_gate,
     build_review_from_gates,
+    choose_question_design,
     complete_generator_metadata,
+    DESIGN_CELLS,
+    design_cell_key,
     dry_run_qa,
     judge_gate,
     qa_for_judger_prompt,
@@ -413,6 +416,33 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("single_user_answerability", prompt)
         self.assertIn("combined_answerability", prompt)
         self.assertIn("why_two_users_needed", prompt)
+        self.assertIn("Assigned diversity design cell", prompt)
+        self.assertIn("content_category", prompt)
+        self.assertIn("added_agent_utility", prompt)
+        self.assertIn("question_style", prompt)
+        self.assertIn("What...", prompt)
+        self.assertIn("Required wording shape", prompt)
+        self.assertIn("single-user trap", prompt)
+        self.assertIn("the speaker's exact object/action/phase", prompt)
+        self.assertIn("offscreen", prompt)
+        self.assertIn("Do not fall back to the plain", prompt)
+        prompt_with_context = build_video_generation_prompt(
+            packet,
+            "commonality",
+            accepted_context=[
+                {
+                    "question_type": "commonality",
+                    "content_category": "social_interaction",
+                    "added_agent_utility": "social_reaction",
+                    "question_style": "social_response",
+                    "question": "Who reacted when I was writing on the whiteboard, and how?",
+                }
+            ],
+        )
+        self.assertIn("Already accepted QA diversity context", prompt_with_context)
+        self.assertIn("Do not reuse an already accepted question", prompt_with_context)
+        self.assertIn("Who reacted when I was writing on the whiteboard, and how?", prompt_with_context)
+        self.assertIn("avoid the bare template", prompt_with_context)
 
     def test_complete_generator_metadata_repairs_old_generator_shape(self) -> None:
         packet = {"required_users": ["Jake", "Alice"]}
@@ -434,12 +464,54 @@ class VideoFirstTests(unittest.TestCase):
             "model_id": "dry-run",
             "source_urls": {},
         }
-        complete_generator_metadata(qa, packet=packet, question_type="commonality")
+        design_cell = {
+            "question_type": "commonality",
+            "content_category": "temporal_reasoning",
+            "added_agent_utility": "offscreen_followup",
+            "reasoning_pattern": "anchor_to_missing_state",
+            "question_style": "memory_gap",
+        }
+        complete_generator_metadata(qa, packet=packet, question_type="commonality", design_cell=design_cell)
         self.assertEqual(qa["answer"], "food prep")
         self.assertEqual(qa["question_type"], "commonality")
+        self.assertEqual(qa["content_category"], "temporal_reasoning")
+        self.assertEqual(qa["category"], "temporal_reasoning")
+        self.assertEqual(qa["added_agent_utility"], "offscreen_followup")
+        self.assertEqual(qa["reasoning_pattern"], "anchor_to_missing_state")
+        self.assertEqual(qa["question_style"], "memory_gap")
+        self.assertEqual(qa["design_cell"], design_cell)
         self.assertIn("insufficient", qa["single_user_answerability"]["Jake"])
         self.assertIn("sufficient", qa["combined_answerability"])
         self.assertEqual(validate_qa_item(qa), [])
+
+    def test_choose_question_design_cycles_diversity_cells_without_changing_type_targets(self) -> None:
+        targets = {"commonality": 2, "difference": 2}
+        counts = {"commonality": 0, "difference": 0}
+        design_counts = {}
+        first = choose_question_design(counts, targets, design_counts)
+        self.assertIsNotNone(first)
+        self.assertEqual(first["question_type"], "commonality")
+        design_counts["|".join(first.values())] = 1
+        self.assertIn(first, DESIGN_CELLS)
+        second = choose_question_design(counts, targets, design_counts)
+        self.assertIsNotNone(second)
+        self.assertEqual(second["question_type"], "difference")
+
+    def test_choose_question_design_prefers_unaccepted_cells_within_type(self) -> None:
+        targets = {"commonality": 2, "difference": 0}
+        counts = {"commonality": 0, "difference": 0}
+        accepted_design_counts = {design_cell_key(DESIGN_CELLS[0]): 1}
+        accepted_style_counts = {DESIGN_CELLS[0]["question_style"]: 1}
+        choice = choose_question_design(
+            counts,
+            targets,
+            design_counts={},
+            accepted_design_counts=accepted_design_counts,
+            accepted_style_counts=accepted_style_counts,
+        )
+        self.assertIsNotNone(choice)
+        self.assertEqual(choice["question_type"], "commonality")
+        self.assertNotEqual(choice, DESIGN_CELLS[0])
 
     def test_answerability_gate_requires_combined_correct_and_singles_not_correct(self) -> None:
         qa = {"correct": "A"}
