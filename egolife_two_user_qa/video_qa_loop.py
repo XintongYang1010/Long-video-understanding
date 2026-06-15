@@ -31,6 +31,78 @@ class StreamingJsonlRows(list[dict[str, Any]]):
 
 
 QUESTION_TYPES = ("commonality", "difference")
+DESIGN_CELLS: tuple[dict[str, str], ...] = (
+    {
+        "question_type": "commonality",
+        "content_category": "temporal_reasoning",
+        "added_agent_utility": "offscreen_followup",
+        "reasoning_pattern": "anchor_to_missing_state",
+        "question_style": "memory_gap",
+    },
+    {
+        "question_type": "commonality",
+        "content_category": "temporal_reasoning",
+        "added_agent_utility": "simultaneous_elsewhere",
+        "reasoning_pattern": "simultaneity",
+        "question_style": "simultaneity",
+    },
+    {
+        "question_type": "commonality",
+        "content_category": "task_coordination",
+        "added_agent_utility": "handoff_chain",
+        "reasoning_pattern": "handoff",
+        "question_style": "handoff",
+    },
+    {
+        "question_type": "commonality",
+        "content_category": "environmental_interaction",
+        "added_agent_utility": "object_state_change",
+        "reasoning_pattern": "object_state_change",
+        "question_style": "object_state",
+    },
+    {
+        "question_type": "commonality",
+        "content_category": "social_interaction",
+        "added_agent_utility": "social_reaction",
+        "reasoning_pattern": "social_response",
+        "question_style": "social_response",
+    },
+    {
+        "question_type": "difference",
+        "content_category": "environmental_interaction",
+        "added_agent_utility": "visual_disambiguation",
+        "reasoning_pattern": "visual_detail_resolution",
+        "question_style": "disambiguation",
+    },
+    {
+        "question_type": "difference",
+        "content_category": "task_coordination",
+        "added_agent_utility": "role_or_task_split",
+        "reasoning_pattern": "role_attribution",
+        "question_style": "role_split",
+    },
+    {
+        "question_type": "difference",
+        "content_category": "theory_of_mind",
+        "added_agent_utility": "visual_disambiguation",
+        "reasoning_pattern": "verification",
+        "question_style": "verification",
+    },
+    {
+        "question_type": "difference",
+        "content_category": "temporal_reasoning",
+        "added_agent_utility": "offscreen_followup",
+        "reasoning_pattern": "before_after_outcome",
+        "question_style": "follow_up",
+    },
+    {
+        "question_type": "difference",
+        "content_category": "environmental_interaction",
+        "added_agent_utility": "object_state_change",
+        "reasoning_pattern": "object_state_change",
+        "question_style": "object_state",
+    },
+)
 BLOCKING_JUDGE_CHECKS = (
     "first_person_naturalness",
     "agent_perspective",
@@ -134,13 +206,29 @@ def complete_generator_metadata(
     *,
     packet: dict[str, Any],
     question_type: str,
+    design_cell: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Fill review metadata that the generator may omit before the real gates run."""
 
     required_users = list(packet.get("required_users") or qa.get("required_users") or [])
     qa["question_type"] = question_type
     qa["required_users"] = required_users
-    qa.setdefault("category", "environmental_interaction")
+    if design_cell:
+        content_category = (
+            qa.get("content_category")
+            or qa.get("category")
+            or design_cell.get("content_category", "environmental_interaction")
+        )
+        qa["content_category"] = content_category
+        qa["category"] = content_category
+        qa.setdefault("added_agent_utility", design_cell.get("added_agent_utility", ""))
+        qa.setdefault("reasoning_pattern", design_cell.get("reasoning_pattern", ""))
+        qa.setdefault("question_style", design_cell.get("question_style", ""))
+        qa["design_cell"] = dict(design_cell)
+    else:
+        content_category = qa.get("content_category") or qa.get("category") or "environmental_interaction"
+        qa["content_category"] = content_category
+        qa["category"] = content_category
     qa.setdefault("referred_timestamps", [])
     if not isinstance(qa.get("referred_timestamps"), list):
         qa["referred_timestamps"] = []
@@ -237,7 +325,12 @@ def qa_for_judger_prompt(qa: dict[str, Any]) -> dict[str, Any]:
         "options",
         "correct",
         "answer",
+        "content_category",
         "category",
+        "added_agent_utility",
+        "reasoning_pattern",
+        "question_style",
+        "design_cell",
         "required_users",
         "evidence",
         "single_user_answerability",
@@ -271,6 +364,56 @@ def choose_question_type(counts: dict[str, int], targets: dict[str, int]) -> str
     if not remaining:
         return None
     return sorted(remaining.items(), key=lambda item: (-item[1], item[0]))[0][0]
+
+
+def design_cell_key(design_cell: dict[str, str]) -> str:
+    return "|".join(
+        [
+            design_cell.get("question_type", ""),
+            design_cell.get("content_category", ""),
+            design_cell.get("added_agent_utility", ""),
+            design_cell.get("reasoning_pattern", ""),
+            design_cell.get("question_style", ""),
+        ]
+    )
+
+
+def choose_question_design(
+    counts: dict[str, int],
+    targets: dict[str, int],
+    design_counts: dict[str, int],
+) -> dict[str, str] | None:
+    remaining = {
+        question_type: targets[question_type] - counts.get(question_type, 0)
+        for question_type in QUESTION_TYPES
+    }
+    remaining = {key: value for key, value in remaining.items() if value > 0}
+    if not remaining:
+        return None
+    attempted_by_type = {question_type: 0 for question_type in QUESTION_TYPES}
+    for key, value in design_counts.items():
+        question_type = key.split("|", 1)[0]
+        if question_type in attempted_by_type:
+            attempted_by_type[question_type] += value
+    question_type = min(
+        remaining,
+        key=lambda item: (
+            attempted_by_type.get(item, 0) / max(targets.get(item, 1), 1),
+            -remaining[item],
+            QUESTION_TYPES.index(item),
+        ),
+    )
+    candidates = [cell for cell in DESIGN_CELLS if cell["question_type"] == question_type]
+    if not candidates:
+        return {"question_type": question_type}
+    indexed_candidates = [(DESIGN_CELLS.index(cell), cell) for cell in candidates]
+    return min(
+        indexed_candidates,
+        key=lambda item: (
+            design_counts.get(design_cell_key(item[1]), 0),
+            item[0],
+        ),
+    )[1]
 
 
 def build_answerability_conditions(required_users: list[str]) -> list[dict[str, Any]]:
@@ -444,8 +587,13 @@ def build_review_from_gates(
     }
 
 
-def dry_run_qa(packet: dict[str, Any], question_type: str) -> dict[str, Any]:
+def dry_run_qa(
+    packet: dict[str, Any],
+    question_type: str,
+    design_cell: dict[str, str] | None = None,
+) -> dict[str, Any]:
     users = packet.get("required_users", [])[:2]
+    design_cell = dict(design_cell or {"question_type": question_type})
     return {
         "qa_id": f"DRYRUN_{packet.get('evidence_id')}_{question_type}",
         "question_type": question_type,
@@ -453,7 +601,12 @@ def dry_run_qa(packet: dict[str, Any], question_type: str) -> dict[str, Any]:
         "options": ["Option A", "Option B", "Option C", "Option D", "Option E"],
         "correct": "A",
         "answer": "Option A",
-        "category": "environmental_interaction",
+        "content_category": design_cell.get("content_category", "environmental_interaction"),
+        "category": design_cell.get("content_category", "environmental_interaction"),
+        "added_agent_utility": design_cell.get("added_agent_utility", ""),
+        "reasoning_pattern": design_cell.get("reasoning_pattern", ""),
+        "question_style": design_cell.get("question_style", ""),
+        "design_cell": design_cell,
         "required_users": users,
         "evidence": [{"user": user, "needed_fact": "dry-run video evidence", "frames_used": []} for user in users],
         "single_user_answerability": {user: "insufficient in dry-run mode" for user in users},
@@ -484,6 +637,7 @@ def dry_run_qa(packet: dict[str, Any], question_type: str) -> dict[str, Any]:
                 "attempt": 0,
                 "stage": "dry_run",
                 "question_type": question_type,
+                "design_cell": design_cell,
                 "note": "No model was called; prompts and media paths were generated for plumbing validation.",
                 "media": {
                     "image_paths": [],
@@ -518,6 +672,7 @@ def run_answerability_eval(
             {
                 "stage": "answerability",
                 "qa_id": qa_item.get("qa_id"),
+                "design_cell": qa_item.get("design_cell"),
                 "condition_id": condition["condition_id"],
                 "prompt": prompt,
                 "image_paths": image_paths,
@@ -607,6 +762,7 @@ def generate_video_qa_loop(
     rejected: list[dict[str, Any]] = []
     targets = target_type_counts(target_count)
     counts = {question_type: 0 for question_type in QUESTION_TYPES}
+    design_counts: dict[str, int] = {}
     write_jsonl(output_path, [])
     if rejected_path:
         write_jsonl(rejected_path, [])
@@ -614,9 +770,11 @@ def generate_video_qa_loop(
     for packet in iter_jsonl(evidence_path):
         if len(accepted) >= target_count:
             break
-        question_type = choose_question_type(counts, targets)
-        if question_type is None:
+        design_cell = choose_question_design(counts, targets, design_counts)
+        if design_cell is None:
             break
+        design_counts[design_cell_key(design_cell)] = design_counts.get(design_cell_key(design_cell), 0) + 1
+        question_type = design_cell["question_type"]
         clips = packet.get("clips", [])
         image_paths, video_paths = media_for_clips(
             clips,
@@ -625,13 +783,14 @@ def generate_video_qa_loop(
         )
         feedback = None
         if dry_run:
-            qa = dry_run_qa(packet, question_type)
-            gen_prompt = build_video_generation_prompt(packet, question_type)
+            qa = dry_run_qa(packet, question_type, design_cell=design_cell)
+            gen_prompt = build_video_generation_prompt(packet, question_type, design_cell=design_cell)
             judge_prompt = build_judger_prompt(qa_for_judger_prompt(qa), packet)
             dry_trace = {
                 "evidence_id": packet.get("evidence_id"),
                 "qa_id": qa.get("qa_id"),
                 "question_type": question_type,
+                "design_cell": design_cell,
                 "attempt": 1,
                 "feedback_in": None,
                 "media": {
@@ -649,6 +808,7 @@ def generate_video_qa_loop(
                     "stage": "generation",
                     "evidence_id": packet.get("evidence_id"),
                     "question_type": question_type,
+                    "design_cell": design_cell,
                     "attempt": 1,
                     "prompt": gen_prompt,
                     "image_paths": image_paths,
@@ -660,6 +820,7 @@ def generate_video_qa_loop(
                     "stage": "judge",
                     "evidence_id": packet.get("evidence_id"),
                     "question_type": question_type,
+                    "design_cell": design_cell,
                     "attempt": 1,
                     "prompt": judge_prompt,
                     "image_paths": image_paths,
@@ -678,6 +839,7 @@ def generate_video_qa_loop(
                         "stage": "answerability",
                         "evidence_id": packet.get("evidence_id"),
                         "question_type": question_type,
+                        "design_cell": design_cell,
                         "condition_id": condition["condition_id"],
                         "prompt": build_answerability_prompt(qa, condition),
                         "image_paths": cond_images,
@@ -709,10 +871,16 @@ def generate_video_qa_loop(
         packet_trace = []
         last_review = None
         for attempt in range(1, max_attempts + 1):
-            gen_prompt = build_video_generation_prompt(packet, question_type, feedback=feedback)
+            gen_prompt = build_video_generation_prompt(
+                packet,
+                question_type,
+                feedback=feedback,
+                design_cell=design_cell,
+            )
             attempt_trace: dict[str, Any] = {
                 "evidence_id": packet.get("evidence_id"),
                 "question_type": question_type,
+                "design_cell": design_cell,
                 "attempt": attempt,
                 "feedback_in": feedback,
                 "media": {
@@ -731,6 +899,7 @@ def generate_video_qa_loop(
                     "stage": "generation",
                     "evidence_id": packet.get("evidence_id"),
                     "question_type": question_type,
+                    "design_cell": design_cell,
                     "attempt": attempt,
                     "prompt": gen_prompt,
                     "image_paths": image_paths,
@@ -772,6 +941,11 @@ def generate_video_qa_loop(
                 "answer": qa.get("answer"),
                 "required_users": qa.get("required_users"),
                 "question_type": qa.get("question_type"),
+                "content_category": qa.get("content_category"),
+                "category": qa.get("category"),
+                "added_agent_utility": qa.get("added_agent_utility"),
+                "reasoning_pattern": qa.get("reasoning_pattern"),
+                "question_style": qa.get("question_style"),
                 "generator_rationale": qa.get("generator_rationale"),
                 "why_two_users_needed": qa.get("why_two_users_needed"),
                 "per_user_evidence_claims": qa.get("per_user_evidence_claims"),
@@ -789,10 +963,20 @@ def generate_video_qa_loop(
             qa["attempt_count"] = attempt
             qa.pop("judge_feedback", None)
             qa.pop("answerability_eval", None)
-            complete_generator_metadata(qa, packet=packet, question_type=question_type)
+            complete_generator_metadata(
+                qa,
+                packet=packet,
+                question_type=question_type,
+                design_cell=design_cell,
+            )
             attempt_trace["generation"]["normalized_qa"] = {
                 "qa_id": qa.get("qa_id"),
+                "content_category": qa.get("content_category"),
                 "category": qa.get("category"),
+                "added_agent_utility": qa.get("added_agent_utility"),
+                "reasoning_pattern": qa.get("reasoning_pattern"),
+                "question_style": qa.get("question_style"),
+                "design_cell": qa.get("design_cell"),
                 "single_user_answerability": qa.get("single_user_answerability"),
                 "combined_answerability": qa.get("combined_answerability"),
                 "generator_rationale": qa.get("generator_rationale"),
@@ -825,6 +1009,7 @@ def generate_video_qa_loop(
                     "stage": "judge",
                     "evidence_id": packet.get("evidence_id"),
                     "question_type": question_type,
+                    "design_cell": design_cell,
                     "attempt": attempt,
                     "prompt": judge_prompt,
                     "image_paths": image_paths,
@@ -934,6 +1119,7 @@ def generate_video_qa_loop(
                     "evidence_id": packet.get("evidence_id"),
                     "qa_id": qa.get("qa_id"),
                     "question_type": question_type,
+                    "design_cell": design_cell,
                     "status": "accepted",
                     "attempts": packet_trace,
                 }
@@ -944,6 +1130,7 @@ def generate_video_qa_loop(
             rejected_row = {
                 "evidence_id": packet.get("evidence_id"),
                 "question_type": question_type,
+                "design_cell": design_cell,
                 "attempts": packet_rejections,
                 "generation_trace": packet_trace,
                 "human_audit": human_audit_packet(packet),
