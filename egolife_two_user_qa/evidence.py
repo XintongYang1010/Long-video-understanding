@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 import csv
 import itertools
+import math
+import random
 import shutil
 import statistics
 import subprocess
@@ -20,8 +22,10 @@ from .gaze_projection import (
     summarize_projected_gaze,
 )
 from .io_utils import download_file, read_json, stable_id, write_jsonl
+from .manifest import seconds_from_time_token
 
 PAIR_STRATEGIES = ("first", "balanced")
+GROUP_STRATEGIES = ("chronological", "time_stratified", "random")
 
 
 def group_manifest_clips(manifest: dict[str, Any]) -> list[dict[str, Any]]:
@@ -44,6 +48,143 @@ def group_manifest_clips(manifest: dict[str, Any]) -> list[dict[str, Any]]:
             }
         )
     return groups
+
+
+def _group_clock_seconds(group: dict[str, Any]) -> float | None:
+    try:
+        return seconds_from_time_token(str(group.get("time_token", "")))
+    except ValueError:
+        return None
+
+
+def _passes_min_gap(
+    group: dict[str, Any],
+    selected: list[dict[str, Any]],
+    min_clock_gap_seconds: float,
+) -> bool:
+    if min_clock_gap_seconds <= 0:
+        return True
+    seconds = _group_clock_seconds(group)
+    if seconds is None:
+        return True
+    day = group.get("day")
+    for other in selected:
+        if other.get("day") != day:
+            continue
+        other_seconds = _group_clock_seconds(other)
+        if other_seconds is None:
+            continue
+        if abs(seconds - other_seconds) < min_clock_gap_seconds:
+            return False
+    return True
+
+
+def _prefix_spread_order(length: int) -> list[int]:
+    """Return indices in a quantile-spread order so early prefixes cover time."""
+
+    if length <= 0:
+        return []
+    order = [0]
+    if length > 1:
+        order.append(length - 1)
+    seen = set(order)
+    denominator = 2
+    while len(order) < length:
+        for numerator in range(1, denominator, 2):
+            index = round((length - 1) * numerator / denominator)
+            if index not in seen:
+                order.append(index)
+                seen.add(index)
+                if len(order) >= length:
+                    break
+        denominator *= 2
+    return order
+
+
+def _choose_from_bin(
+    groups: list[dict[str, Any]],
+    indices: list[int],
+    selected: list[dict[str, Any]],
+    rng: random.Random,
+    min_clock_gap_seconds: float,
+) -> int | None:
+    if not indices:
+        return None
+    center = indices[len(indices) // 2]
+    candidates = sorted(indices, key=lambda idx: (abs(idx - center), rng.random()))
+    for index in candidates:
+        if _passes_min_gap(groups[index], selected, min_clock_gap_seconds):
+            return index
+    return None
+
+
+def order_evidence_groups(
+    groups: list[dict[str, Any]],
+    *,
+    target_count: int,
+    group_strategy: str = "chronological",
+    sampling_seed: int = 0,
+    min_clock_gap_seconds: float = 0.0,
+) -> list[dict[str, Any]]:
+    if group_strategy not in GROUP_STRATEGIES:
+        raise ValueError(f"group_strategy must be one of {GROUP_STRATEGIES}")
+    if target_count <= 0:
+        return []
+    groups = list(groups)
+    if group_strategy == "chronological":
+        selected: list[dict[str, Any]] = []
+        for group in groups:
+            if len(selected) >= target_count:
+                break
+            if _passes_min_gap(group, selected, min_clock_gap_seconds):
+                selected.append(group)
+        return selected
+    if group_strategy == "random":
+        rng = random.Random(sampling_seed)
+        shuffled = list(groups)
+        rng.shuffle(shuffled)
+        selected = []
+        for group in shuffled:
+            if len(selected) >= target_count:
+                break
+            if _passes_min_gap(group, selected, min_clock_gap_seconds):
+                selected.append(group)
+        return selected
+
+    rng = random.Random(sampling_seed)
+    bin_count = min(target_count, len(groups))
+    selected_indices: list[int] = []
+    selected_groups: list[dict[str, Any]] = []
+    used_indices: set[int] = set()
+    for bin_index in range(bin_count):
+        start = math.floor(bin_index * len(groups) / bin_count)
+        end = math.floor((bin_index + 1) * len(groups) / bin_count)
+        indices = [idx for idx in range(start, end) if idx not in used_indices]
+        chosen = _choose_from_bin(groups, indices, selected_groups, rng, min_clock_gap_seconds)
+        if chosen is None:
+            continue
+        selected_indices.append(chosen)
+        used_indices.add(chosen)
+        selected_groups.append(groups[chosen])
+
+    if len(selected_indices) < target_count:
+        fallback_indices = sorted(
+            (idx for idx in range(len(groups)) if idx not in used_indices),
+            key=lambda idx: rng.random(),
+        )
+        for index in fallback_indices:
+            if len(selected_indices) >= target_count:
+                break
+            group = groups[index]
+            if not _passes_min_gap(group, selected_groups, min_clock_gap_seconds):
+                continue
+            selected_indices.append(index)
+            used_indices.add(index)
+            selected_groups.append(group)
+
+    selected_indices = sorted(selected_indices)
+    spread_order = _prefix_spread_order(len(selected_indices))
+    return [groups[selected_indices[index]] for index in spread_order]
 
 
 def _safe_rel_path(repo_path: str) -> Path:
@@ -372,19 +513,29 @@ def prepare_evidence(
     max_groups: int | None = None,
     download_media: bool = True,
     pair_strategy: str = "first",
+    group_strategy: str = "chronological",
+    sampling_seed: int = 0,
+    min_clock_gap_seconds: float = 0.0,
 ) -> list[dict[str, Any]]:
     if pair_strategy not in PAIR_STRATEGIES:
         raise ValueError(f"pair_strategy must be one of {PAIR_STRATEGIES}")
+    if group_strategy not in GROUP_STRATEGIES:
+        raise ValueError(f"group_strategy must be one of {GROUP_STRATEGIES}")
     manifest = read_json(manifest_path)
     groups = group_manifest_clips(manifest)
     if max_groups is not None:
         groups = groups[:max_groups]
+    groups = order_evidence_groups(
+        groups,
+        target_count=target_count,
+        group_strategy=group_strategy,
+        sampling_seed=sampling_seed,
+        min_clock_gap_seconds=min_clock_gap_seconds,
+    )
 
     packets = []
     pair_counts: dict[tuple[str, ...], int] = {}
     for group in groups:
-        if len(packets) >= target_count:
-            break
         packets.append(
             build_evidence_packet(
                 group,
@@ -414,6 +565,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--aria-calibration-dir")
     parser.add_argument("--max-groups", type=int)
     parser.add_argument("--pair-strategy", default="first", choices=PAIR_STRATEGIES)
+    parser.add_argument("--group-strategy", default="chronological", choices=GROUP_STRATEGIES)
+    parser.add_argument("--sampling-seed", type=int, default=0)
+    parser.add_argument("--min-clock-gap-seconds", type=float, default=0.0)
     parser.add_argument("--no-download-media", action="store_true")
     args = parser.parse_args(argv)
     packets = prepare_evidence(
@@ -428,6 +582,9 @@ def main(argv: list[str] | None = None) -> int:
         max_groups=args.max_groups,
         download_media=not args.no_download_media,
         pair_strategy=args.pair_strategy,
+        group_strategy=args.group_strategy,
+        sampling_seed=args.sampling_seed,
+        min_clock_gap_seconds=args.min_clock_gap_seconds,
     )
     print(f"wrote {len(packets)} evidence packets to {args.output}")
     return 0

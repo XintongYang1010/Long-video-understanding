@@ -7,7 +7,7 @@ from unittest import mock
 from pathlib import Path
 
 from egolife_two_user_qa.candidate_mining import mine_candidates
-from egolife_two_user_qa.evidence import choose_required_clips, group_manifest_clips, summarize_gaze_csv
+from egolife_two_user_qa.evidence import choose_required_clips, group_manifest_clips, order_evidence_groups, summarize_gaze_csv
 from egolife_two_user_qa.gaze_projection import gaussian_bbox_score, load_aria_projection_calibration, project_gaze_row
 from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_token
 from egolife_two_user_qa.prompts import build_judger_prompt, build_video_generation_prompt
@@ -145,6 +145,40 @@ class EvidenceTests(unittest.TestCase):
 
         self.assertEqual([clip["agent_dir"] for clip in first], ["A1_JAKE", "A2_ALICE"])
         self.assertEqual([clip["agent_dir"] for clip in second], ["A1_JAKE", "A3_TASHA"])
+
+    def test_time_stratified_group_strategy_spreads_early_prefix(self) -> None:
+        groups = [
+            {"day": "DAY1", "time_token": f"11{minute:02d}0000", "clips": []}
+            for minute in range(60)
+        ]
+        selected = order_evidence_groups(
+            groups,
+            target_count=12,
+            group_strategy="time_stratified",
+            sampling_seed=7,
+        )
+        first_four_minutes = [int(group["time_token"][2:4]) for group in selected[:4]]
+
+        self.assertEqual(len(selected), 12)
+        self.assertGreater(max(first_four_minutes) - min(first_four_minutes), 20)
+
+    def test_time_stratified_group_strategy_honors_min_clock_gap(self) -> None:
+        groups = [
+            {"day": "DAY1", "time_token": f"11{minute:02d}0000", "clips": []}
+            for minute in range(12)
+        ]
+        selected = order_evidence_groups(
+            groups,
+            target_count=12,
+            group_strategy="time_stratified",
+            sampling_seed=0,
+            min_clock_gap_seconds=300,
+        )
+        selected_minutes = sorted(int(group["time_token"][2:4]) for group in selected)
+
+        self.assertGreaterEqual(len(selected_minutes), 2)
+        for left, right in zip(selected_minutes, selected_minutes[1:]):
+            self.assertGreaterEqual(right - left, 5)
 
     def test_gaussian_bbox_score_prefers_near_center(self) -> None:
         near = gaussian_bbox_score((10.0, 10.0), (8.0, 8.0, 12.0, 12.0), sigma=10.0)

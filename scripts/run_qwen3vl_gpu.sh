@@ -16,6 +16,9 @@ ALLOW_OPENAI_VIDEO_INPUT=0
 GENERATION_MODE="strict_design"
 ANSWERABILITY_MODE="gate"
 PAIR_STRATEGY="first"
+GROUP_STRATEGY="chronological"
+SAMPLING_SEED=0
+MIN_CLOCK_GAP_SECONDS=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -33,6 +36,9 @@ while [[ $# -gt 0 ]]; do
     --generation-mode) GENERATION_MODE="$2"; shift 2 ;;
     --answerability-mode) ANSWERABILITY_MODE="$2"; shift 2 ;;
     --pair-strategy) PAIR_STRATEGY="$2"; shift 2 ;;
+    --group-strategy) GROUP_STRATEGY="$2"; shift 2 ;;
+    --sampling-seed) SAMPLING_SEED="$2"; shift 2 ;;
+    --min-clock-gap-seconds) MIN_CLOCK_GAP_SECONDS="$2"; shift 2 ;;
     --allow-openai-video-input) ALLOW_OPENAI_VIDEO_INPUT=1; shift ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
@@ -63,6 +69,9 @@ python -m egolife_two_user_qa prepare_evidence \
   --target-count "${EVIDENCE_TARGET_COUNT}" \
   --frames-per-clip 4 \
   --pair-strategy "${PAIR_STRATEGY}" \
+  --group-strategy "${GROUP_STRATEGY}" \
+  --sampling-seed "${SAMPLING_SEED}" \
+  --min-clock-gap-seconds "${MIN_CLOCK_GAP_SECONDS}" \
   "${calibration_args[@]}"
 
 python -m egolife_two_user_qa generate_video_qa_loop \

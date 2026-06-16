@@ -29,6 +29,9 @@ ALLOW_OPENAI_VIDEO_INPUT="${EGOLIFE2U_ALLOW_OPENAI_VIDEO_INPUT:-0}"
 GENERATION_MODE="${EGOLIFE2U_GENERATION_MODE:-strict_design}"
 ANSWERABILITY_MODE="${EGOLIFE2U_ANSWERABILITY_MODE:-gate}"
 PAIR_STRATEGY="${EGOLIFE2U_PAIR_STRATEGY:-first}"
+GROUP_STRATEGY="${EGOLIFE2U_GROUP_STRATEGY:-chronological}"
+SAMPLING_SEED="${EGOLIFE2U_SAMPLING_SEED:-0}"
+MIN_CLOCK_GAP_SECONDS="${EGOLIFE2U_MIN_CLOCK_GAP_SECONDS:-0}"
 
 cd "${PROJECT_ROOT}"
 mkdir -p hpc/logs "${OUTDIR}" "${CACHE_DIR}" "/scratch/${USER}/hf_cache"
@@ -47,6 +50,9 @@ echo "target_count=${TARGET_COUNT}"
 echo "generation_mode=${GENERATION_MODE}"
 echo "answerability_mode=${ANSWERABILITY_MODE}"
 echo "pair_strategy=${PAIR_STRATEGY}"
+echo "group_strategy=${GROUP_STRATEGY}"
+echo "sampling_seed=${SAMPLING_SEED}"
+echo "min_clock_gap_seconds=${MIN_CLOCK_GAP_SECONDS}"
 python --version
 nvidia-smi || true
 
@@ -62,6 +68,9 @@ run_args=(
   --generation-mode "${GENERATION_MODE}"
   --answerability-mode "${ANSWERABILITY_MODE}"
   --pair-strategy "${PAIR_STRATEGY}"
+  --group-strategy "${GROUP_STRATEGY}"
+  --sampling-seed "${SAMPLING_SEED}"
+  --min-clock-gap-seconds "${MIN_CLOCK_GAP_SECONDS}"
 )
 if [[ -n "${EVIDENCE_TARGET_COUNT}" ]]; then
   run_args+=(--evidence-target-count "${EVIDENCE_TARGET_COUNT}")

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 
-from .evidence import PAIR_STRATEGIES, prepare_evidence
+from .evidence import GROUP_STRATEGIES, PAIR_STRATEGIES, prepare_evidence
 from .manifest import build_manifest
 from .candidate_mining import mine_candidates
 from .observations import observe_clips
@@ -41,6 +41,9 @@ def main(argv: list[str] | None = None) -> int:
     evidence.add_argument("--aria-calibration-dir")
     evidence.add_argument("--max-groups", type=int)
     evidence.add_argument("--pair-strategy", default="first", choices=PAIR_STRATEGIES)
+    evidence.add_argument("--group-strategy", default="chronological", choices=GROUP_STRATEGIES)
+    evidence.add_argument("--sampling-seed", type=int, default=0)
+    evidence.add_argument("--min-clock-gap-seconds", type=float, default=0.0)
     evidence.add_argument("--no-download-media", action="store_true")
 
     obs = sub.add_parser("observe_clips", help="Summarize individual user clips with Qwen3-VL")
@@ -105,6 +108,9 @@ def main(argv: list[str] | None = None) -> int:
             max_groups=args.max_groups,
             download_media=not args.no_download_media,
             pair_strategy=args.pair_strategy,
+            group_strategy=args.group_strategy,
+            sampling_seed=args.sampling_seed,
+            min_clock_gap_seconds=args.min_clock_gap_seconds,
         )
         print(f"wrote {len(rows)} evidence packets to {args.output}")
         return 0
