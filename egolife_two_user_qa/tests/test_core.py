@@ -514,6 +514,46 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("who took it and where did it end up", prompt)
         self.assertIn("Do not default to an object-movement question", prompt)
 
+    def test_relaxed_generation_prompt_closes_repeated_handoff_pattern(self) -> None:
+        packet = {
+            "evidence_id": "E1",
+            "required_users": ["Alice", "Tasha"],
+            "clips": [
+                {"agent_name": "Alice", "local_video": "alice.mp4", "video_url": "video_a", "gaze_summary": {}},
+                {"agent_name": "Tasha", "local_video": "tasha.mp4", "video_url": "video_b", "gaze_summary": {}},
+            ],
+        }
+        accepted_context = [
+            {
+                "question_type": "role_handoff",
+                "content_category": "task_coordination",
+                "added_agent_utility": "handoff_chain",
+                "reasoning_pattern": "handoff",
+                "question_style": "handoff",
+                "question": "I was focused on the device, but I did not see who took over. Who started unpacking the box?",
+            },
+            {
+                "question_type": "role_handoff",
+                "content_category": "task_coordination",
+                "added_agent_utility": "handoff_chain",
+                "reasoning_pattern": "handoff",
+                "question_style": "handoff",
+                "question": "I was focused on the case, but I did not see who took over. Who started working at the desk?",
+            },
+        ]
+        prompt = build_video_generation_prompt(
+            packet,
+            "natural_two_user",
+            generation_mode="relaxed_natural",
+            accepted_context=accepted_context,
+        )
+        self.assertIn("Dominant patterns to avoid", prompt)
+        self.assertIn("Handoff is already dominant", prompt)
+        self.assertIn("do not make another role_handoff/handoff_chain/handoff question", prompt)
+        self.assertIn("do not use 'took over' or 'who started'", prompt)
+        self.assertIn("choose a different relation", prompt)
+        self.assertIn("Privately compare at least three possible questions", prompt)
+
     def test_judger_prompt_uses_generic_other_user_rule(self) -> None:
         packet = {"evidence_id": "E1", "required_users": ["Jake", "Lucia"], "clips": []}
         qa = SchemaTests("test_validate_valid_item").valid_item()

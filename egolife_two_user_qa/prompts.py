@@ -262,6 +262,75 @@ def _accepted_context_text(accepted_context: list[dict[str, Any]] | None) -> str
         for row in accepted_context
         if row.get("content_category") or row.get("category")
     )
+    question_types = collections.Counter(
+        str(row.get("question_type", "")) for row in accepted_context if row.get("question_type")
+    )
+    utilities = collections.Counter(
+        str(row.get("added_agent_utility", ""))
+        for row in accepted_context
+        if row.get("added_agent_utility")
+    )
+    reasoning = collections.Counter(
+        str(row.get("reasoning_pattern", ""))
+        for row in accepted_context
+        if row.get("reasoning_pattern")
+    )
+    questions_lower = [str(row.get("question", "")).lower() for row in accepted_context]
+    phrase_counts = collections.Counter(
+        {
+            "i_was_focused": sum("i was focused" in question for question in questions_lower),
+            "i_was_holding": sum("i was holding" in question for question in questions_lower),
+            "did_not_notice": sum(
+                ("didn't notice" in question or "did not notice" in question)
+                for question in questions_lower
+            ),
+            "who_took": sum("who took" in question for question in questions_lower),
+            "took_over": sum("took over" in question for question in questions_lower),
+            "who_started": sum("who started" in question for question in questions_lower),
+        }
+    )
+    dominant_lines = []
+    for label, counter in (
+        ("opening", openings),
+        ("question_type", question_types),
+        ("content_category", categories),
+        ("added_agent_utility", utilities),
+        ("reasoning_pattern", reasoning),
+        ("question_style", styles),
+    ):
+        repeated = {key: count for key, count in counter.items() if key and count >= 2}
+        if repeated:
+            dominant_lines.append(f"- Repeated {label} values to avoid now: {dict(repeated)}")
+    repeated_phrases = {key: count for key, count in phrase_counts.items() if count >= 2}
+    if repeated_phrases:
+        dominant_lines.append(f"- Repeated wording templates to avoid now: {repeated_phrases}")
+    if (
+        question_types.get("role_handoff", 0) >= 2
+        or utilities.get("handoff_chain", 0) >= 2
+        or reasoning.get("handoff", 0) >= 2
+        or styles.get("handoff", 0) >= 2
+    ):
+        dominant_lines.append(
+            "- Handoff is already dominant: do not make another role_handoff/handoff_chain/"
+            "handoff question, and do not use 'took over' or 'who started'."
+        )
+    if phrase_counts["i_was_focused"] >= 2:
+        dominant_lines.append(
+            "- The opening 'I was focused...' is already dominant: start with a different "
+            "everyday question form such as 'What changed...', 'Which detail...', "
+            "'Did anyone...', 'Where was...', 'How did...', or 'What was still...'."
+        )
+    if phrase_counts["who_took"] >= 2:
+        dominant_lines.append(
+            "- 'Who took...' is already dominant: ask about a state, reaction, verification "
+            "detail, simultaneous event, location, or visible outcome instead of another taker."
+        )
+    dominant_block = (
+        "Dominant patterns to avoid in the next relaxed_natural item:\n"
+        + "\n".join(dominant_lines)
+        if dominant_lines
+        else "Dominant patterns to avoid in the next relaxed_natural item:\n- No dominant repeated pattern yet."
+    )
     recent_lines = []
     for row in recent:
         question = str(row.get("question", "")).strip()
@@ -280,10 +349,16 @@ def _accepted_context_text(accepted_context: list[dict[str, Any]] | None) -> str
     return f"""Already accepted QA diversity context for this run:
 - accepted_count: {len(accepted_context)}
 - opening_counts: {dict(openings)}
+- question_type_counts: {dict(question_types)}
 - question_style_counts: {dict(styles)}
 - content_category_counts: {dict(categories)}
+- added_agent_utility_counts: {dict(utilities)}
+- reasoning_pattern_counts: {dict(reasoning)}
+- wording_template_counts: {dict(phrase_counts)}
 - recent accepted questions:
 {chr(10).join(recent_lines)}
+
+{dominant_block}
 
 Do not reuse an already accepted question verbatim or as the same fill-in template with only a timestamp changed.
 If the assigned style is already represented, create a visibly different wording pattern, object anchor, place, and answer target.
@@ -291,8 +366,11 @@ For social_response questions, avoid the bare template "Who reacted when I was [
 Hard diversity requirement for relaxed_natural runs:
 - Treat the recent accepted questions as patterns to avoid, not examples to imitate.
 - Do not repeat the same opening word, question_type, content_category, added_agent_utility, reasoning_pattern, and question_style combination unless the visible evidence leaves no other natural question.
-- If recent accepted questions ask "I was focused/holding..., didn't notice what happened to [object], who took it and where did it end up?", choose a different natural relation: a role handoff, a follow-up step, a social response, a verification detail, a simultaneous event, a place/state change, or a visual disambiguation.
+- If any relation, wording template, or label family appears two or more times above, treat it as closed for this run and choose a different relation.
+- If recent accepted questions ask "I was focused/holding..., didn't notice what happened to [object], who took it and where did it end up?", choose a different natural relation: a follow-up state, a social response, a verification detail, a simultaneous event, a place/state change, a visual disambiguation, an outcome check, or a missed response.
+- If recent accepted questions ask "I was focused..., who took over..., who started...", do not ask another handoff/took-over/started question. Pick a non-handoff relation instead.
 - Avoid reusing the same target object, answer target, and final action pattern from recent accepted questions.
+- Privately compare at least three possible questions against the accepted context, then output only the JSON for the least similar evidence-grounded question.
 """
 
 
@@ -365,10 +443,12 @@ Perspective and identity rules:
 - Do not name the speaker/base user in the question or answer when the question is asked from that user's first-person perspective.
 
 Naturalness guidance:
-- Prefer everyday memory or AR-assistant wording: "What did I miss...", "Who took over...", "What was still happening...", "Which detail could I not confirm...", "How did they respond...", "What changed after I looked away...".
+- Prefer everyday memory or AR-assistant wording: "What did I miss...", "What was still happening...", "Which detail could I not confirm...", "How did they respond...", "What changed after I looked away...", "Where was it by then?", "Did anyone react?".
+- Use "Who took over..." or "Who started..." only when that relation is genuinely the freshest natural relation for the current videos and not already repeated in the accepted context.
 - Avoid rigid openings reused from prior accepted questions.
 - Avoid overusing "I was focused on..." / "I was holding..." / "I didn't notice what happened to..." openings across a run.
 - Do not default to an object-movement question such as "who took it and where did it end up" when another natural two-user dependency is visible.
+- Do not default to a handoff question such as "who took over" or "who started" when recent accepted questions already use handoff language.
 - Avoid generic questions like "what was the other person doing?" unless tied to a concrete object, place, action, role, reaction, or follow-up state from the speaker's own context.
 - Avoid asking what both users saw, both noticed, or both were doing together.
 
