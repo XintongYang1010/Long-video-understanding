@@ -13,6 +13,9 @@ EVIDENCE_TARGET_COUNT=""
 MAX_ATTEMPTS=3
 ARIA_CALIBRATION_DIR=""
 ALLOW_OPENAI_VIDEO_INPUT=0
+GENERATION_MODE="strict_design"
+ANSWERABILITY_MODE="gate"
+PAIR_STRATEGY="first"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -27,6 +30,9 @@ while [[ $# -gt 0 ]]; do
     --evidence-target-count) EVIDENCE_TARGET_COUNT="$2"; shift 2 ;;
     --max-attempts) MAX_ATTEMPTS="$2"; shift 2 ;;
     --aria-calibration-dir) ARIA_CALIBRATION_DIR="$2"; shift 2 ;;
+    --generation-mode) GENERATION_MODE="$2"; shift 2 ;;
+    --answerability-mode) ANSWERABILITY_MODE="$2"; shift 2 ;;
+    --pair-strategy) PAIR_STRATEGY="$2"; shift 2 ;;
     --allow-openai-video-input) ALLOW_OPENAI_VIDEO_INPUT=1; shift ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
@@ -56,6 +62,7 @@ python -m egolife_two_user_qa prepare_evidence \
   --users-per-case 2 \
   --target-count "${EVIDENCE_TARGET_COUNT}" \
   --frames-per-clip 4 \
+  --pair-strategy "${PAIR_STRATEGY}" \
   "${calibration_args[@]}"
 
 python -m egolife_two_user_qa generate_video_qa_loop \
@@ -71,11 +78,18 @@ python -m egolife_two_user_qa generate_video_qa_loop \
   --model-id "${MODEL_ID}" \
   --dtype "${DTYPE}" \
   --max-new-tokens "${MAX_NEW_TOKENS}" \
+  --generation-mode "${GENERATION_MODE}" \
+  --answerability-mode "${ANSWERABILITY_MODE}" \
   "${video_input_args[@]}"
 
-python -m egolife_two_user_qa validate_outputs \
+validate_args=(
+  python -m egolife_two_user_qa validate_outputs
   --qa "${OUTDIR}/qa_mcq.jsonl" \
   --csv-output "${OUTDIR}/qa_mcq.csv" \
   --human-review-output "${OUTDIR}/human_review_sheet.md" \
-  --report "${OUTDIR}/generation_report.md" \
-  --strict-review
+  --report "${OUTDIR}/generation_report.md"
+)
+if [[ "${ANSWERABILITY_MODE}" == "gate" ]]; then
+  validate_args+=(--strict-review)
+fi
+"${validate_args[@]}"

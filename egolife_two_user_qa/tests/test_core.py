@@ -3,10 +3,11 @@ from __future__ import annotations
 import tempfile
 import unittest
 import json
+from unittest import mock
 from pathlib import Path
 
 from egolife_two_user_qa.candidate_mining import mine_candidates
-from egolife_two_user_qa.evidence import group_manifest_clips, summarize_gaze_csv
+from egolife_two_user_qa.evidence import choose_required_clips, group_manifest_clips, summarize_gaze_csv
 from egolife_two_user_qa.gaze_projection import gaussian_bbox_score, load_aria_projection_calibration, project_gaze_row
 from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_token
 from egolife_two_user_qa.prompts import build_video_generation_prompt
@@ -15,8 +16,12 @@ from egolife_two_user_qa.schema import extract_json_object, validate_qa_item, wr
 from egolife_two_user_qa.video_qa_loop import (
     answerability_gate,
     build_review_from_gates,
+    choose_question_design,
     complete_generator_metadata,
+    DESIGN_CELLS,
+    design_cell_key,
     dry_run_qa,
+    generate_video_qa_loop,
     judge_gate,
     qa_for_judger_prompt,
 )
@@ -124,6 +129,22 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(summary["projection_status"], "projected")
         self.assertEqual(summary["projected_gaze_summary"]["median_x"], 320.0)
         self.assertEqual(summary["projected_gaze_summary"]["median_y"], 240.0)
+
+    def test_balanced_pair_strategy_rotates_agent_pairs(self) -> None:
+        group = {
+            "clips": [
+                {"agent_dir": "A1_JAKE"},
+                {"agent_dir": "A2_ALICE"},
+                {"agent_dir": "A3_TASHA"},
+            ]
+        }
+        pair_counts: dict[tuple[str, ...], int] = {}
+        first = choose_required_clips(group, 2, pair_strategy="balanced", pair_counts=pair_counts)
+        pair_counts[tuple(clip["agent_dir"] for clip in first)] = 1
+        second = choose_required_clips(group, 2, pair_strategy="balanced", pair_counts=pair_counts)
+
+        self.assertEqual([clip["agent_dir"] for clip in first], ["A1_JAKE", "A2_ALICE"])
+        self.assertEqual([clip["agent_dir"] for clip in second], ["A1_JAKE", "A3_TASHA"])
 
     def test_gaussian_bbox_score_prefers_near_center(self) -> None:
         near = gaussian_bbox_score((10.0, 10.0), (8.0, 8.0, 12.0, 12.0), sigma=10.0)
@@ -324,6 +345,11 @@ class SchemaTests(unittest.TestCase):
         item["question_type"] = "difference"
         self.assertEqual(validate_qa_item(item, strict_review=True), [])
 
+    def test_relaxed_question_type_label_validates(self) -> None:
+        item = self.valid_item()
+        item["question_type"] = "natural_memory_gap"
+        self.assertEqual(validate_qa_item(item, strict_review=True), [])
+
     def test_strict_validation_requires_structured_judge_checks(self) -> None:
         item = self.valid_item()
         item["review"]["judger"] = {"review_passed": True, "gate": {"passed": True}}
@@ -413,6 +439,50 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("single_user_answerability", prompt)
         self.assertIn("combined_answerability", prompt)
         self.assertIn("why_two_users_needed", prompt)
+        self.assertIn("Assigned diversity design cell", prompt)
+        self.assertIn("content_category", prompt)
+        self.assertIn("added_agent_utility", prompt)
+        self.assertIn("question_style", prompt)
+        self.assertIn("What...", prompt)
+        self.assertIn("Required wording shape", prompt)
+        self.assertIn("single-user trap", prompt)
+        self.assertIn("the speaker's exact object/action/phase", prompt)
+        self.assertIn("offscreen", prompt)
+        self.assertIn("Do not fall back to the plain", prompt)
+        prompt_with_context = build_video_generation_prompt(
+            packet,
+            "commonality",
+            accepted_context=[
+                {
+                    "question_type": "commonality",
+                    "content_category": "social_interaction",
+                    "added_agent_utility": "social_reaction",
+                    "question_style": "social_response",
+                    "question": "Who reacted when I was writing on the whiteboard, and how?",
+                }
+            ],
+        )
+        self.assertIn("Already accepted QA diversity context", prompt_with_context)
+        self.assertIn("Do not reuse an already accepted question", prompt_with_context)
+        self.assertIn("Who reacted when I was writing on the whiteboard, and how?", prompt_with_context)
+        self.assertIn("avoid the bare template", prompt_with_context)
+
+    def test_relaxed_generation_prompt_uses_natural_mode_and_identity_rules(self) -> None:
+        packet = {
+            "evidence_id": "E1",
+            "required_users": ["Jake", "Alice"],
+            "clips": [
+                {"agent_name": "Jake", "local_video": "jake.mp4", "video_url": "video_a", "gaze_summary": {}},
+                {"agent_name": "Alice", "local_video": "alice.mp4", "video_url": "video_b", "gaze_summary": {}},
+            ],
+        }
+        prompt = build_video_generation_prompt(packet, "natural_two_user", generation_mode="relaxed_natural")
+        self.assertIn("relaxed 32B experiment", prompt)
+        self.assertIn("viewpoint owners / camera wearers", prompt)
+        self.assertIn("If Alice's view shows Jake", prompt)
+        self.assertIn("visible_person", prompt)
+        self.assertNotIn("Assigned diversity design cell", prompt)
+        self.assertNotIn("Required wording shape", prompt)
 
     def test_complete_generator_metadata_repairs_old_generator_shape(self) -> None:
         packet = {"required_users": ["Jake", "Alice"]}
@@ -434,12 +504,54 @@ class VideoFirstTests(unittest.TestCase):
             "model_id": "dry-run",
             "source_urls": {},
         }
-        complete_generator_metadata(qa, packet=packet, question_type="commonality")
+        design_cell = {
+            "question_type": "commonality",
+            "content_category": "temporal_reasoning",
+            "added_agent_utility": "offscreen_followup",
+            "reasoning_pattern": "anchor_to_missing_state",
+            "question_style": "memory_gap",
+        }
+        complete_generator_metadata(qa, packet=packet, question_type="commonality", design_cell=design_cell)
         self.assertEqual(qa["answer"], "food prep")
         self.assertEqual(qa["question_type"], "commonality")
+        self.assertEqual(qa["content_category"], "temporal_reasoning")
+        self.assertEqual(qa["category"], "temporal_reasoning")
+        self.assertEqual(qa["added_agent_utility"], "offscreen_followup")
+        self.assertEqual(qa["reasoning_pattern"], "anchor_to_missing_state")
+        self.assertEqual(qa["question_style"], "memory_gap")
+        self.assertEqual(qa["design_cell"], design_cell)
         self.assertIn("insufficient", qa["single_user_answerability"]["Jake"])
         self.assertIn("sufficient", qa["combined_answerability"])
         self.assertEqual(validate_qa_item(qa), [])
+
+    def test_choose_question_design_cycles_diversity_cells_without_changing_type_targets(self) -> None:
+        targets = {"commonality": 2, "difference": 2}
+        counts = {"commonality": 0, "difference": 0}
+        design_counts = {}
+        first = choose_question_design(counts, targets, design_counts)
+        self.assertIsNotNone(first)
+        self.assertEqual(first["question_type"], "commonality")
+        design_counts["|".join(first.values())] = 1
+        self.assertIn(first, DESIGN_CELLS)
+        second = choose_question_design(counts, targets, design_counts)
+        self.assertIsNotNone(second)
+        self.assertEqual(second["question_type"], "difference")
+
+    def test_choose_question_design_prefers_unaccepted_cells_within_type(self) -> None:
+        targets = {"commonality": 2, "difference": 0}
+        counts = {"commonality": 0, "difference": 0}
+        accepted_design_counts = {design_cell_key(DESIGN_CELLS[0]): 1}
+        accepted_style_counts = {DESIGN_CELLS[0]["question_style"]: 1}
+        choice = choose_question_design(
+            counts,
+            targets,
+            design_counts={},
+            accepted_design_counts=accepted_design_counts,
+            accepted_style_counts=accepted_style_counts,
+        )
+        self.assertIsNotNone(choice)
+        self.assertEqual(choice["question_type"], "commonality")
+        self.assertNotEqual(choice, DESIGN_CELLS[0])
 
     def test_answerability_gate_requires_combined_correct_and_singles_not_correct(self) -> None:
         qa = {"correct": "A"}
@@ -565,6 +677,23 @@ class VideoFirstTests(unittest.TestCase):
         self.assertFalse(review["schema_validation"]["passed"])
         self.assertEqual(review["schema_validation"]["errors"], ["answer must equal options[correct]"])
 
+    def test_build_review_from_gates_for_pending_human_review(self) -> None:
+        review = build_review_from_gates(
+            judge={"review_passed": True, "gate": {"passed": True}},
+            answerability={
+                "skipped": True,
+                "reason": "human review replaces answerability gate for this experiment",
+                "evaluations": [],
+            },
+            schema_errors=[],
+            accepted=False,
+            human_review_pending=True,
+            final_reason="schema and judger passed; answerability gate skipped for human review",
+        )
+        self.assertEqual(review["status"], "pending_human_review")
+        self.assertFalse(review["review_passed"])
+        self.assertTrue(review["answerability"]["skipped"])
+
     def test_dry_run_qa_includes_video_evidence_provenance(self) -> None:
         qa = dry_run_qa(
             {
@@ -605,6 +734,107 @@ class VideoFirstTests(unittest.TestCase):
         self.assertNotIn("human_audit", compact)
         self.assertNotIn("video_evidence", compact)
         self.assertNotIn("source_urls", compact)
+
+    def test_generate_loop_skip_answerability_collects_pending_candidate(self) -> None:
+        class FakeRunner:
+            model_id = "Qwen/Qwen3-VL-32B-Instruct"
+
+            def generate(self, prompt, image_paths=None, video_paths=None):
+                if "strict judger" in prompt:
+                    checks = {
+                        name: {"status": "PASS", "reason": "ok", "fix": ""}
+                        for name in [
+                            "first_person_naturalness",
+                            "agent_perspective",
+                            "source_scope",
+                            "question_type_semantics",
+                            "multi_video_necessity",
+                            "visual_grounding",
+                            "mcq_option_quality",
+                            "gaze_safety",
+                            "human_auditability",
+                        ]
+                    }
+                    return json.dumps(
+                        {
+                            "review_passed": True,
+                            "checks": checks,
+                            "blocking_failures": [],
+                            "why_generator_asked_this": "natural memory gap",
+                            "feedback_to_generator": "",
+                        }
+                    )
+                return json.dumps(
+                    {
+                        "qa_id": "Q1",
+                        "question_type": "natural_memory_gap",
+                        "question": "What happened to the device after I set it down?",
+                        "options": ["It stayed on the table", "It went into a bag", "It fell on the floor", "It was unplugged", "It was covered"],
+                        "correct": "A",
+                        "answer": "It stayed on the table",
+                        "content_category": "task_coordination",
+                        "category": "task_coordination",
+                        "required_users": ["Jake", "Alice"],
+                        "evidence": [
+                            {"user": "Jake", "needed_fact": "Jake set the device down", "timeframe": "early", "frames_used": []},
+                            {"user": "Alice", "needed_fact": "Alice's view shows the device stayed there", "timeframe": "later", "frames_used": []},
+                        ],
+                        "referred_timestamps": [],
+                        "single_user_answerability": {
+                            "Jake": "insufficient because Jake does not see the later state",
+                            "Alice": "insufficient because Alice does not establish what I had just set down",
+                        },
+                        "combined_answerability": "sufficient because both views identify the object and its later state",
+                        "added_agent_utility": "offscreen_followup",
+                        "reasoning_pattern": "follow_up_state",
+                        "question_style": "natural_memory_gap",
+                        "generator_rationale": "natural follow-up question",
+                        "why_two_users_needed": "one view anchors the object and the other shows the later state",
+                        "per_user_evidence_claims": [
+                            {"user": "Jake", "claim": "Jake set the device down"},
+                            {"user": "Alice", "claim": "Alice's view shows the device later"},
+                        ],
+                        "review": {"generator_self_check": "needs both views", "status": "draft"},
+                    }
+                )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            evidence_path = tmp_path / "evidence.jsonl"
+            output_path = tmp_path / "qa.jsonl"
+            prompts_path = tmp_path / "prompts.jsonl"
+            rejected_path = tmp_path / "rejected.jsonl"
+            intermediate_path = tmp_path / "intermediate.jsonl"
+            evidence = {
+                "evidence_id": "E1",
+                "required_users": ["Jake", "Alice"],
+                "clips": [
+                    {"agent_name": "Jake", "agent_dir": "A1_JAKE", "video_url": "video_a", "gaze_url": "gaze_a", "frames": []},
+                    {"agent_name": "Alice", "agent_dir": "A2_ALICE", "video_url": "video_b", "gaze_url": "gaze_b", "frames": []},
+                ],
+                "source_urls": {"videos": ["video_a", "video_b"]},
+            }
+            evidence_path.write_text(json.dumps(evidence) + "\n", encoding="utf-8")
+            with mock.patch("egolife_two_user_qa.video_qa_loop.make_runner", return_value=FakeRunner()):
+                with mock.patch("egolife_two_user_qa.video_qa_loop.run_answerability_eval", side_effect=AssertionError("should not run")):
+                    rows = generate_video_qa_loop(
+                        evidence_path=evidence_path,
+                        output_path=output_path,
+                        prompts_path=prompts_path,
+                        rejected_path=rejected_path,
+                        intermediate_path=intermediate_path,
+                        backend="transformers-local",
+                        target_count=1,
+                        max_attempts=1,
+                        generation_mode="relaxed_natural",
+                        answerability_mode="skip",
+                    )
+
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["review"]["status"], "pending_human_review")
+            self.assertTrue(rows[0]["review"]["answerability"]["skipped"])
+            prompt_rows = [json.loads(line) for line in prompts_path.read_text(encoding="utf-8").splitlines()]
+            self.assertNotIn("answerability", {row["stage"] for row in prompt_rows})
 
 
 if __name__ == "__main__":

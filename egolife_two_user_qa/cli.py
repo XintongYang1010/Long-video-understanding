@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 
-from .evidence import prepare_evidence
+from .evidence import PAIR_STRATEGIES, prepare_evidence
 from .manifest import build_manifest
 from .candidate_mining import mine_candidates
 from .observations import observe_clips
@@ -40,6 +40,7 @@ def main(argv: list[str] | None = None) -> int:
     evidence.add_argument("--frames-per-clip", type=int, default=3)
     evidence.add_argument("--aria-calibration-dir")
     evidence.add_argument("--max-groups", type=int)
+    evidence.add_argument("--pair-strategy", default="first", choices=PAIR_STRATEGIES)
     evidence.add_argument("--no-download-media", action="store_true")
 
     obs = sub.add_parser("observe_clips", help="Summarize individual user clips with Qwen3-VL")
@@ -103,6 +104,7 @@ def main(argv: list[str] | None = None) -> int:
             aria_calibration_dir=args.aria_calibration_dir,
             max_groups=args.max_groups,
             download_media=not args.no_download_media,
+            pair_strategy=args.pair_strategy,
         )
         print(f"wrote {len(rows)} evidence packets to {args.output}")
         return 0
@@ -157,6 +159,8 @@ def main(argv: list[str] | None = None) -> int:
             allow_cpu=args.allow_cpu,
             allow_openai_video_input=args.allow_openai_video_input,
             dry_run=args.dry_run,
+            generation_mode=args.generation_mode,
+            answerability_mode=args.answerability_mode,
         )
         print(f"accepted {len(rows)} video-first QA rows")
         return 0

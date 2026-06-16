@@ -128,8 +128,8 @@ def validate_qa_item(item: dict[str, Any], *, strict_review: bool = False) -> li
         errors.append("combined_answerability must state sufficient support")
 
     question_type = item.get("question_type")
-    if question_type is not None and question_type not in {"commonality", "difference"}:
-        errors.append("question_type must be commonality or difference")
+    if question_type is not None and not str(question_type).strip():
+        errors.append("question_type must be a non-empty string")
 
     if strict_review:
         video_evidence = item.get("video_evidence")
@@ -210,7 +210,11 @@ def write_qa_csv(jsonl_path: str | Path, csv_path: str | Path) -> int:
         "question",
         "correct",
         "answer",
+        "content_category",
         "category",
+        "added_agent_utility",
+        "reasoning_pattern",
+        "question_style",
         "required_users",
         "combined_answerability",
         "review_passed",
@@ -234,7 +238,11 @@ def write_qa_csv(jsonl_path: str | Path, csv_path: str | Path) -> int:
                     "question": row.get("question", ""),
                     "correct": row.get("correct", ""),
                     "answer": row.get("answer", ""),
+                    "content_category": row.get("content_category", row.get("category", "")),
                     "category": row.get("category", ""),
+                    "added_agent_utility": row.get("added_agent_utility", ""),
+                    "reasoning_pattern": row.get("reasoning_pattern", ""),
+                    "question_style": row.get("question_style", ""),
                     "required_users": ";".join(row.get("required_users", [])),
                     "combined_answerability": row.get("combined_answerability", ""),
                     "review_passed": review.get("review_passed", review.get("status", "")),
@@ -285,11 +293,16 @@ def write_human_review_sheet(jsonl_path: str | Path, sheet_path: str | Path) -> 
                 "",
                 f"- Evidence ID: `{row.get('evidence_id', '')}`",
                 f"- Question type: {_markdown_value(row.get('question_type'))}",
+                f"- Content category: {_markdown_value(row.get('content_category', row.get('category')))}",
+                f"- Added-agent utility: {_markdown_value(row.get('added_agent_utility'))}",
+                f"- Reasoning pattern: {_markdown_value(row.get('reasoning_pattern'))}",
+                f"- Question style: {_markdown_value(row.get('question_style'))}",
                 f"- Required users: {', '.join(row.get('required_users', []))}",
                 f"- Review status: {_markdown_value(review.get('status'))}",
                 f"- Review passed: {_markdown_value(review.get('review_passed'))}",
                 f"- Judger gate passed: {_markdown_value((judger.get('gate') or {}).get('passed') if isinstance(judger.get('gate'), dict) else '')}",
                 f"- Answerability gate passed: {_markdown_value((answerability.get('gate') or {}).get('passed') if isinstance(answerability.get('gate'), dict) else '')}",
+                f"- Answerability skipped: {_markdown_value(answerability.get('skipped') if isinstance(answerability, dict) else '')}",
                 f"- Final reason: {_markdown_value(final.get('reason'))}",
                 "",
                 "### Question",

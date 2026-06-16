@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --gres=gpu:1
 #SBATCH --constraint=h200
-#SBATCH --mem=80G
-#SBATCH --time=08:00:00
+#SBATCH --mem=160G
+#SBATCH --time=12:00:00
 #SBATCH --output=hpc/logs/%x_%j.out
 #SBATCH --error=hpc/logs/%x_%j.err
 #SBATCH --mail-type=END,FAIL
@@ -26,6 +26,9 @@ EVIDENCE_TARGET_COUNT="${EGOLIFE2U_EVIDENCE_TARGET_COUNT:-}"
 MAX_ATTEMPTS="${EGOLIFE2U_MAX_ATTEMPTS:-3}"
 ARIA_CALIBRATION_DIR="${EGOLIFE2U_ARIA_CALIBRATION_DIR:-}"
 ALLOW_OPENAI_VIDEO_INPUT="${EGOLIFE2U_ALLOW_OPENAI_VIDEO_INPUT:-0}"
+GENERATION_MODE="${EGOLIFE2U_GENERATION_MODE:-strict_design}"
+ANSWERABILITY_MODE="${EGOLIFE2U_ANSWERABILITY_MODE:-gate}"
+PAIR_STRATEGY="${EGOLIFE2U_PAIR_STRATEGY:-first}"
 
 cd "${PROJECT_ROOT}"
 mkdir -p hpc/logs "${OUTDIR}" "${CACHE_DIR}" "/scratch/${USER}/hf_cache"
@@ -41,6 +44,9 @@ echo "pwd=$(pwd)"
 echo "date_start=$(date --iso-8601=seconds)"
 echo "model_id=${MODEL_ID}"
 echo "target_count=${TARGET_COUNT}"
+echo "generation_mode=${GENERATION_MODE}"
+echo "answerability_mode=${ANSWERABILITY_MODE}"
+echo "pair_strategy=${PAIR_STRATEGY}"
 python --version
 nvidia-smi || true
 
@@ -53,6 +59,9 @@ run_args=(
   --outdir "${OUTDIR}"
   --cache-dir "${CACHE_DIR}"
   --max-attempts "${MAX_ATTEMPTS}"
+  --generation-mode "${GENERATION_MODE}"
+  --answerability-mode "${ANSWERABILITY_MODE}"
+  --pair-strategy "${PAIR_STRATEGY}"
 )
 if [[ -n "${EVIDENCE_TARGET_COUNT}" ]]; then
   run_args+=(--evidence-target-count "${EVIDENCE_TARGET_COUNT}")

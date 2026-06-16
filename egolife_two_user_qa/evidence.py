@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import itertools
 import shutil
 import statistics
 import subprocess
@@ -19,6 +20,8 @@ from .gaze_projection import (
     summarize_projected_gaze,
 )
 from .io_utils import download_file, read_json, stable_id, write_jsonl
+
+PAIR_STRATEGIES = ("first", "balanced")
 
 
 def group_manifest_clips(manifest: dict[str, Any]) -> list[dict[str, Any]]:
@@ -235,9 +238,27 @@ def summarize_gaze_csv(
     return summary
 
 
-def choose_required_clips(group: dict[str, Any], users_per_case: int) -> list[dict[str, Any]]:
+def pair_key_for_clips(clips: list[dict[str, Any]]) -> tuple[str, ...]:
+    return tuple(clip["agent_dir"] for clip in sorted(clips, key=lambda c: c["agent_dir"]))
+
+
+def choose_required_clips(
+    group: dict[str, Any],
+    users_per_case: int,
+    *,
+    pair_strategy: str = "first",
+    pair_counts: dict[tuple[str, ...], int] | None = None,
+) -> list[dict[str, Any]]:
     clips = sorted(group["clips"], key=lambda c: c["agent_dir"])
-    return clips[: max(2, users_per_case)]
+    users_per_case = max(2, users_per_case)
+    if pair_strategy == "first" or len(clips) <= users_per_case:
+        return clips[:users_per_case]
+    if pair_strategy != "balanced":
+        raise ValueError(f"unknown pair strategy: {pair_strategy}")
+
+    counts = pair_counts or {}
+    candidates = [list(combo) for combo in itertools.combinations(clips, users_per_case)]
+    return min(candidates, key=lambda combo: (counts.get(pair_key_for_clips(combo), 0), pair_key_for_clips(combo)))
 
 
 def build_evidence_packet(
@@ -249,8 +270,18 @@ def build_evidence_packet(
     frames_per_clip: int = 3,
     aria_calibration_dir: str | Path | None = None,
     download_media: bool = True,
+    pair_strategy: str = "first",
+    pair_counts: dict[tuple[str, ...], int] | None = None,
 ) -> dict[str, Any]:
-    selected = choose_required_clips(group, users_per_case)
+    selected = choose_required_clips(
+        group,
+        users_per_case,
+        pair_strategy=pair_strategy,
+        pair_counts=pair_counts,
+    )
+    selected_pair_key = pair_key_for_clips(selected)
+    if pair_counts is not None:
+        pair_counts[selected_pair_key] = pair_counts.get(selected_pair_key, 0) + 1
     packet_id = stable_id("EGOLIFE2U", group["day"], group["time_token"], *[c["agent_id"] for c in selected])
     packet_dir = Path(output_root) / "evidence_assets" / packet_id
     clips_out = []
@@ -316,6 +347,9 @@ def build_evidence_packet(
         "clip_clock": group.get("clip_clock"),
         "required_users": [clip["agent_name"] for clip in selected],
         "requirement": "The final question must require evidence from at least two listed users; any single listed user alone must be insufficient.",
+        "pair_strategy": pair_strategy,
+        "available_agents": group.get("agents", []),
+        "selected_agent_dirs": list(selected_pair_key),
         "clips": clips_out,
         "source_urls": {
             "videos": [clip["video_url"] for clip in selected],
@@ -337,13 +371,17 @@ def prepare_evidence(
     aria_calibration_dir: str | Path | None = None,
     max_groups: int | None = None,
     download_media: bool = True,
+    pair_strategy: str = "first",
 ) -> list[dict[str, Any]]:
+    if pair_strategy not in PAIR_STRATEGIES:
+        raise ValueError(f"pair_strategy must be one of {PAIR_STRATEGIES}")
     manifest = read_json(manifest_path)
     groups = group_manifest_clips(manifest)
     if max_groups is not None:
         groups = groups[:max_groups]
 
     packets = []
+    pair_counts: dict[tuple[str, ...], int] = {}
     for group in groups:
         if len(packets) >= target_count:
             break
@@ -356,6 +394,8 @@ def prepare_evidence(
                 frames_per_clip=frames_per_clip,
                 aria_calibration_dir=aria_calibration_dir,
                 download_media=download_media,
+                pair_strategy=pair_strategy,
+                pair_counts=pair_counts,
             )
         )
     write_jsonl(output_path, packets)
@@ -373,6 +413,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--frames-per-clip", type=int, default=3)
     parser.add_argument("--aria-calibration-dir")
     parser.add_argument("--max-groups", type=int)
+    parser.add_argument("--pair-strategy", default="first", choices=PAIR_STRATEGIES)
     parser.add_argument("--no-download-media", action="store_true")
     args = parser.parse_args(argv)
     packets = prepare_evidence(
@@ -386,6 +427,7 @@ def main(argv: list[str] | None = None) -> int:
         aria_calibration_dir=args.aria_calibration_dir,
         max_groups=args.max_groups,
         download_media=not args.no_download_media,
+        pair_strategy=args.pair_strategy,
     )
     print(f"wrote {len(packets)} evidence packets to {args.output}")
     return 0
