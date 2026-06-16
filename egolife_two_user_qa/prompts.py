@@ -354,8 +354,8 @@ Goal for this relaxed 32B experiment:
 
 Perspective and identity rules:
 - required_users are viewpoint owners / camera wearers. A viewpoint owner is not automatically the person visible in that view.
-- If Alice's view shows Jake, describe that as Jake being visible from Alice's perspective; do not say Alice was doing Jake's action.
-- If Jake's view shows Alice, describe that as Alice being visible from Jake's perspective; do not say Jake was doing Alice's action.
+- For any two users, if user A's view shows user B, describe user B as visible from user A's perspective; do not attribute user B's visible action to user A.
+- When the viewpoint owner and visible person differ, state both roles clearly instead of treating the camera wearer as the actor on screen.
 - Keep speaker/base user, viewpoint_owner, and visible_person distinct in evidence claims and rationale.
 - Do not name the speaker/base user in the question or answer when the question is asked from that user's first-person perspective.
 
@@ -369,7 +369,7 @@ Metadata instructions:
 - Fill question_type, content_category, added_agent_utility, reasoning_pattern, and question_style as short self-descriptive labels after choosing the natural question. They are diagnostic labels, not constraints.
 - Return both content_category and category with the same value.
 - Fill single_user_answerability and combined_answerability as the generator's rationale only; a human reviewer will replace the automatic answerability gate for this experiment.
-- Fill per_user_evidence_claims with clear viewpoint language, for example: "Alice's view shows Jake placing the device on the table."
+- Fill per_user_evidence_claims with clear viewpoint language, for example: "The viewpoint owner's view shows another named person placing the device on the table."
 
 {accepted_context_block}
 
