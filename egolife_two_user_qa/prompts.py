@@ -288,6 +288,11 @@ def _accepted_context_text(accepted_context: list[dict[str, Any]] | None) -> str
 Do not reuse an already accepted question verbatim or as the same fill-in template with only a timestamp changed.
 If the assigned style is already represented, create a visibly different wording pattern, object anchor, place, and answer target.
 For social_response questions, avoid the bare template "Who reacted when I was [action], and how?" unless the reaction target, action, and response are specific and not already used.
+Hard diversity requirement for relaxed_natural runs:
+- Treat the recent accepted questions as patterns to avoid, not examples to imitate.
+- Do not repeat the same opening word, question_type, content_category, added_agent_utility, reasoning_pattern, and question_style combination unless the visible evidence leaves no other natural question.
+- If recent accepted questions ask "I was focused/holding..., didn't notice what happened to [object], who took it and where did it end up?", choose a different natural relation: a role handoff, a follow-up step, a social response, a verification detail, a simultaneous event, a place/state change, or a visual disambiguation.
+- Avoid reusing the same target object, answer target, and final action pattern from recent accepted questions.
 """
 
 
@@ -360,13 +365,16 @@ Perspective and identity rules:
 - Do not name the speaker/base user in the question or answer when the question is asked from that user's first-person perspective.
 
 Naturalness guidance:
-- Prefer everyday memory or AR-assistant wording: "What did I miss...", "Where did it end up...", "Who took over...", "What was still happening...", "What changed after I looked away...".
+- Prefer everyday memory or AR-assistant wording: "What did I miss...", "Who took over...", "What was still happening...", "Which detail could I not confirm...", "How did they respond...", "What changed after I looked away...".
 - Avoid rigid openings reused from prior accepted questions.
+- Avoid overusing "I was focused on..." / "I was holding..." / "I didn't notice what happened to..." openings across a run.
+- Do not default to an object-movement question such as "who took it and where did it end up" when another natural two-user dependency is visible.
 - Avoid generic questions like "what was the other person doing?" unless tied to a concrete object, place, action, role, reaction, or follow-up state from the speaker's own context.
 - Avoid asking what both users saw, both noticed, or both were doing together.
 
 Metadata instructions:
 - Fill question_type, content_category, added_agent_utility, reasoning_pattern, and question_style as short self-descriptive labels after choosing the natural question. They are diagnostic labels, not constraints.
+- Do not copy the previous row's labels automatically; choose labels that describe the new natural question.
 - Return both content_category and category with the same value.
 - Fill single_user_answerability and combined_answerability as the generator's rationale only; a human reviewer will replace the automatic answerability gate for this experiment.
 - Fill per_user_evidence_claims with clear viewpoint language, for example: "The viewpoint owner's view shows another named person placing the device on the table."
@@ -503,7 +511,8 @@ Main check, 5. multi_video_necessity:
 - FAIL if the question asks what both users saw, both noticed, or both looked at; do not ask what both users saw or noticed because one user may not know the other user's perception.
 - FAIL if the question is a generic comparison of two views, rooms, or camera angles rather than a speaker anchor plus missing visual detail.
 - FAIL if the question generically asks what "the other person", "everyone else", or "others" were doing nearby, in the room, or at the same time without naming a concrete missing visual detail, place, object, role, reaction, or follow-up state tied to the speaker-side anchor.
-- FAIL if the question is merely "what was Alice doing/holding/handling" and Alice's video alone can choose the answer. PASS that wording only when the speaker-side anchor selects a specific object instance, handoff, phase, outcome, ambiguity, or follow-up state that Alice's video alone would not identify.
+- FAIL if the question is merely "what was [other user] doing/holding/handling" and that user's video alone can choose the answer. PASS that wording only when the speaker-side anchor selects a specific object instance, handoff, phase, outcome, ambiguity, or follow-up state that the other user's video alone would not identify.
+- FAIL if the question is a near-duplicate of a known prior pattern in the prompt context, such as repeatedly asking "I was focused/holding..., didn't notice what happened to [object], who took it and where did it end up?" with only the object/person/place changed.
 - FAIL if a single user's video already reveals the correct answer.
 - UNCERTAIN if the videos do not clearly show the anchor, the missing visual detail, or the relation between them.
 - In the reason, explicitly name the speaker-side anchor, the missing visual detail, and why the second video is or is not needed.

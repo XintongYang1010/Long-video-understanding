@@ -10,7 +10,7 @@ from egolife_two_user_qa.candidate_mining import mine_candidates
 from egolife_two_user_qa.evidence import choose_required_clips, group_manifest_clips, summarize_gaze_csv
 from egolife_two_user_qa.gaze_projection import gaussian_bbox_score, load_aria_projection_calibration, project_gaze_row
 from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_token
-from egolife_two_user_qa.prompts import build_video_generation_prompt
+from egolife_two_user_qa.prompts import build_judger_prompt, build_video_generation_prompt
 from egolife_two_user_qa.qwen3vl_runner import DryRunRunner, normalize_video_kwargs, split_video_inputs_and_metadata
 from egolife_two_user_qa.schema import extract_json_object, validate_qa_item, write_human_review_sheet
 from egolife_two_user_qa.video_qa_loop import (
@@ -484,6 +484,43 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("visible_person", prompt)
         self.assertNotIn("Assigned diversity design cell", prompt)
         self.assertNotIn("Required wording shape", prompt)
+
+    def test_relaxed_generation_prompt_adds_hard_diversity_context(self) -> None:
+        packet = {
+            "evidence_id": "E1",
+            "required_users": ["Jake", "Lucia"],
+            "clips": [
+                {"agent_name": "Jake", "local_video": "jake.mp4", "video_url": "video_a", "gaze_summary": {}},
+                {"agent_name": "Lucia", "local_video": "lucia.mp4", "video_url": "video_b", "gaze_summary": {}},
+            ],
+        }
+        prompt = build_video_generation_prompt(
+            packet,
+            "natural_two_user",
+            generation_mode="relaxed_natural",
+            accepted_context=[
+                {
+                    "question_type": "memory_gap",
+                    "content_category": "task_coordination",
+                    "added_agent_utility": "object_state_change",
+                    "reasoning_pattern": "object_state_change",
+                    "question_style": "memory_gap",
+                    "question": "I was holding the black case but didn't notice who took it and where it ended up.",
+                }
+            ],
+        )
+        self.assertIn("Hard diversity requirement for relaxed_natural runs", prompt)
+        self.assertIn("Treat the recent accepted questions as patterns to avoid", prompt)
+        self.assertIn("who took it and where did it end up", prompt)
+        self.assertIn("Do not default to an object-movement question", prompt)
+
+    def test_judger_prompt_uses_generic_other_user_rule(self) -> None:
+        packet = {"evidence_id": "E1", "required_users": ["Jake", "Lucia"], "clips": []}
+        qa = SchemaTests("test_validate_valid_item").valid_item()
+        prompt = build_judger_prompt(qa, packet)
+        self.assertIn("what was [other user] doing/holding/handling", prompt)
+        self.assertIn("near-duplicate of a known prior pattern", prompt)
+        self.assertNotIn("what was Alice doing/holding/handling", prompt)
 
     def test_complete_generator_metadata_repairs_old_generator_shape(self) -> None:
         packet = {"required_users": ["Jake", "Alice"]}
