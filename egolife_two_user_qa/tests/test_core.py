@@ -491,6 +491,8 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("red object appears only in Alice's video", prompt)
         self.assertIn("takeout box", prompt)
         self.assertIn("Privacy/social appropriateness test", prompt)
+        self.assertIn("Same-place/event binding test", prompt)
+        self.assertIn("what was being washed at the sink", prompt)
         self.assertIn("Do not fall back to the plain", prompt)
         prompt_with_context = build_video_generation_prompt(
             packet,
@@ -532,6 +534,9 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("If the two users are in different places", prompt)
         self.assertIn("takeout box", prompt)
         self.assertIn("privacy-intrusive", prompt)
+        self.assertIn("Same-place, same-area, and same-event bindings", prompt)
+        self.assertIn("who was standing near the table", prompt)
+        self.assertIn("what was being washed there", prompt)
         self.assertNotIn("If Alice's view shows Jake", prompt)
         self.assertIn("visible_person", prompt)
         self.assertNotIn("Assigned diversity design cell", prompt)
@@ -621,6 +626,9 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("shared room, nearby person, same table/couch/path", prompt)
         self.assertIn("takeout box or food container", prompt)
         self.assertIn("Privacy and social appropriateness rule", prompt)
+        self.assertIn("Same-place / same-event binding check", prompt)
+        self.assertIn("what was being washed at the sink during that time", prompt)
+        self.assertIn("I did not see who else was in the room", prompt)
         self.assertNotIn("what was Alice doing/holding/handling", prompt)
 
     def test_complete_generator_metadata_repairs_old_generator_shape(self) -> None:
