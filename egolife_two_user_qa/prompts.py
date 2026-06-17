@@ -442,6 +442,7 @@ Perspective and identity rules:
 - Keep speaker/base user, viewpoint_owner, and visible_person distinct in evidence claims and rationale.
 - Do not name the speaker/base user in the question or answer when the question is asked from that user's first-person perspective.
 - The speaker may only claim experiences, objects, people, or actions visible from the speaker's own video. If a red object, phone screen, container, or person appears only in another user's video, do not write "I saw..." or "I was wondering about..." from the wrong user's perspective.
+- The speaker may not invent later ownership or contact. Do not write "the berries I picked up later", "the item I handled afterward", "who took my container", or "what happened to it after I used it" unless the speaker's own video shows that object/person relation. If an object or person appears only in the other user's video, an unrelated speaker anchor such as carrying a box nearby, walking elsewhere, or being in the courtyard is not enough.
 - Do not say someone was recording with a phone unless the raw video visibly shows recording evidence, such as a camera/recording interface, a red recording indicator, the phone aimed and held for recording, or a visible captured scene on the phone screen. If the video only shows a phone being held or used, say "holding", "checking", or "using" the phone.
 
 Physical identity and place co-reference rules:
@@ -450,6 +451,7 @@ Physical identity and place co-reference rules:
 - Referential binding implies physical identity. If the question asks about the content, state, location, handler, owner, screen, or outcome of an object/person/place first introduced from the speaker's view, then the other user's answer must prove it is the same physical instance or the same person-object relation.
 - Bound phrases such as "their tablet", "that phone", "its screen", "the screen on the tablet", "the person on the bed's tablet", "what was on it", "where did it go", or "who handled it next" require visible continuity. Do not claim "physical identity required: no" for these wordings.
 - Same-place, same-area, and same-event bindings also imply physical identity. If the question asks "who was in the room", "who was standing near the table", "what was happening at the sink", "what was being washed there", "who was nearby", "what happened during that time", or similar, the other view must prove the same physical place and event/time relation. Do not claim "physical identity required: no" for these wordings; if same-place/time continuity is absent, rewrite with view-qualified distinct wording such as "what did the other person's view show at their sink?"
+- Social-response bindings also require physical/event continuity. If the question asks how another person reacted when "I pointed", "I gestured", "I spoke", "I handed it over", or "I turned toward them", the answer must prove the same room/person/event relation. Mark these "physical identity required: yes" and name the continuity cue, such as same projection screen, same table layout, same people, and the gesture-to-reaction chain.
 - For screen/content questions, acceptable continuity cues include the same person and same device visible across views, the same room/bed/layout, a distinctive screen/device appearance, an over-the-shoulder or shared-location view, a handoff/carryover, or a clear action chain linking the device and screen.
 - If the users are in different rooms or separate places, ask only about a relation that does not require same-object or same-place identity, or explicitly describe the distinct view-qualified object/place, such as "the table in the other room" or "the device visible from the other person's view".
 - For handoff, follow-up state, "where did it end up", "what happened to it", or shared-place questions, first verify the same physical object/place is visually supported. If it is only category-level similarity, choose a different question.
@@ -465,6 +467,7 @@ Naturalness guidance:
 - Do not default to an object-movement question such as "who took it and where did it end up" when another natural two-user dependency is visible.
 - Do not default to a handoff question such as "who took over" or "who started" when recent accepted questions already use handoff language.
 - Avoid generic questions like "what was the other person doing?" unless tied to a concrete object, place, action, role, reaction, or follow-up state from the speaker's own context.
+- Do not tie the speaker to unrelated other-view-only activity. A speaker carrying a cardboard box, walking nearby, or being in a broad area cannot naturally ask what happened to a berry container, phone, cart, or person that appears only in the other view unless the speaker's own video shows a concrete relation to that target.
 - Avoid asking what both users saw, both noticed, or both were doing together.
 - Use the most natural specific object name visible in the raw video. If it looks like a takeout box, food container, carton, tray, backpack, phone case, or remote, prefer that over vague labels like "red container", "thing", or "object".
 - Avoid privacy-intrusive surveillance wording. A question about what another person was doing is acceptable only when it is tied to a visible shared task, public/social interaction, safety/logistics, an object handoff, or something the speaker had a natural reason to check. Avoid private screen/message/content questions unless the videos show a shared/public context or explicit speaker-side relation that makes the detail appropriate.
@@ -522,6 +525,7 @@ Compact design rules:
 - A good question starts from one user's own anchor event and asks for a missing related detail supplied by another user's video.
 - The speaker/base user's perspective is the question perspective. Another user's video is an added source that fills the speaker's memory gap; do not ask what the video shows.
 - The speaker may only claim what the speaker's own raw video supports. If an object/person/action appears only in the other user's video, use that other user as the speaker or rewrite with explicit other-view wording.
+- The speaker may not claim later contact with an object that only appears in the other user's video. Phrases like "the berries I picked up later" or "the item I handled afterward" require speaker-side visual proof; otherwise discard the question.
 - Do not claim "recording with my phone" unless a recording interface, red recording indicator, phone aimed for recording, or visible captured scene proves recording. If only a phone is visible, say holding/checking/using the phone.
 - The speaker's video must not already reveal the correct answer; the other user's video must add the missing visual detail.
 - If either single user's video can select the correct option, discard the question and create a different one.
@@ -529,6 +533,7 @@ Compact design rules:
 - Do not make a question just because both clips contain the same kind of object or place. A table, phone, device, kitchen, counter, room, or screen in one view is not the same physical instance as one in another view unless distinctive visual continuity proves it.
 - Referential binding implies physical identity: phrases such as "their tablet", "that phone", "its screen", "the screen on the tablet", "the person on the bed's tablet", "what was on it", "where did it go", or "who handled it next" require proof that the other view shows the same physical object/person/place relation.
 - Same-place and same-event wording also requires continuity: "who was in the room", "near the table", "at the sink", "what was being washed there", "during that time", "what happened there", or "who was nearby" must be marked "physical identity required: yes" and name the same-place/time cue.
+- Social reaction wording also requires continuity: "how did they react when I pointed", "did they turn toward me", "who responded to my gesture", or similar must be marked "physical identity required: yes" and name the same room/person/event cue.
 - Do not ask what both users saw, noticed, or looked at.
 - Do not ask what both users did, handled, had, shared, or were doing together.
 - You may ask about another room, an offscreen area, or what continued after the speaker left, but only if the speaker-side anchor is needed to set the time/context and the other video supplies a concrete missing detail.
@@ -586,6 +591,8 @@ For example, If the question is asked from Jake's perspective, Jake's name shoul
 25) Object naming test: use the clearest everyday object name visible in the raw video; avoid vague or misleading labels like "red container" when "takeout box" or "food container" is visible.
 26) Privacy/social appropriateness test: avoid voyeuristic questions about what another person was doing or reading unless the behavior is public, shared-task related, a visible response, safety/logistics related, or otherwise naturally relevant to the speaker. Do not ask for private screen/message content without a clear shared/public context.
 27) Same-place/event binding test: questions like "who else was in the room", "who was standing near the table", "what was being washed at the sink", or "what was happening there during that time" require same-place and same-time continuity. Do not mark them "physical identity required: no"; if continuity is weak, rewrite with explicitly distinct/view-qualified wording.
+28) Other-view-only target test: reject questions where the speaker anchor is unrelated to the target visible only in another user's view, such as "I was carrying a box nearby, what happened to the berries I picked up later" when the speaker video does not show the berries, pickup, handler, or cart.
+29) Social-response continuity test: if asking how someone reacted to "me" or "my gesture", prove the same social event from both views and mark "physical identity required: yes"; otherwise rewrite to avoid claiming a reaction to the speaker.
 
 {accepted_context_block}
 
@@ -635,9 +642,11 @@ Physical co-reference rule:
 Visual truth, speaker entitlement, and place rules:
 - FAIL if the question or rationale claims a phone was recording unless the raw video visibly shows recording evidence: a camera/recording interface, red recording indicator, phone aimed and held for recording, or a visible captured scene on the phone screen. A hand holding a phone is not enough.
 - FAIL if the first-person speaker claims to have seen, held, noticed, missed, or wondered about an object/person/action that appears only in another required user's video. Example: Jake cannot ask about "the red object I saw" if the red object only appears in Alice's view.
+- FAIL if the speaker claims later ownership/contact with an object not shown in the speaker video, such as "the berries I picked up later" or "the item I handled afterward", when only the other user's view shows that object or action.
 - FAIL if the question implies a shared room, nearby person, same table/couch/path, or "in the room" relation when the required users appear to be in different places and no shared-place continuity is visible.
 - FAIL if a question about an activity at the sink/table/room/path can be answered from the other user's video alone and the speaker-side anchor only supplies vague time or proximity instead of selecting a visually continuous shared place/event.
 - FAIL if the question relies on the other user's video alone to identify a person/object/action while the speaker-side anchor does not select or constrain that target.
+- FAIL if the speaker-side anchor is unrelated broad context, such as carrying a box nearby or walking elsewhere, while the answer is about a berry container, phone, cart, or person visible only in the other user's video.
 - FAIL misleading object names when a more specific everyday name is visually clear, such as calling a takeout box or food container merely "the red container" in a way that makes the question less natural or less auditable.
 
 Privacy and social appropriateness rule:
@@ -658,6 +667,7 @@ Main check, 5. multi_video_necessity:
 - FAIL if the question generically asks what "the other person", "everyone else", or "others" were doing nearby, in the room, or at the same time without naming a concrete missing visual detail, place, object, role, reaction, or follow-up state tied to the speaker-side anchor.
 - FAIL if the question is merely "what was [other user] doing/holding/handling" and that user's video alone can choose the answer. PASS that wording only when the speaker-side anchor selects a specific object instance, handoff, phase, outcome, ambiguity, or follow-up state that the other user's video alone would not identify.
 - FAIL if the speaker-side anchor is only "I was elsewhere" or "I was using/holding my phone" and does not create a meaningful need to know the other person's activity.
+- FAIL if the speaker-side anchor is only "I was carrying a box/bag nearby", "I was walking in the area", or another unrelated action, while the question asks about a target that exists only in the second user's view.
 - FAIL if the question is a near-duplicate of a known prior pattern in the prompt context, such as repeatedly asking "I was focused/holding..., didn't notice what happened to [object], who took it and where did it end up?" with only the object/person/place changed.
 - FAIL if a single user's video already reveals the correct answer.
 - UNCERTAIN if the videos do not clearly show the anchor, the missing visual detail, or the relation between them.
@@ -674,6 +684,8 @@ Contrastive example for multi_video_necessity:
 - FAIL: The question is from Jake's perspective about a red object, but the red object only appears in Alice's video, so Jake's first-person anchor is false.
 - FAIL: The two users are in different places, but the wording says "nearby", "in the room", or implies the same table/couch/path without visual proof.
 - FAIL: The question says "I did not see who else was in the room" or "what was being washed at the sink during that time" while the rationale claims no physical identity is required. Same room/sink/time wording requires same-place continuity or explicitly distinct/view-qualified wording.
+- FAIL: The question says "what happened to the berries I picked up later" when the speaker video only shows carrying unrelated boxes or bags and never shows the berries or pickup.
+- FAIL: The question asks "how did they react when I pointed" while claiming physical identity is not required. A reaction to the speaker's gesture requires same room/person/event continuity and must be marked "physical identity required: yes".
 - FAIL: The question asks what another person was doing privately, or what was on their private phone/message screen, when the activity is unrelated to the speaker and not a public/shared task.
 
 Use FAIL for a clear violation, UNCERTAIN when the videos do not provide enough evidence to verify the check, and PASS only when the dimension is satisfied.

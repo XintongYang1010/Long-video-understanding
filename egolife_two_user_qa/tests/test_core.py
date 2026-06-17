@@ -493,6 +493,9 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("Privacy/social appropriateness test", prompt)
         self.assertIn("Same-place/event binding test", prompt)
         self.assertIn("what was being washed at the sink", prompt)
+        self.assertIn("Other-view-only target test", prompt)
+        self.assertIn("berries I picked up later", prompt)
+        self.assertIn("Social-response continuity test", prompt)
         self.assertIn("Do not fall back to the plain", prompt)
         prompt_with_context = build_video_generation_prompt(
             packet,
@@ -537,6 +540,9 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("Same-place, same-area, and same-event bindings", prompt)
         self.assertIn("who was standing near the table", prompt)
         self.assertIn("what was being washed there", prompt)
+        self.assertIn("Social-response bindings also require physical/event continuity", prompt)
+        self.assertIn("how another person reacted when", prompt)
+        self.assertIn("berries I picked up later", prompt)
         self.assertNotIn("If Alice's view shows Jake", prompt)
         self.assertIn("visible_person", prompt)
         self.assertNotIn("Assigned diversity design cell", prompt)
@@ -629,6 +635,9 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("Same-place / same-event binding check", prompt)
         self.assertIn("what was being washed at the sink during that time", prompt)
         self.assertIn("I did not see who else was in the room", prompt)
+        self.assertIn("the berries I picked up later", prompt)
+        self.assertIn("how did they react when I pointed", prompt)
+        self.assertIn("carrying a box/bag nearby", prompt)
         self.assertNotIn("what was Alice doing/holding/handling", prompt)
 
     def test_complete_generator_metadata_repairs_old_generator_shape(self) -> None:
