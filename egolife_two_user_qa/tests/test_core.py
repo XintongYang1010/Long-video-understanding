@@ -486,6 +486,11 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("their tablet", prompt)
         self.assertIn("that phone", prompt)
         self.assertIn("its screen", prompt)
+        self.assertIn("Recording truth test", prompt)
+        self.assertIn("Speaker entitlement test", prompt)
+        self.assertIn("red object appears only in Alice's video", prompt)
+        self.assertIn("takeout box", prompt)
+        self.assertIn("Privacy/social appropriateness test", prompt)
         self.assertIn("Do not fall back to the plain", prompt)
         prompt_with_context = build_video_generation_prompt(
             packet,
@@ -522,6 +527,11 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("physical identity required: yes", prompt)
         self.assertIn("physical identity required: no", prompt)
         self.assertIn("the person on the bed's tablet", prompt)
+        self.assertIn("recording interface", prompt)
+        self.assertIn("If a red object, phone screen, container, or person appears only in another user's video", prompt)
+        self.assertIn("If the two users are in different places", prompt)
+        self.assertIn("takeout box", prompt)
+        self.assertIn("privacy-intrusive", prompt)
         self.assertNotIn("If Alice's view shows Jake", prompt)
         self.assertIn("visible_person", prompt)
         self.assertNotIn("Assigned diversity design cell", prompt)
@@ -605,6 +615,12 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("Referential binding check", prompt)
         self.assertIn("claims no same-object identity is needed", prompt)
         self.assertIn("the person on the bed's tablet", prompt)
+        self.assertIn("Visual truth, speaker entitlement, and place rules", prompt)
+        self.assertIn("phone was recording", prompt)
+        self.assertIn("red object only appears in Alice's view", prompt)
+        self.assertIn("shared room, nearby person, same table/couch/path", prompt)
+        self.assertIn("takeout box or food container", prompt)
+        self.assertIn("Privacy and social appropriateness rule", prompt)
         self.assertNotIn("what was Alice doing/holding/handling", prompt)
 
     def test_complete_generator_metadata_repairs_old_generator_shape(self) -> None:
