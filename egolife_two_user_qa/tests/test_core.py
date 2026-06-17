@@ -482,6 +482,10 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("single-user trap", prompt)
         self.assertIn("the speaker's exact object/action/phase", prompt)
         self.assertIn("offscreen", prompt)
+        self.assertIn("Referential binding implies physical identity", prompt)
+        self.assertIn("their tablet", prompt)
+        self.assertIn("that phone", prompt)
+        self.assertIn("its screen", prompt)
         self.assertIn("Do not fall back to the plain", prompt)
         prompt_with_context = build_video_generation_prompt(
             packet,
@@ -514,6 +518,10 @@ class VideoFirstTests(unittest.TestCase):
         self.assertIn("relaxed 32B experiment", prompt)
         self.assertIn("viewpoint owners / camera wearers", prompt)
         self.assertIn("For any two users, if user A's view shows user B", prompt)
+        self.assertIn("Referential binding implies physical identity", prompt)
+        self.assertIn("physical identity required: yes", prompt)
+        self.assertIn("physical identity required: no", prompt)
+        self.assertIn("the person on the bed's tablet", prompt)
         self.assertNotIn("If Alice's view shows Jake", prompt)
         self.assertIn("visible_person", prompt)
         self.assertNotIn("Assigned diversity design cell", prompt)
@@ -594,6 +602,9 @@ class VideoFirstTests(unittest.TestCase):
         prompt = build_judger_prompt(qa, packet)
         self.assertIn("what was [other user] doing/holding/handling", prompt)
         self.assertIn("near-duplicate of a known prior pattern", prompt)
+        self.assertIn("Referential binding check", prompt)
+        self.assertIn("claims no same-object identity is needed", prompt)
+        self.assertIn("the person on the bed's tablet", prompt)
         self.assertNotIn("what was Alice doing/holding/handling", prompt)
 
     def test_complete_generator_metadata_repairs_old_generator_shape(self) -> None:

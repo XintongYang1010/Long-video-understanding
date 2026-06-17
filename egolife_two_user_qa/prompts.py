@@ -40,13 +40,13 @@ VIDEO_GENERATION_SCHEMA = {
     "added_agent_utility": "offscreen_followup/simultaneous_elsewhere/handoff_chain/visual_disambiguation/object_state_change/social_reaction/role_or_task_split",
     "reasoning_pattern": "anchor_to_missing_state/before_after_outcome/simultaneity/handoff/role_attribution/object_state_change/visual_detail_resolution/social_response/verification",
     "question_style": "memory_gap/simultaneity/follow_up/handoff/disambiguation/role_split/object_state/social_response/verification",
-    "generator_rationale": "why this is a natural speaker-anchor plus missing-detail question; state whether it relies on same physical object/place identity and what visual continuity proves it, or say it does not rely on such identity",
-    "why_two_users_needed": "why each required user contributes necessary non-redundant visual evidence, including any same-object/place continuity evidence if the question depends on it",
+    "generator_rationale": "why this is a natural speaker-anchor plus missing-detail question; include the exact marker 'physical identity required: yes/no' and, if yes, what visual continuity proves it; if no, explain why the wording does not bind a speaker-side object/place/person to the other view's answer",
+    "why_two_users_needed": "why each required user contributes necessary non-redundant visual evidence; include the exact marker 'physical identity required: yes/no' and any same-object/place/person continuity evidence if the question depends on it",
     "per_user_evidence_claims": [
-        {"user": "name", "claim": "claim grounded in that user's own video"}
+        {"user": "name", "claim": "claim grounded in that user's own video, including physical identity continuity cues when relevant"}
     ],
     "review": {
-        "generator_self_check": "why this cannot be answered by one user alone, is not just asking what both users saw, and does not merge semantically similar but physically different objects/places",
+        "generator_self_check": "why this cannot be answered by one user alone, is not just asking what both users saw, and does not merge semantically similar but physically different objects/places; include 'physical identity required: yes/no'",
         "status": "draft",
     },
 }
@@ -445,8 +445,12 @@ Perspective and identity rules:
 Physical identity and place co-reference rules:
 - A shared noun category does not prove a shared physical instance. Two views may each show a table, phone, laptop, room, kitchen, counter, screen, bag, or device without showing the same table, phone, laptop, room, kitchen, counter, screen, bag, or device.
 - Do not imply that "the table", "the phone", "the room", "the kitchen", or any other object/place is the same across users unless the raw videos show visual continuity: the same distinctive item, a handoff/carryover, a unique mark/label/color/layout, a continuous shared location, or a clear action chain linking the views.
+- Referential binding implies physical identity. If the question asks about the content, state, location, handler, owner, screen, or outcome of an object/person/place first introduced from the speaker's view, then the other user's answer must prove it is the same physical instance or the same person-object relation.
+- Bound phrases such as "their tablet", "that phone", "its screen", "the screen on the tablet", "the person on the bed's tablet", "what was on it", "where did it go", or "who handled it next" require visible continuity. Do not claim "physical identity required: no" for these wordings.
+- For screen/content questions, acceptable continuity cues include the same person and same device visible across views, the same room/bed/layout, a distinctive screen/device appearance, an over-the-shoulder or shared-location view, a handoff/carryover, or a clear action chain linking the device and screen.
 - If the users are in different rooms or separate places, ask only about a relation that does not require same-object or same-place identity, or explicitly describe the distinct view-qualified object/place, such as "the table in the other room" or "the device visible from the other person's view".
 - For handoff, follow-up state, "where did it end up", "what happened to it", or shared-place questions, first verify the same physical object/place is visually supported. If it is only category-level similarity, choose a different question.
+- If continuity is absent, rewrite to avoid binding: ask "what did the other user's view show on a tablet screen nearby?" rather than "what was on the tablet I saw?".
 - Avoid ambiguous bare nouns when multiple instances are possible. Use speaker-anchored or view-qualified wording, for example "the case I had just opened" or "the cup on the other person's table".
 
 Naturalness guidance:
@@ -465,7 +469,7 @@ Metadata instructions:
 - Return both content_category and category with the same value.
 - Fill single_user_answerability and combined_answerability as the generator's rationale only; a human reviewer will replace the automatic answerability gate for this experiment.
 - Fill per_user_evidence_claims with clear viewpoint language, for example: "The viewpoint owner's view shows another named person placing the device on the table."
-- In generator_rationale, why_two_users_needed, and review.generator_self_check, explicitly state whether the question depends on same physical object/place identity. If it does, name the visual continuity cue; if it does not, say the objects/places are view-qualified or distinct.
+- In generator_rationale, why_two_users_needed, and review.generator_self_check, include the exact marker "physical identity required: yes" or "physical identity required: no". If yes, name the visual continuity cue. If no, explain why the question wording does not bind a speaker-side object/place/person to the other user's answer.
 
 {accepted_context_block}
 
@@ -515,10 +519,12 @@ Compact design rules:
 - If either single user's video can select the correct option, discard the question and create a different one.
 - Do not make a question just because clips share a timestamp.
 - Do not make a question just because both clips contain the same kind of object or place. A table, phone, device, kitchen, counter, room, or screen in one view is not the same physical instance as one in another view unless distinctive visual continuity proves it.
+- Referential binding implies physical identity: phrases such as "their tablet", "that phone", "its screen", "the screen on the tablet", "the person on the bed's tablet", "what was on it", "where did it go", or "who handled it next" require proof that the other view shows the same physical object/person/place relation.
 - Do not ask what both users saw, noticed, or looked at.
 - Do not ask what both users did, handled, had, shared, or were doing together.
 - You may ask about another room, an offscreen area, or what continued after the speaker left, but only if the speaker-side anchor is needed to set the time/context and the other video supplies a concrete missing detail.
 - When users are in different rooms or places, keep object/place wording view-qualified unless the videos visibly establish the same room, same object, or same action chain across views.
+- For screen/content questions, do not ask what was on the speaker-side phone/tablet/screen unless the videos visibly link that same device or same person-device relation across views.
 - Avoid generic wording like "what was the other person doing nearby"; if the question uses "other person", it must also name a concrete object, place, role, action, or follow-up state tied to the speaker's anchor.
 - Do not ask a generic comparison of two views, rooms, or camera angles.
 """
@@ -560,6 +566,8 @@ For example, If the question is asked from Jake's perspective, Jake's name shoul
 17) Physical co-reference test: before using "the same", "that", "it", "there", "the table", "the phone", "the room", or similar cross-view wording, confirm the videos show the same physical object/place through a distinctive object, handoff/carryover, unique mark, shared layout, continuous location, or clear action chain. If not, rewrite with view-qualified distinct objects/places or choose a relation that does not depend on physical sameness.
 18) Do not let semantic similarity stand in for visual continuity. If one user's view has a phone on a table and another user's view has a phone on a different table or in a different room, treat them as separate phones/tables unless the videos visibly link them.
 19) In generator_rationale, why_two_users_needed, per_user_evidence_claims, and review.generator_self_check, make the physical identity assumption auditable: either name the same-object/place continuity cue, or explicitly state that the question uses distinct/view-qualified objects or places and does not depend on them being the same instance.
+20) Referential binding implies physical identity. If the question asks about the content, state, location, handler, owner, screen, or outcome of a speaker-side object/person/place, the answer from another view must prove the same physical instance or same person-object relation. Do not say "physical identity required: no" if the wording uses "their tablet", "that phone", "its screen", "the screen on the tablet", "the person on the bed's tablet", "what was on it", or similar bound phrasing.
+21) For screen/content questions, visible continuity can be same person plus same device, same room/bed/layout, distinctive screen/device appearance, over-the-shoulder/shared location evidence, handoff/carryover, or a clear action chain. Without that, rewrite so the other view's device/screen is described as distinct and not as the speaker-side device.
 
 {accepted_context_block}
 
@@ -599,6 +607,10 @@ Physical co-reference rule:
 - FAIL if the question, answer, or rationale assumes two semantically similar objects/places are the same physical instance without that continuity evidence.
 - FAIL if a handoff, follow-up state, "where did it end up", "what happened to it", or shared-place relation depends on same-object/same-place identity but the videos only show category-level similarity.
 - FAIL if the generator_rationale, why_two_users_needed, per_user_evidence_claims, or review.generator_self_check hides this assumption or fails to explain the continuity cue for a same-object/place question.
+- Referential binding check: FAIL if the question's grammar binds a speaker-side object/person/place to another view's answer while the rationale claims no same-object identity is needed.
+- Bound phrases such as "their tablet", "that phone", "its screen", "the screen on the tablet", "the person on the bed's tablet", "what was on it", "where did it go", or "who handled it next" require same physical instance or same person-object relation evidence.
+- FAIL screen/content cases where the speaker sees someone with a tablet/phone/screen, another view shows a tablet/phone/screen, and the QA asks what was on "their tablet", "that phone", or "its screen" without proving the same device/person relation.
+- FAIL if the QA marks or claims "physical identity required: no" but the wording uses a bound target whose answer depends on the other view showing the same object, place, person, screen, content, state, location, handler, owner, or outcome.
 - PASS this issue only when the physical identity is visually supported, or when the question explicitly treats the objects/places as distinct view-qualified instances and does not rely on sameness.
 
 Main check, 5. multi_video_necessity:
@@ -624,6 +636,7 @@ Contrastive example for multi_video_necessity:
 - PASS: The speaker asks what was happening at the other person's table in the other room, and the wording does not claim it is the same table the speaker saw.
 - FAIL: One video shows someone discussing/checking a device setup while another shows dishwashing. If no shared task or natural dependency is visible, this is only timestamp alignment and should fail.
 - FAIL: The speaker sees a phone on one table, another view shows a phone on a different table or in a different room, and the QA asks what happened to "the phone on the table" as if both views show the same phone/table without visible continuity.
+- FAIL: The speaker sees a person on a bed with a tablet; another view shows some tablet screen content; the QA asks what was on "their tablet" or "the person on the bed's tablet" while claiming no same-device identity is required. That wording requires proof of the same tablet/person relation.
 
 Use FAIL for a clear violation, UNCERTAIN when the videos do not provide enough evidence to verify the check, and PASS only when the dimension is satisfied.
 
