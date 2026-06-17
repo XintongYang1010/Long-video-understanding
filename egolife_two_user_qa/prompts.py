@@ -40,13 +40,13 @@ VIDEO_GENERATION_SCHEMA = {
     "added_agent_utility": "offscreen_followup/simultaneous_elsewhere/handoff_chain/visual_disambiguation/object_state_change/social_reaction/role_or_task_split",
     "reasoning_pattern": "anchor_to_missing_state/before_after_outcome/simultaneity/handoff/role_attribution/object_state_change/visual_detail_resolution/social_response/verification",
     "question_style": "memory_gap/simultaneity/follow_up/handoff/disambiguation/role_split/object_state/social_response/verification",
-    "generator_rationale": "why this is a natural speaker-anchor plus missing-detail question",
-    "why_two_users_needed": "why each required user contributes necessary non-redundant visual evidence",
+    "generator_rationale": "why this is a natural speaker-anchor plus missing-detail question; state whether it relies on same physical object/place identity and what visual continuity proves it, or say it does not rely on such identity",
+    "why_two_users_needed": "why each required user contributes necessary non-redundant visual evidence, including any same-object/place continuity evidence if the question depends on it",
     "per_user_evidence_claims": [
         {"user": "name", "claim": "claim grounded in that user's own video"}
     ],
     "review": {
-        "generator_self_check": "why this cannot be answered by one user alone and is not just asking what both users saw",
+        "generator_self_check": "why this cannot be answered by one user alone, is not just asking what both users saw, and does not merge semantically similar but physically different objects/places",
         "status": "draft",
     },
 }
@@ -102,7 +102,7 @@ ADDED_AGENT_UTILITY_DEFINITIONS = {
     "simultaneous_elsewhere": "the speaker is occupied with one event while another user sees a related event elsewhere or nearby",
     "handoff_chain": "an object, device, or task moves across people or roles, and both perspectives are needed to understand the chain",
     "visual_disambiguation": "the speaker has a partial/ambiguous view, and another user resolves a concrete visual detail",
-    "object_state_change": "another user supplies a concrete state, location, or change of an object/place tied to the speaker's anchor",
+    "object_state_change": "another user supplies a concrete state, location, or change of a visually linked object/place, or an explicitly distinct view-qualified object/place tied to the speaker's anchor",
     "social_reaction": "another user supplies a visible reaction or response to something the speaker did, said, or missed",
     "role_or_task_split": "the users perform complementary roles in a task, and the answer depends on both role contexts",
 }
@@ -110,10 +110,10 @@ ADDED_AGENT_UTILITY_DEFINITIONS = {
 REASONING_PATTERN_DEFINITIONS = {
     "anchor_to_missing_state": "start from the speaker's own anchor event and ask for a missing related state",
     "before_after_outcome": "ask what happened or continued after the speaker's action, attention shift, or departure",
-    "simultaneity": "ask what was happening at the same time as the speaker's anchor action",
-    "handoff": "ask where an object/task went next, who handled it next, or which step followed the speaker's action",
+    "simultaneity": "ask what related event was happening at the same time as the speaker's anchor action without assuming same-object identity unless visually linked",
+    "handoff": "ask where a visibly linked object/task went next, who handled it next, or which step followed the speaker's action",
     "role_attribution": "ask who took which visible role while the speaker was doing another role",
-    "object_state_change": "ask how an object/place changed while the speaker was focused elsewhere",
+    "object_state_change": "ask how a visually linked or explicitly view-qualified object/place changed while the speaker was focused elsewhere",
     "visual_detail_resolution": "ask which visible detail another perspective clarifies",
     "social_response": "ask who reacted/responded and how, grounded in visible or audible behavior if available",
     "verification": "ask which detail can be confirmed only by combining the speaker's anchor with another view",
@@ -126,33 +126,33 @@ QUESTION_STYLE_TEMPLATES = {
         "I couldn't see [target] from where I was; what was going on with it?",
     ],
     "simultaneity": [
-        "At the moment I was focused on [anchor], what happened to [same object/task]?",
-        "As I moved into [speaker phase], which part of [same task/object] changed outside my view?",
+        "At the moment I was focused on [anchor], what happened to [visually linked target]?",
+        "As I moved into [speaker phase], which part of [visually linked task/object] changed outside my view?",
     ],
     "follow_up": [
         "Once I [left/turned away/shifted attention], what happened next with [target]?",
         "What was still going on in [place] after I [speaker anchor]?",
-        "Where did [target] end up once I stopped looking at it?",
+        "Where did [visually linked target] end up once I stopped looking at it?",
     ],
     "handoff": [
-        "Who handled [object/task] next after it left my view?",
+        "Who handled [visually linked object/task] next after it left my view?",
         "Which step happened next after I [speaker anchor]?",
         "Where did [object from my action] go once I was no longer holding it?",
     ],
     "disambiguation": [
         "From my angle, I could only tell [partial clue]. What detail was I missing?",
-        "Which detail about [object/person/action] was unclear from where I was?",
+        "Which detail about [view-qualified object/person/action] was unclear from where I was?",
         "What could I not tell about [target] from my side of the room?",
     ],
     "role_split": [
         "How was the task divided while I was [speaker action]?",
         "Who took over [role/task] while I was [speaker action]?",
-        "What part of the same task was [other person/group] handling as I worked on [speaker role]?",
+        "What part of the visually linked task was [other person/group] handling as I worked on [speaker role]?",
     ],
     "object_state": [
-        "What changed about [object/place] while I was [speaker action]?",
-        "Where was [object] when my view no longer showed it clearly?",
-        "What state was [object/place] in by the time I [speaker anchor]?",
+        "What changed about [visually linked or view-qualified object/place] while I was [speaker action]?",
+        "Where was [visually linked object] when my view no longer showed it clearly?",
+        "What state was [visually linked or view-qualified object/place] in by the time I [speaker anchor]?",
     ],
     "social_response": [
         "Who reacted when I [speaker action], and how?",
@@ -180,7 +180,7 @@ QUESTION_STYLE_REQUIREMENTS = {
     ),
     "handoff": (
         "Start with 'Who handled...', 'Which step happened next...', or 'Where did [object] go...' "
-        "and make the handed-off object or task explicit."
+        "and make the handed-off object or task explicit and visually linked across views."
     ),
     "disambiguation": (
         "Start with 'From my angle...', 'Which detail...', or 'What could I not tell...' "
@@ -190,7 +190,7 @@ QUESTION_STYLE_REQUIREMENTS = {
         "Start with 'How was...', 'Who took over...', or 'What part...' and ask about complementary roles."
     ),
     "object_state": (
-        "Start with 'What changed...', 'Where was...', or 'What state was...' and ask about a state or location change."
+        "Start with 'What changed...', 'Where was...', or 'What state was...' and ask about a state or location change for a visually linked or view-qualified target."
     ),
     "social_response": (
         "Start with 'Who reacted...', 'What response did I miss...', or 'How did...' "
@@ -442,6 +442,13 @@ Perspective and identity rules:
 - Keep speaker/base user, viewpoint_owner, and visible_person distinct in evidence claims and rationale.
 - Do not name the speaker/base user in the question or answer when the question is asked from that user's first-person perspective.
 
+Physical identity and place co-reference rules:
+- A shared noun category does not prove a shared physical instance. Two views may each show a table, phone, laptop, room, kitchen, counter, screen, bag, or device without showing the same table, phone, laptop, room, kitchen, counter, screen, bag, or device.
+- Do not imply that "the table", "the phone", "the room", "the kitchen", or any other object/place is the same across users unless the raw videos show visual continuity: the same distinctive item, a handoff/carryover, a unique mark/label/color/layout, a continuous shared location, or a clear action chain linking the views.
+- If the users are in different rooms or separate places, ask only about a relation that does not require same-object or same-place identity, or explicitly describe the distinct view-qualified object/place, such as "the table in the other room" or "the device visible from the other person's view".
+- For handoff, follow-up state, "where did it end up", "what happened to it", or shared-place questions, first verify the same physical object/place is visually supported. If it is only category-level similarity, choose a different question.
+- Avoid ambiguous bare nouns when multiple instances are possible. Use speaker-anchored or view-qualified wording, for example "the case I had just opened" or "the cup on the other person's table".
+
 Naturalness guidance:
 - Prefer everyday memory or AR-assistant wording: "What did I miss...", "What was still happening...", "Which detail could I not confirm...", "How did they respond...", "What changed after I looked away...", "Where was it by then?", "Did anyone react?".
 - Use "Who took over..." or "Who started..." only when that relation is genuinely the freshest natural relation for the current videos and not already repeated in the accepted context.
@@ -458,6 +465,7 @@ Metadata instructions:
 - Return both content_category and category with the same value.
 - Fill single_user_answerability and combined_answerability as the generator's rationale only; a human reviewer will replace the automatic answerability gate for this experiment.
 - Fill per_user_evidence_claims with clear viewpoint language, for example: "The viewpoint owner's view shows another named person placing the device on the table."
+- In generator_rationale, why_two_users_needed, and review.generator_self_check, explicitly state whether the question depends on same physical object/place identity. If it does, name the visual continuity cue; if it does not, say the objects/places are view-qualified or distinct.
 
 {accepted_context_block}
 
@@ -506,9 +514,11 @@ Compact design rules:
 - The speaker's video must not already reveal the correct answer; the other user's video must add the missing visual detail.
 - If either single user's video can select the correct option, discard the question and create a different one.
 - Do not make a question just because clips share a timestamp.
+- Do not make a question just because both clips contain the same kind of object or place. A table, phone, device, kitchen, counter, room, or screen in one view is not the same physical instance as one in another view unless distinctive visual continuity proves it.
 - Do not ask what both users saw, noticed, or looked at.
 - Do not ask what both users did, handled, had, shared, or were doing together.
 - You may ask about another room, an offscreen area, or what continued after the speaker left, but only if the speaker-side anchor is needed to set the time/context and the other video supplies a concrete missing detail.
+- When users are in different rooms or places, keep object/place wording view-qualified unless the videos visibly establish the same room, same object, or same action chain across views.
 - Avoid generic wording like "what was the other person doing nearby"; if the question uses "other person", it must also name a concrete object, place, role, action, or follow-up state tied to the speaker's anchor.
 - Do not ask a generic comparison of two views, rooms, or camera angles.
 """
@@ -547,6 +557,9 @@ For example, If the question is asked from Jake's perspective, Jake's name shoul
 14) Vary the question opening according to the assigned question_style. Prefer assigned-style openings such as "What...", "Who...", "Which...", "Where...", "How...", "Once I...", "At the moment I...", "From my angle...", or "I couldn't see...". Avoid starting with "After I" or "While I" unless the assigned style requirement explicitly points there.
 15) Hard single-user trap: do not ask "who was standing near...", "what was Alice doing...", "what was Alice holding...", or "what color/person/object was visible..." when the other user's video alone can identify it. Tie the answer to the speaker's exact object/action/phase, such as the item I had just picked up, the case I had just opened, the device part I handed over, or the place I had just left.
 16) Before returning, apply this stricter rewrite test: if the second user's video alone could answer by scanning its visible scene, change the question so the speaker's anchor is needed to know which object, person, phase, or follow-up state is being asked about.
+17) Physical co-reference test: before using "the same", "that", "it", "there", "the table", "the phone", "the room", or similar cross-view wording, confirm the videos show the same physical object/place through a distinctive object, handoff/carryover, unique mark, shared layout, continuous location, or clear action chain. If not, rewrite with view-qualified distinct objects/places or choose a relation that does not depend on physical sameness.
+18) Do not let semantic similarity stand in for visual continuity. If one user's view has a phone on a table and another user's view has a phone on a different table or in a different room, treat them as separate phones/tables unless the videos visibly link them.
+19) In generator_rationale, why_two_users_needed, per_user_evidence_claims, and review.generator_self_check, make the physical identity assumption auditable: either name the same-object/place continuity cue, or explicitly state that the question uses distinct/view-qualified objects or places and does not depend on them being the same instance.
 
 {accepted_context_block}
 
@@ -580,6 +593,14 @@ Brief checks:
 8. gaze_safety: do not invent exact gaze-to-object claims when 2D gaze is unavailable.
 9. human_auditability: enough user/video/time evidence exists for a human to inspect later.
 
+Physical co-reference rule:
+- Treat same-category objects or places as separate by default. A table/phone/device/kitchen/room/counter/screen in one view is not the same physical table/phone/device/kitchen/room/counter/screen in another view unless the videos show distinctive visual continuity.
+- Visual continuity can be a handoff, carryover, unique mark/label/color, shared layout, continuous shared location, or a clear action chain linking the same instance across views.
+- FAIL if the question, answer, or rationale assumes two semantically similar objects/places are the same physical instance without that continuity evidence.
+- FAIL if a handoff, follow-up state, "where did it end up", "what happened to it", or shared-place relation depends on same-object/same-place identity but the videos only show category-level similarity.
+- FAIL if the generator_rationale, why_two_users_needed, per_user_evidence_claims, or review.generator_self_check hides this assumption or fails to explain the continuity cue for a same-object/place question.
+- PASS this issue only when the physical identity is visually supported, or when the question explicitly treats the objects/places as distinct view-qualified instances and does not rely on sameness.
+
 Main check, 5. multi_video_necessity:
 - Judge whether the QA has a situated cross-video dependency, not just two synchronized clips.
 - PASS only if one required user's video provides a speaker-side anchor event and another required user's video provides a missing visual detail that is simultaneous, follow-up, or otherwise naturally related.
@@ -595,12 +616,14 @@ Main check, 5. multi_video_necessity:
 - FAIL if the question is a near-duplicate of a known prior pattern in the prompt context, such as repeatedly asking "I was focused/holding..., didn't notice what happened to [object], who took it and where did it end up?" with only the object/person/place changed.
 - FAIL if a single user's video already reveals the correct answer.
 - UNCERTAIN if the videos do not clearly show the anchor, the missing visual detail, or the relation between them.
-- In the reason, explicitly name the speaker-side anchor, the missing visual detail, and why the second video is or is not needed.
+- In the reason, explicitly name the speaker-side anchor, the missing visual detail, the relevant object/place identity assumption, and why the second video is or is not needed.
 
 Contrastive example for multi_video_necessity:
 - PASS: One video shows the speaker checking a setup and leaving toward a stairwell; another video still shows the front of that room where a tutorial continues. A good question asks what was still happening after the speaker left. The first video gives the anchor; the second supplies the missing follow-up detail.
 - PASS: One video shows the speaker focused on assembling a device at a table; another view shows a related object, person, or room state the speaker cannot see. A good question asks from the speaker's memory gap, not from the dataset or video perspective.
+- PASS: The speaker asks what was happening at the other person's table in the other room, and the wording does not claim it is the same table the speaker saw.
 - FAIL: One video shows someone discussing/checking a device setup while another shows dishwashing. If no shared task or natural dependency is visible, this is only timestamp alignment and should fail.
+- FAIL: The speaker sees a phone on one table, another view shows a phone on a different table or in a different room, and the QA asks what happened to "the phone on the table" as if both views show the same phone/table without visible continuity.
 
 Use FAIL for a clear violation, UNCERTAIN when the videos do not provide enough evidence to verify the check, and PASS only when the dimension is satisfied.
 
