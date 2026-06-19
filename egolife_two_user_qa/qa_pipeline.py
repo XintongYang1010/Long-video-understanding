@@ -52,7 +52,11 @@ def validate_outputs(
 
 
 def add_runner_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--backend", default="transformers-local", choices=["transformers-local", "openai-compatible-local"])
+    parser.add_argument(
+        "--backend",
+        default="transformers-local",
+        choices=["transformers-local", "openai-compatible-local", "gemini-api"],
+    )
     parser.add_argument("--model-id", default=DEFAULT_MODEL_ID)
     parser.add_argument("--base-url", default="http://127.0.0.1:8000/v1")
     parser.add_argument("--max-new-tokens", type=int, default=1024)

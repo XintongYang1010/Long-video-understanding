@@ -4,4 +4,3 @@
 accelerate
 qwen-vl-utils
 transformers>=4.57.0
-

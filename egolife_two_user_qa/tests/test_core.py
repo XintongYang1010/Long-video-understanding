@@ -11,7 +11,14 @@ from egolife_two_user_qa.evidence import choose_required_clips, group_manifest_c
 from egolife_two_user_qa.gaze_projection import gaussian_bbox_score, load_aria_projection_calibration, project_gaze_row
 from egolife_two_user_qa.manifest import parse_egolife_path, seconds_from_time_token
 from egolife_two_user_qa.prompts import build_judger_prompt, build_video_generation_prompt
-from egolife_two_user_qa.qwen3vl_runner import DryRunRunner, normalize_video_kwargs, split_video_inputs_and_metadata
+from egolife_two_user_qa.qwen3vl_runner import (
+    DEFAULT_GEMINI_MODEL_ID,
+    DEFAULT_MODEL_ID,
+    DryRunRunner,
+    make_runner,
+    normalize_video_kwargs,
+    split_video_inputs_and_metadata,
+)
 from egolife_two_user_qa.schema import extract_json_object, validate_qa_item, write_human_review_sheet
 from egolife_two_user_qa.video_qa_loop import (
     answerability_gate,
@@ -440,6 +447,11 @@ class VideoFirstTests(unittest.TestCase):
         self.assertEqual(kwargs["fps"], 1.0)
         self.assertEqual(kwargs["video_metadata"][0].fps, 30.0)
         self.assertEqual(kwargs["video_metadata"][0].frames_indices, [0, 15])
+
+    def test_make_runner_routes_gemini_backend_with_default_model(self) -> None:
+        with mock.patch("egolife_two_user_qa.qwen3vl_runner.GeminiAPIRunner") as runner_cls:
+            make_runner("gemini-api", model_id=DEFAULT_MODEL_ID, max_new_tokens=2048)
+        runner_cls.assert_called_once_with(DEFAULT_GEMINI_MODEL_ID, max_new_tokens=2048)
 
     def test_video_generation_prompt_does_not_use_observation(self) -> None:
         packet = {

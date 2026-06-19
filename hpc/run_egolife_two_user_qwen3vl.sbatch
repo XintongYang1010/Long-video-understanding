@@ -18,6 +18,8 @@ set -euo pipefail
 PROJECT_ROOT="${QWEN3VL_PROJECT_ROOT:-/scratch/${USER}/github_sync_long_video_understanding}"
 TARGET_COUNT="${EGOLIFE2U_TARGET_COUNT:-20}"
 MODEL_ID="${EGOLIFE2U_MODEL_ID:-Qwen/Qwen3-VL-8B-Instruct}"
+BACKEND="${EGOLIFE2U_BACKEND:-transformers-local}"
+BASE_URL="${EGOLIFE2U_BASE_URL:-http://127.0.0.1:8000/v1}"
 DTYPE="${EGOLIFE2U_DTYPE:-bfloat16}"
 MAX_NEW_TOKENS="${EGOLIFE2U_MAX_NEW_TOKENS:-1536}"
 OUTDIR="${EGOLIFE2U_OUTPUT_ROOT:-egolife_two_user_qa/outputs/pilot_20_video_first}"
@@ -33,6 +35,10 @@ GROUP_STRATEGY="${EGOLIFE2U_GROUP_STRATEGY:-chronological}"
 SAMPLING_SEED="${EGOLIFE2U_SAMPLING_SEED:-0}"
 MIN_CLOCK_GAP_SECONDS="${EGOLIFE2U_MIN_CLOCK_GAP_SECONDS:-0}"
 
+if [[ "${BACKEND}" == "gemini-api" && -z "${EGOLIFE2U_MODEL_ID:-}" ]]; then
+  MODEL_ID="gemini-2.5-pro"
+fi
+
 cd "${PROJECT_ROOT}"
 mkdir -p hpc/logs "${OUTDIR}" "${CACHE_DIR}" "/scratch/${USER}/hf_cache"
 
@@ -46,6 +52,7 @@ echo "hostname=$(hostname)"
 echo "pwd=$(pwd)"
 echo "date_start=$(date --iso-8601=seconds)"
 echo "model_id=${MODEL_ID}"
+echo "backend=${BACKEND}"
 echo "target_count=${TARGET_COUNT}"
 echo "generation_mode=${GENERATION_MODE}"
 echo "answerability_mode=${ANSWERABILITY_MODE}"
@@ -59,6 +66,8 @@ nvidia-smi || true
 run_args=(
   bash scripts/run_qwen3vl_gpu.sh
   --target-count "${TARGET_COUNT}"
+  --backend "${BACKEND}"
+  --base-url "${BASE_URL}"
   --model-id "${MODEL_ID}"
   --dtype "${DTYPE}"
   --max-new-tokens "${MAX_NEW_TOKENS}"
