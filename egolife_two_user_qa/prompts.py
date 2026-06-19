@@ -132,26 +132,17 @@ def build_video_generation_prompt(
         if feedback
         else ""
     )
-    example_block = """One good example for natural multi-user QA design.
-This example illustrates the desired reasoning pattern only. Do not copy its objects, activities, answers, names, or options into the new QA item.
-Do not treat it as evidence for the current videos. Use only the current raw videos and packet metadata for the actual QA.
+    example_block = """
+Ask questions about **goal-driven collaboration** between people working toward a **shared,
+meaningful objective**. Focus on how individuals **organized, contributed to, or discussed structured
+tasks**.
+Your questions should explore:
+* What roles people played in a shared task
+* How responsibilities were divided or coordinated
+* What steps were taken toward completing the goal
+* How decisions were made during task execution
 
-Good example: setup check followed by missing room state
-Video situation:
-- One person checks a device/timer/setup near a practice or presentation room, then walks toward the stairwell.
-- Another person's view still shows the front of that room, where an exercise or dance tutorial continues on the big screen.
-Good question:
-- "After I checked the setup and walked toward the stairwell, what was still going on at the front of the room I had just left?"
-Why good:
-- It starts from what the speaker experienced: checking the setup and leaving.
-- The other video answers the missing follow-up state after the speaker left.
-- The answer requires combining the speaker's anchor event with another user's visual evidence.
-
-Compact design rules:
-- A good question starts from one user's own anchor event and asks for a missing related detail supplied by another user's video.
-- Do not make a question just because clips share a timestamp.
-- Do not ask what both users saw, noticed, or looked at.
-- Do not ask a generic comparison of two views, rooms, or camera angles.
+let question be diverse.
 """
     return f"""You are an assistant tasked with generating one meaningful, contextually grounded MCQ from raw egocentric videos.
 
@@ -169,7 +160,11 @@ For example, "Where did I put my glasses when I was having lunch with Tasha and 
 2) Use first-person or shared-memory wording from an AR-glasses user's perspective, such as "I", "me", "my", "we", or "our"...
 3) Do not name a required user in the question or the answer when the question is asked from that person's perspective.
 For example, If the question is asked from Jake's perspective, Jake's name should not appear in the question or the answer.
-4) Do not use words such as video, footage, recording, frame, dataset, camera, clip, caption, subtitle, or timestamp in the question or options.
+4) Keep the speaker perspective consistent. If the question uses "I", choose one required user as the speaker, and make sure the question is something that speaker could naturally ask because their own view contains the anchor but not the answer.
+Bad perspective mismatch: If Jake is the "I" speaker, do not ask "After I handed over the device, who was the next person to handle it?" when Alice's view would answer "Jake" from Alice's own perspective. Jake could not naturally ask a question whose answer depends on Alice treating Jake as the other person.
+Good perspective-consistent rewrite: "After I handed the device over, what was Alice doing with it from her side?" The speaker anchor is Jake's handoff, and Alice's view supplies the missing action.
+5) Avoid ambiguous phrases like "the next person", "someone else", "the other person", or "who handled it next" unless the identity is unambiguous from the speaker's perspective and the answer is not the speaker themself from another user's perspective.
+6) Do not use words such as video, footage, recording, frame, dataset, camera, clip, caption, subtitle, or timestamp in the question or options.
 
 
 {example_block}
@@ -210,6 +205,8 @@ Main check, 5. multi_video_necessity:
 - FAIL if the question asks what both users saw, both noticed, or both looked at; do not ask what both users saw or noticed because one user may not know the other user's perception.
 - FAIL if the question is a generic comparison of two views, rooms, or camera angles rather than a speaker anchor plus missing visual detail.
 - FAIL if a single user's video already reveals the correct answer.
+- FAIL if the first-person speaker perspective is inconsistent. For example, if Jake is the "I" speaker, reject a question like "who handled it next?" when Alice's view would answer "Jake"; that question is actually from Alice's perspective and is not a natural question Jake could ask.
+- FAIL if the answer identifies the first-person speaker as "the next person", "someone else", or "the other person" from another user's perspective.
 - UNCERTAIN if the videos do not clearly show the anchor, the missing visual detail, or the relation between them.
 - In the reason, explicitly name the speaker-side anchor, the missing visual detail, and why the second video is or is not needed.
 

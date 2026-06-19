@@ -14,6 +14,11 @@ MAX_ATTEMPTS=3
 ARIA_CALIBRATION_DIR=""
 ALLOW_OPENAI_VIDEO_INPUT=0
 
+# TorchCodec is often installed without matching FFmpeg shared libraries on HPC,
+# and some torchvision builds no longer provide torchvision.io.read_video.
+# Decord is the most reliable Qwen video reader for this pipeline.
+export FORCE_QWENVL_VIDEO_READER="${FORCE_QWENVL_VIDEO_READER:-decord}"
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --target-count) TARGET_COUNT="$2"; shift 2 ;;

@@ -219,6 +219,16 @@ The smoke output should contain raw predictions plus a `.summary.csv` next to th
 
 Submit one top-k budget at a time. This example runs `top_k=5` over all 253 Day 1 questions in 26 short chunks:
 
+To compare `top_k=5` and `top_k=10` in the same result file:
+```sh
+ROUTEB_TOP_KS="5 10" \
+ROUTEB_EVAL_MODES="single pair all" \
+ROUTEB_OUTPUT_PATH="/scratch/$USER/data/multiresult/routeB_siglip_day1_top5_top10.json" \
+sbatch hpc/run_routeb_siglip_h200.sbatch
+```
+
+Each JSON row reports the tested `top_k`, prediction, correctness, selected `frames`, and a `retrieval_top_frames_by_agent` audit containing the retrieved top-5 and top-10 frames with `timestamp_sec`, `offset_sec`, `video_path`, `retrieval_rank`, and `retrieval_score`.
+
 ```sh
 cd /scratch/$USER/github_sync_long_video_understanding/MA-EgoQA
 TOPK=5

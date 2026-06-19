@@ -69,6 +69,8 @@ class RankedFrame:
     candidate: CandidateFrame
     score: float
     rank: int
+    rgb_similarity_to_previous: float | None = None
+    embedding_similarity_to_previous: float | None = None
 
 
 def option_query_text(item: dict[str, Any]) -> str:
@@ -380,6 +382,10 @@ def mmr_select(
             candidate=candidates[idx],
             score=float(scores[idx]),
             rank=rank,
+            rgb_similarity_to_previous=None,
+            embedding_similarity_to_previous=float((image_embeddings[selected[: rank - 1]] @ image_embeddings[idx]).max())
+            if rank > 1
+            else None,
         )
         for rank, idx in enumerate(selected[:top_k], start=1)
     ]
@@ -413,12 +419,89 @@ def rank_agent_candidates(
     return ranked, time.perf_counter() - started
 
 
+def rgb_mean_for_spec(spec: FrameSpec) -> list[float] | None:
+    image = decode_image_for_spec(spec)
+    if image is None:
+        return None
+    pixels = list(image.resize((1, 1)).getdata()[0])
+    return [float(value) / 255.0 for value in pixels[:3]]
+
+
+def cosine_similarity(left: list[float] | None, right: list[float] | None) -> float | None:
+    if left is None or right is None:
+        return None
+    numerator = sum(a * b for a, b in zip(left, right))
+    left_norm = math.sqrt(sum(a * a for a in left))
+    right_norm = math.sqrt(sum(b * b for b in right))
+    if left_norm == 0 or right_norm == 0:
+        return None
+    return numerator / (left_norm * right_norm)
+
+
+def spec_cache_key(spec: FrameSpec) -> tuple[str, str, str, float]:
+    return (spec.agent, spec.context_key, spec.video_path, spec.offset_sec)
+
+
+def add_rgb_similarity(
+    ranked_frames: list[RankedFrame],
+    rgb_cache: dict[tuple[str, str, str, float], list[float] | None],
+) -> list[RankedFrame]:
+    rgb_means: list[list[float] | None] = []
+    for ranked in ranked_frames:
+        key = spec_cache_key(ranked.candidate.spec)
+        if key not in rgb_cache:
+            rgb_cache[key] = rgb_mean_for_spec(ranked.candidate.spec)
+        rgb_means.append(rgb_cache[key])
+    updated: list[RankedFrame] = []
+    for idx, ranked in enumerate(ranked_frames):
+        previous_similarities = [
+            cosine_similarity(rgb_means[idx], rgb_means[prev_idx])
+            for prev_idx in range(idx)
+        ]
+        previous_similarities = [
+            similarity for similarity in previous_similarities if similarity is not None
+        ]
+        updated.append(
+            RankedFrame(
+                candidate=ranked.candidate,
+                score=ranked.score,
+                rank=ranked.rank,
+                rgb_similarity_to_previous=max(previous_similarities)
+                if previous_similarities
+                else None,
+                embedding_similarity_to_previous=ranked.embedding_similarity_to_previous,
+            )
+        )
+    return updated
+
+
 def frame_dict(ranked: RankedFrame) -> dict[str, Any]:
     data = ranked.candidate.spec.__dict__.copy()
     data["retrieval_rank"] = ranked.rank
     data["retrieval_score"] = ranked.score
+    data["siglip_query_similarity"] = ranked.score
+    data["rgb_similarity_to_previous_selected"] = ranked.rgb_similarity_to_previous
+    data["siglip_embedding_similarity_to_previous_selected"] = ranked.embedding_similarity_to_previous
     data["candidate_rank"] = ranked.candidate.candidate_rank
     return data
+
+
+def top_frame_audit(
+    agent_rankings: dict[str, list[RankedFrame]],
+    agents: tuple[str, ...],
+    top_ks: list[int],
+) -> dict[str, dict[str, list[dict[str, Any]]]]:
+    audit: dict[str, dict[str, list[dict[str, Any]]]] = {}
+    rgb_cache: dict[tuple[str, str, str, float], list[float] | None] = {}
+    for top_k in top_ks:
+        audit[str(top_k)] = {
+            agent: [
+                frame_dict(ranked)
+                for ranked in add_rgb_similarity(agent_rankings.get(agent, [])[:top_k], rgb_cache)
+            ]
+            for agent in agents
+        }
+    return audit
 
 
 def canonical_agent_group(agents: list[str]) -> tuple[str, ...]:
@@ -633,6 +716,7 @@ def main() -> None:
     parser.add_argument("--retriever-model", default=RETRIEVER_MODEL)
     parser.add_argument("--eval-modes", nargs="+", default=["single", "pair", "all"], choices=["single", "pair", "all"])
     parser.add_argument("--top-ks", nargs="+", type=int, default=[5, 10, 15])
+    parser.add_argument("--audit-top-ks", nargs="+", type=int, default=[5, 10])
     parser.add_argument("--candidate-fps", type=float, default=1.0)
     parser.add_argument("--retrieval-batch-size", type=int, default=32)
     parser.add_argument("--max-candidates-per-agent", type=int, default=0)
@@ -654,7 +738,8 @@ def main() -> None:
     top_ks = sorted({top_k for top_k in args.top_ks if top_k > 0})
     if not top_ks:
         raise SystemExit("--top-ks must contain at least one positive integer")
-    top_k_max = max(top_ks)
+    audit_top_ks = sorted({top_k for top_k in args.audit_top_ks if top_k > 0})
+    top_k_max = max(top_ks + audit_top_ks)
     mmr_lambda = min(max(args.mmr_lambda, 0.0), 1.0)
 
     benchmark = load_json(args.benchmark_path)
@@ -665,7 +750,7 @@ def main() -> None:
         day1_items = day1_items[: args.limit]
 
     print(f"Loaded {len(benchmark)} benchmark items; evaluating {len(day1_items)} DAY1 items.")
-    print(f"Route B top_ks: {top_ks}; eval modes: {args.eval_modes}; candidate_fps={args.candidate_fps}")
+    print(f"Route B top_ks: {top_ks}; audit_top_ks: {audit_top_ks}; eval modes: {args.eval_modes}; candidate_fps={args.candidate_fps}")
     print("Condition generation matches Route A: relevant context agents -> single/pair/all.")
 
     video_index = build_video_index(args.video_root, day="DAY1")
@@ -796,6 +881,11 @@ def main() -> None:
                         },
                         "num_frames": len(kept_specs),
                         "frames": [frame_dict(ranked) for ranked in selected_ranked],
+                        "retrieval_top_frames_by_agent": top_frame_audit(
+                            agent_rankings,
+                            group_agents,
+                            audit_top_ks,
+                        ),
                         "raw_pred": raw_pred,
                         "pred_index": pred_idx,
                         "correct": pred_idx == gt_idx,
