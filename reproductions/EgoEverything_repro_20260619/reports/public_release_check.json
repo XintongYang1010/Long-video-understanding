@@ -1,0 +1,95 @@
+{
+  "checked_at_unix": 1781844555,
+  "github": {
+    "api": "https://api.github.com/repos/ElecBeholder/EgoEverything",
+    "errors": {
+      "repo": null,
+      "branches": null,
+      "releases": null,
+      "tags": null,
+      "tree": null
+    },
+    "default_branch": "fix",
+    "pushed_at": "2025-11-02T09:18:49Z",
+    "branch_heads": {
+      "fix": "41d91cf529b2a0a889d5ea41e0b488c50106443d"
+    },
+    "expected_sha": "41d91cf529b2a0a889d5ea41e0b488c50106443d",
+    "expected_sha_matches_fix": true,
+    "release_count": 0,
+    "tag_count": 0,
+    "tree_truncated": false,
+    "signal_paths": [
+      "Evaluation",
+      "Evaluation/gaze_video_renderer.py",
+      "Evaluation/run_gaze_renderer.py",
+      "Generation/README.md"
+    ],
+    "section4_asset_candidate_paths": []
+  },
+  "huggingface": {
+    "datasets": [
+      {
+        "query": "EgoEverything",
+        "error": null,
+        "count": 0,
+        "ids": []
+      },
+      {
+        "query": "ElecBeholder",
+        "error": null,
+        "count": 0,
+        "ids": []
+      },
+      {
+        "query": "2604.08342",
+        "error": null,
+        "count": 0,
+        "ids": []
+      }
+    ],
+    "models": [
+      {
+        "query": "EgoEverything",
+        "error": null,
+        "count": 0,
+        "ids": []
+      },
+      {
+        "query": "ElecBeholder",
+        "error": null,
+        "count": 0,
+        "ids": []
+      },
+      {
+        "query": "2604.08342",
+        "error": null,
+        "count": 0,
+        "ids": []
+      }
+    ],
+    "spaces": [
+      {
+        "query": "EgoEverything",
+        "error": null,
+        "count": 0,
+        "ids": []
+      },
+      {
+        "query": "ElecBeholder",
+        "error": null,
+        "count": 0,
+        "ids": []
+      },
+      {
+        "query": "2604.08342",
+        "error": null,
+        "count": 0,
+        "ids": []
+      }
+    ]
+  },
+  "hf_any_hits": false,
+  "public_section4_assets_ready": false,
+  "conclusion": "No public official Section 4 MCQ manifest, answer key, or VLM eval runner was found in GitHub releases/tags/tree or Hugging Face search results."
+}

@@ -1,0 +1,39 @@
+#!/bin/bash
+# Example configuration script for VQA Generation Pipeline
+
+# Set your API key
+: "${OPENROUTER_API_KEY:?Set OPENROUTER_API_KEY before running this example.}"
+export API_KEY="$OPENROUTER_API_KEY"
+
+# Set dataset paths
+export DATASET_PATH="/home/wang/AriaEveryday_activaties"
+export JSON_PATH="/home/wang/AriaEveryday_activaties/AriaEverydayActivities_download_urls.json"
+export DATASET_NAME="AriaEveryday_Activities"
+
+# Run full pipeline (verbose logging)
+#python main.py \
+#    --api-key "$API_KEY" \
+#    --dataset-path "$DATASET_PATH" \
+#    --json-path "$JSON_PATH" \
+#    --dataset-name "$DATASET_NAME" \
+#    --limit 1:2 \
+#    --question-factor 4 \
+#    --sampling-density 60 \
+#    --n-llms 20 \
+#    --qa-n-llms 60 \
+#    --temp-dir "tmp" \
+#    --verbose
+
+# Run test pipeline (simple logging - default)
+python main.py \
+    --api-key "$API_KEY" \
+    --dataset-path "$DATASET_PATH" \
+    --json-path "$JSON_PATH" \
+    --dataset-name "$DATASET_NAME" \
+    --limit 1:2 \
+    --question-factor 1 \
+    --sampling-density 5 \
+    --n-llms 20 \
+    --qa-n-llms 1 \
+    --temp-dir "tmp" \
+    --verbose

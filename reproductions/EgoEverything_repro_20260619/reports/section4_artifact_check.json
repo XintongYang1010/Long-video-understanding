@@ -1,0 +1,32 @@
+{
+  "artifact_root": "/scratch/xy3257/EgoEverything_repro_20260619/section4_artifacts",
+  "dataset_path": "/scratch/xy3257/EgoEverything_repro_20260619/Data",
+  "repo": "/scratch/xy3257/EgoEverything_repro_20260619/EgoEverything",
+  "ready": false,
+  "missing": [
+    "official Section 4 MCQ benchmark manifest",
+    "official answer key / gold labels",
+    "Section 4 VLM evaluation runner/prompts for FR, AD, GC, GM, VMP, AMEGO",
+    "model/API credential environment variable"
+  ],
+  "benchmark_candidates": [],
+  "answer_key_candidates": [],
+  "eval_runner_candidates": [],
+  "processed_video_dirs": [
+    "/scratch/xy3257/EgoEverything_repro_20260619/Data/loc5_script4_seq6_rec1"
+  ],
+  "api_env_present": {
+    "OPENROUTER_API_KEY": false,
+    "OPENAI_API_KEY": false,
+    "GOOGLE_API_KEY": false,
+    "GEMINI_API_KEY": false
+  },
+  "required_methods": [
+    "FR",
+    "AD",
+    "GC",
+    "GM",
+    "VMP",
+    "AMEGO"
+  ]
+}

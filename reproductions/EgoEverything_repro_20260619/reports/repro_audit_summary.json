@@ -1,0 +1,190 @@
+{
+  "condition_validation": {
+    "manifest": "/scratch/xy3257/EgoEverything_repro_20260619/section4_conditions/loc5_script4_seq6_rec1/section4_conditions_manifest.json",
+    "valid": true,
+    "errors": [],
+    "source_video": "/scratch/xy3257/EgoEverything_repro_20260619/Data/loc5_script4_seq6_rec1/loc5_script4_seq6_rec1.mp4",
+    "source_tracking": "/scratch/xy3257/EgoEverything_repro_20260619/Data/loc5_script4_seq6_rec1/loc5_script4_seq6_rec1_tracking.csv",
+    "processed_frames": 4263,
+    "gaze_missing_frames": 0,
+    "crop_ratio": 0.3333333333333333,
+    "crop_size": 470,
+    "ad_scale": 0.3333333333333333,
+    "ad_width": 470,
+    "ad_height": 470,
+    "probes": {
+      "FR": {
+        "path": "/scratch/xy3257/EgoEverything_repro_20260619/section4_conditions/loc5_script4_seq6_rec1/FR/loc5_script4_seq6_rec1.mp4",
+        "exists": true,
+        "opened": true,
+        "size_bytes": 321885819,
+        "frames": 4263,
+        "fps": 20.0,
+        "width": 1408,
+        "height": 1408,
+        "mid_sha16": "285cf4356d8021b6"
+      },
+      "AD": {
+        "path": "/scratch/xy3257/EgoEverything_repro_20260619/section4_conditions/loc5_script4_seq6_rec1/AD/loc5_script4_seq6_rec1.mp4",
+        "exists": true,
+        "opened": true,
+        "size_bytes": 29789364,
+        "frames": 4263,
+        "fps": 20.0,
+        "width": 470,
+        "height": 470,
+        "mid_sha16": "39cd1f5ea355126f"
+      },
+      "GC": {
+        "path": "/scratch/xy3257/EgoEverything_repro_20260619/section4_conditions/loc5_script4_seq6_rec1/GC/loc5_script4_seq6_rec1.mp4",
+        "exists": true,
+        "opened": true,
+        "size_bytes": 34592241,
+        "frames": 4263,
+        "fps": 20.0,
+        "width": 470,
+        "height": 470,
+        "mid_sha16": "f4bf85fb4c368ed9"
+      },
+      "GM": {
+        "path": "/scratch/xy3257/EgoEverything_repro_20260619/section4_conditions/loc5_script4_seq6_rec1/GM/loc5_script4_seq6_rec1.mp4",
+        "exists": true,
+        "opened": true,
+        "size_bytes": 262419146,
+        "frames": 4263,
+        "fps": 20.0,
+        "width": 1408,
+        "height": 1408,
+        "mid_sha16": "fb8fa1c0a2b13f5f"
+      }
+    }
+  },
+  "public_release_check": {
+    "checked_at_unix": 1781844555,
+    "github": {
+      "api": "https://api.github.com/repos/ElecBeholder/EgoEverything",
+      "errors": {
+        "repo": null,
+        "branches": null,
+        "releases": null,
+        "tags": null,
+        "tree": null
+      },
+      "default_branch": "fix",
+      "pushed_at": "2025-11-02T09:18:49Z",
+      "branch_heads": {
+        "fix": "41d91cf529b2a0a889d5ea41e0b488c50106443d"
+      },
+      "expected_sha": "41d91cf529b2a0a889d5ea41e0b488c50106443d",
+      "expected_sha_matches_fix": true,
+      "release_count": 0,
+      "tag_count": 0,
+      "tree_truncated": false,
+      "signal_paths": [
+        "Evaluation",
+        "Evaluation/gaze_video_renderer.py",
+        "Evaluation/run_gaze_renderer.py",
+        "Generation/README.md"
+      ],
+      "section4_asset_candidate_paths": []
+    },
+    "huggingface": {
+      "datasets": [
+        {
+          "query": "EgoEverything",
+          "error": null,
+          "count": 0,
+          "ids": []
+        },
+        {
+          "query": "ElecBeholder",
+          "error": null,
+          "count": 0,
+          "ids": []
+        },
+        {
+          "query": "2604.08342",
+          "error": null,
+          "count": 0,
+          "ids": []
+        }
+      ],
+      "models": [
+        {
+          "query": "EgoEverything",
+          "error": null,
+          "count": 0,
+          "ids": []
+        },
+        {
+          "query": "ElecBeholder",
+          "error": null,
+          "count": 0,
+          "ids": []
+        },
+        {
+          "query": "2604.08342",
+          "error": null,
+          "count": 0,
+          "ids": []
+        }
+      ],
+      "spaces": [
+        {
+          "query": "EgoEverything",
+          "error": null,
+          "count": 0,
+          "ids": []
+        },
+        {
+          "query": "ElecBeholder",
+          "error": null,
+          "count": 0,
+          "ids": []
+        },
+        {
+          "query": "2604.08342",
+          "error": null,
+          "count": 0,
+          "ids": []
+        }
+      ]
+    },
+    "hf_any_hits": false,
+    "public_section4_assets_ready": false,
+    "conclusion": "No public official Section 4 MCQ manifest, answer key, or VLM eval runner was found in GitHub releases/tags/tree or Hugging Face search results."
+  },
+  "section4_artifact_check": {
+    "artifact_root": "/scratch/xy3257/EgoEverything_repro_20260619/section4_artifacts",
+    "dataset_path": "/scratch/xy3257/EgoEverything_repro_20260619/Data",
+    "repo": "/scratch/xy3257/EgoEverything_repro_20260619/EgoEverything",
+    "ready": false,
+    "missing": [
+      "official Section 4 MCQ benchmark manifest",
+      "official answer key / gold labels",
+      "Section 4 VLM evaluation runner/prompts for FR, AD, GC, GM, VMP, AMEGO",
+      "model/API credential environment variable"
+    ],
+    "benchmark_candidates": [],
+    "answer_key_candidates": [],
+    "eval_runner_candidates": [],
+    "processed_video_dirs": [
+      "/scratch/xy3257/EgoEverything_repro_20260619/Data/loc5_script4_seq6_rec1"
+    ],
+    "api_env_present": {
+      "OPENROUTER_API_KEY": false,
+      "OPENAI_API_KEY": false,
+      "GOOGLE_API_KEY": false,
+      "GEMINI_API_KEY": false
+    },
+    "required_methods": [
+      "FR",
+      "AD",
+      "GC",
+      "GM",
+      "VMP",
+      "AMEGO"
+    ]
+  },
+  "section4_artifact_check_exit_code": 2
+}

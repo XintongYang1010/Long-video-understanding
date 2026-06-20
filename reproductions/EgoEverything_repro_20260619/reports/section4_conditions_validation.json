@@ -1,0 +1,60 @@
+{
+  "manifest": "/scratch/xy3257/EgoEverything_repro_20260619/section4_conditions/loc5_script4_seq6_rec1/section4_conditions_manifest.json",
+  "valid": true,
+  "errors": [],
+  "source_video": "/scratch/xy3257/EgoEverything_repro_20260619/Data/loc5_script4_seq6_rec1/loc5_script4_seq6_rec1.mp4",
+  "source_tracking": "/scratch/xy3257/EgoEverything_repro_20260619/Data/loc5_script4_seq6_rec1/loc5_script4_seq6_rec1_tracking.csv",
+  "processed_frames": 4263,
+  "gaze_missing_frames": 0,
+  "crop_ratio": 0.3333333333333333,
+  "crop_size": 470,
+  "ad_scale": 0.3333333333333333,
+  "ad_width": 470,
+  "ad_height": 470,
+  "probes": {
+    "FR": {
+      "path": "/scratch/xy3257/EgoEverything_repro_20260619/section4_conditions/loc5_script4_seq6_rec1/FR/loc5_script4_seq6_rec1.mp4",
+      "exists": true,
+      "opened": true,
+      "size_bytes": 321885819,
+      "frames": 4263,
+      "fps": 20.0,
+      "width": 1408,
+      "height": 1408,
+      "mid_sha16": "285cf4356d8021b6"
+    },
+    "AD": {
+      "path": "/scratch/xy3257/EgoEverything_repro_20260619/section4_conditions/loc5_script4_seq6_rec1/AD/loc5_script4_seq6_rec1.mp4",
+      "exists": true,
+      "opened": true,
+      "size_bytes": 29789364,
+      "frames": 4263,
+      "fps": 20.0,
+      "width": 470,
+      "height": 470,
+      "mid_sha16": "39cd1f5ea355126f"
+    },
+    "GC": {
+      "path": "/scratch/xy3257/EgoEverything_repro_20260619/section4_conditions/loc5_script4_seq6_rec1/GC/loc5_script4_seq6_rec1.mp4",
+      "exists": true,
+      "opened": true,
+      "size_bytes": 34592241,
+      "frames": 4263,
+      "fps": 20.0,
+      "width": 470,
+      "height": 470,
+      "mid_sha16": "f4bf85fb4c368ed9"
+    },
+    "GM": {
+      "path": "/scratch/xy3257/EgoEverything_repro_20260619/section4_conditions/loc5_script4_seq6_rec1/GM/loc5_script4_seq6_rec1.mp4",
+      "exists": true,
+      "opened": true,
+      "size_bytes": 262419146,
+      "frames": 4263,
+      "fps": 20.0,
+      "width": 1408,
+      "height": 1408,
+      "mid_sha16": "fb8fa1c0a2b13f5f"
+    }
+  }
+}
