@@ -2,6 +2,17 @@
 
 This repository is a cleaned synchronization snapshot from `/scratch/xy3257` on 2026-06-02.  It contains the active code, validation scripts, and selected experiment outputs for the long-video / egocentric-video understanding work.
 
+## 2026-06-21 Multi-user EgoLife QA Handoff
+
+For the current multi-user EgoLife QA benchmark handoff, start with:
+
+- [`HANDOFF_multi_user_qa.md`](HANDOFF_multi_user_qa.md)
+- [`egolife_two_user_qa/README.md`](egolife_two_user_qa/README.md)
+- [`egolife_two_user_qa/prompts.py`](egolife_two_user_qa/prompts.py)
+- [`egolife_two_user_qa/video_qa_loop.py`](egolife_two_user_qa/video_qa_loop.py)
+
+The handoff document explains the project goal, current status, end-to-end pipeline, prompt/judge design, known failure cases, local-vs-GitHub caveats, and next steps for collaborators.
+
 
 ## 2026-06-06 MA-EgoQA Route B: SigLIP Retrieval + Qwen3-VL
 
